@@ -1,7 +1,6 @@
-In this section, we provide an overview of how dependent session types in
-\TLLC{} facilitate certified concurrent programming. Through examples, we
-illustrate the key features of \TLLC{} and how they are integrated with the
-underlying TLL type theory.
+Session types in \TLLC{} are minimalistic in design and yet surprisingly expressive
+due to the presence of dependent types. Through examples, we provide an overview of
+how dependent session types facilitate certified concurrent programming in \TLLC{}.
 
 \subsection{Message Specification}
 An obvious, but important, use of dependent session types is the precise specification
@@ -27,13 +26,13 @@ the proof does not participate in actual communication, the necessity for the se
 This example showcases the main primitives for constructing dependent protocols in
 \TLLC{}: the $!(x : A).B$ and $?(x : A).B$ \emph{protocol actions}. The syntax of these
 constructs take inspiration from binary session types~\cite{gay10,wadler12} and label
-dependent session types~\cite{ldst}, however their usage in \TLLC{} differs from these
-prior works. In the aforementioned works, the $!$ marker indicates that the channel is to send
+dependent session types~\cite{ldst}, however the meaning of these constructs in \TLLC{} is
+subtly different. In prior works, the $!$ marker indicates that the channel is to send
 and the $?$ marker indicates that the channel is to receive. In \TLLC{}, neither marker
 expresses sending or receiving per se, but rather an abstract action that needs to be
 interpreted through a \emph{channel type}. Hence, the description of the messaging protocol
 above is stated to be informal. To assign a precise meaning to the protocol, we need to
-consider it through the lense of channel types:
+view it through the lenses of channel types:
 \begin{align*}
   &\CH{!(\textit{sz}: \textsf{nat}).\ ?(\textit{msg}: \textsf{bytes}).\ ?\{\textsf{sizeOf}(\textit{msg}) = \textit{sz}\}.\ \End} \\
   &\HC{!(\textit{sz}: \textsf{nat}).\ ?(\textit{msg}: \textsf{bytes}).\ ?\{\textsf{sizeOf}(\textit{msg}) = \textit{sz}\}.\ \End}
@@ -81,11 +80,65 @@ party is required by the type system to send a ciphertext that is indeed encrypt
 from the (trusted) algorithm $E$.
 
 Another, more concrete, example of using ghost messages to specify secrets is the
-Diffie-Hellman key exchange protocol defined as follows:
+Diffie-Hellman key exchange~\cite{DH76} protocol defined as follows:
 \begin{align*}
-  \textsf{DH}(p\ g: \textsf{int}) \triangleq
-  !\{a: \textsf{int}\}
+  \textsf{DH}(p\ g: \textsf{int})
+  \triangleq & !\{a: \textsf{int}\}.\ !(A: \textsf{int}).\ !\{A = \textsf{powm}(g, a, p)\}.\\
+             & ?\{b: \textsf{int}\}.\ ?(B: \textsf{int}).\ ?\{B = \textsf{powm}(g, b, p)\}.\ \End
 \end{align*}
+The \textsf{DH} protocol is parameterized by publicly known integers $p$ and $g$.
+Without loss of generality, we refer to the message sender for the first row of the
+protocol as Alice and the message sender for the second row as Bob. From Alice's
+perspective, she first sends her secret value $a$ as a dependent ghost message to
+initialize her half of the protocol. Next, her public value $A$ is sent as a real
+message to Bob along with a proof that $A$ is correctly computed from values $p, g$ and $a$
+(using modular exponentiation \textsf{powm}). At this point, Alice has finished sending
+messages and waits for message from Bob to complete the key exchange. She first
+``receives'' Bob's secret $b$ as a ghost message which initializes Bob's half of the
+protocol. Later, Bob' public value $B$ is received as a real message along with a proof
+that $B$ is correctly computed from $p, g$ and $b$. Notice that between Alice and Bob,
+the only the real messages $A$ and $B$ will be exchanged at runtime. The secret values
+$a$ and $b$ and the correctness proofs are all ghost message that are erased prior to
+runtime. Basically, the \textsf{DH} protocol forces communication between Alice and Bob
+to be encrypted and maintain secrecy at runtime.
+\begin{center}
+\begin{minipage}{0.4\textwidth}
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{alignat*}{4}
+  &\Def\ \textsf{Alice}\ (a\ p\ g: \textsf{int})\ (c : \CH{\textsf{DH}(p,g)}) \\
+  &: \CM{\textsf{unit}} := \\
+  &\quad\Let\ c \Leftarrow \textsf{send}\ c\ \{ a \}\ \In \\
+  &\quad\Let\ c \Leftarrow \textsf{send}\ c\ (\textsf{powm}(g, a, p))\ \In \\
+  &\quad\Let\ c \Leftarrow \textsf{send}\ c\ \{\textsf{refl}\}\ \In \\
+  &\quad\Let\ \langle{\{b\}, c}\rangle \Leftarrow \textsf{recv}\ c\ \In \\
+  &\quad\Let\ \langle{B, c}\rangle \Leftarrow \textsf{recv}\ c\ \In \\
+  &\quad\Let\ \langle{\{\textit{pf}\}, c}\rangle \Leftarrow \textsf{recv}\ c\ \In \\
+  &\quad\textsf{close}(c)
+\end{alignat*}
+\endgroup
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{alignat*}{4}
+  &\Def\ \textsf{Bob}\ (b\ p\ g: \textsf{int})\ (c : \HC{\textsf{DH}(p,g)}) \\
+  &: \CM{\textsf{unit}} := \\
+  &\quad\Let\ \langle{\{a\}, c}\rangle \Leftarrow \textsf{recv}\ c\ \In \\
+  &\quad\Let\ \langle{A, c}\rangle \Leftarrow \textsf{recv}\ c\ \In \\
+  &\quad\Let\ \langle{\{\textit{pf}\}, c}\rangle \Leftarrow \text{recv}\ c\ \In \\
+  &\quad\Let\ c \Leftarrow \textsf{send}\ c\ \{ b \}\ \In \\
+  &\quad\Let\ c \Leftarrow \textsf{send}\ c\ (\textsf{powm}(g, b, p))\ \In \\
+  &\quad\Let\ c \Leftarrow \textsf{send}\ c\ \{\textsf{refl}\}\ \In \\
+  &\quad\textsf{wait}(c)
+\end{alignat*}
+\endgroup
+\end{minipage}
+\end{center}
+
+
 
 
 
