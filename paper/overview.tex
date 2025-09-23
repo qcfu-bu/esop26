@@ -110,13 +110,13 @@ to be encrypted and maintain secrecy at runtime.
 \begin{alignat*}{4}
   &\Def\ \textsf{Alice}\ (a\ p\ g: \textsf{int})\ (c : \CH{\textsf{DH}(p,g)}) \\
   &: \CM{\textsf{unit}} := \\
-  &\quad\Let\ c \Leftarrow \textsf{send}\ c\ \{ a \}\ \In \\
-  &\quad\Let\ c \Leftarrow \textsf{send}\ c\ (\textsf{powm}(g, a, p))\ \In \\
-  &\quad\Let\ c \Leftarrow \textsf{send}\ c\ \{\textsf{refl}\}\ \In \\
-  &\quad\Let\ \langle{\{b\}, c}\rangle \Leftarrow \textsf{recv}\ c\ \In \\
-  &\quad\Let\ \langle{B, c}\rangle \Leftarrow \textsf{recv}\ c\ \In \\
-  &\quad\Let\ \langle{\{\textit{pf}\}, c}\rangle \Leftarrow \textsf{recv}\ c\ \In \\
-  &\quad\textsf{close}(c)
+  &\quad\Let\ c \Leftarrow \Send\ c\ \{ a \}\ \In \\
+  &\quad\Let\ c \Leftarrow \Send\ c\ (\textsf{powm}(g, a, p))\ \In \\
+  &\quad\Let\ c \Leftarrow \Send\ c\ \{\textsf{refl}\}\ \In \\
+  &\quad\Let\ \langle{\{b\}, c}\rangle \Leftarrow \Recv\ c\ \In \\
+  &\quad\Let\ \langle{B, c}\rangle \Leftarrow \Recv\ c\ \In \\
+  &\quad\Let\ \langle{\{\textit{pf}\}, c}\rangle \Leftarrow \Recv\ c\ \In \\
+  &\quad\Close(c)
 \end{alignat*}
 \endgroup
 \end{minipage}
@@ -127,13 +127,13 @@ to be encrypted and maintain secrecy at runtime.
 \begin{alignat*}{4}
   &\Def\ \textsf{Bob}\ (b\ p\ g: \textsf{int})\ (c : \HC{\textsf{DH}(p,g)}) \\
   &: \CM{\textsf{unit}} := \\
-  &\quad\Let\ \langle{\{a\}, c}\rangle \Leftarrow \textsf{recv}\ c\ \In \\
-  &\quad\Let\ \langle{A, c}\rangle \Leftarrow \textsf{recv}\ c\ \In \\
-  &\quad\Let\ \langle{\{\textit{pf}\}, c}\rangle \Leftarrow \text{recv}\ c\ \In \\
-  &\quad\Let\ c \Leftarrow \textsf{send}\ c\ \{ b \}\ \In \\
-  &\quad\Let\ c \Leftarrow \textsf{send}\ c\ (\textsf{powm}(g, b, p))\ \In \\
-  &\quad\Let\ c \Leftarrow \textsf{send}\ c\ \{\textsf{refl}\}\ \In \\
-  &\quad\textsf{wait}(c)
+  &\quad\Let\ \langle{\{a\}, c}\rangle \Leftarrow \Recv\ c\ \In \\
+  &\quad\Let\ \langle{A, c}\rangle \Leftarrow \Recv\ c\ \In \\
+  &\quad\Let\ \langle{\{\textit{pf}\}, c}\rangle \Leftarrow \Recv\ c\ \In \\
+  &\quad\Let\ c \Leftarrow \Send\ c\ \{ b \}\ \In \\
+  &\quad\Let\ c \Leftarrow \Send\ c\ (\textsf{powm}(g, b, p))\ \In \\
+  &\quad\Let\ c \Leftarrow \Send\ c\ \{\textsf{refl}\}\ \In \\
+  &\quad\Wait(c)
 \end{alignat*}
 \endgroup
 \end{minipage}
@@ -157,6 +157,16 @@ ensure that every send in \textsf{Alice} is matched by a corresponding receive i
 type checker to correctly carry out the Diffie-Hellman key exchange.
 
 \subsection{Relational Verification}
+Earlier in the introduction section, we showed a sketch of how dependent session types
+can be used for certified concurrent programming through the example of a concurrent queue.
+In this section, we provide a detailed account of how we can use dependent session types
+to construct a generic map-reduce system. Similarly to the queue example, we will verify
+the correctness of the map-reduce system by relating it to sequential operations on trees.
+
+
+
+
+
 
 
 %%% Local Variables:
