@@ -1,0 +1,22 @@
+Earlier in the introduction section, we showed a sketch of how dependent session types
+can be used for certified concurrent programming through the example of a concurrent queue.
+In this section, we provide a detailed account of how we can use dependent session types
+to construct a generic map-reduce system. Similarly to the queue example, we will verify
+the correctness of the map-reduce system by relating it to sequential operations on trees.
+
+The first step in constructing the map-reduce system is to define the kinds of operations
+that can be performed by the system.
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{align*}
+  \Inductive\ \textsf{opr}(A : \Un) :=\ &\textsf{Free}  : \textsf{opr}(A) \\
+  \mid\ &\textsf{Map}   : \forall \{B : \Un\}\ (f : A \rightarrow B) \rightarrow \textsf{opr}(A) \\
+  \mid\ &\textsf{Reduce}: \forall \{B : \Un\}\ (f : A \rightarrow B)\ (g : B \rightarrow B \rightarrow B) \rightarrow \textsf{opr}(A)
+\end{align*}
+\endgroup
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: "main"
+%%% End:
