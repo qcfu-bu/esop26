@@ -4,6 +4,16 @@ In this section, we provide a detailed account of how we can use dependent sessi
 to construct a generic map-reduce system. Similarly to the queue example, we will verify
 the correctness of the map-reduce system by relating it to sequential operations on trees.
 
+Intuitively, map-reduce creates a tree of concurrently executing workers as illustrated in
+\Cref{fig:map-reduce}. Initially, the client partitions the data into smaller chunks and sends them to
+the leaf workers of the tree. Next, each leaf worker applies a user-specified
+function $f$ to each of its received data chunks and sends the results to its parent worker.
+When an internal worker receives results from its children, it combines the results using another
+user-specified binary function $g$. This procedure continues until the root worker computes
+the final result and sends it back to the client. Due to the fact that workers without
+data dependencies can operate concurrently, the overall system can achieve significantly better
+performance than sequential implementations of the same operations.
+\vspace{-0.3em}
 \begin{figure}[H]
 \begin{tikzpicture}[
   treenode/.style = {shape=rectangle, rounded corners,
@@ -32,6 +42,9 @@ the correctness of the map-reduce system by relating it to sequential operations
     };
 \draw[-latex] (c0.east) -- (t0.west);
 \end{tikzpicture}
+\vspace{-0.5em}
+\caption{Tree Diagram of Map-Reduce}
+\label{fig:map-reduce}
 \end{figure}
 
 The first step in constructing the map-reduce system is to define the kinds of operations
