@@ -1,0 +1,110 @@
+\documentclass[acmsmall,10pt,anonymous]{acmart}
+\settopmatter{printfolios=true,printccs=false,printacmref=false}
+%% For double-blind review submission, w/ CCS and ACM Reference
+%\documentclass[acmsmall,review,anonymous]{acmart}\settopmatter{printfolios=true}
+%% For single-blind review submission, w/o CCS and ACM Reference (max submission space)
+%\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+%% For single-blind review submission, w/ CCS and ACM Reference
+%\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true}
+%% For final camera-ready submission, w/ required CCS and ACM Reference
+%\documentclass[acmsmall]{acmart}\settopmatter{}
+
+% Journal information
+%% Supplied to authors by publisher for camera-ready submission;
+%% use defaults for review submission.
+\acmJournal{PACMPL}
+\acmVolume{1}
+\acmNumber{CONF} % CONF = POPL or ICFP or OOPSLA
+\acmYear{2022}
+\acmMonth{1}
+\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+% \startPage{1}
+
+%% Copyright information
+%% Supplied to authors (based on authors' rights management selection;
+%% see authors.acm.org) by publisher for camera-ready submission;
+%% use 'none' for review submission.
+\setcopyright{none}
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
+%\copyrightyear{2018}           %% If different from \acmYear
+
+\input{preamble}
+
+%% Bibliography style
+\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+%% Note: author/year citations are required for papers published as an
+%% issue of PACMPL.
+\citestyle{acmauthoryear}
+
+\begin{document}
+
+\title{Dependent Session Types for Certified Concurrent Programming}
+
+\author{Qiancheng Fu}
+\affiliation{
+  \institution{Boston University}
+  \city{Boston}
+  \state{MA}
+  \country{USA}
+}
+\email{qcfu@bu.edu}
+
+\author{Zachery Casey}
+\affiliation{
+  \institution{Boston University}
+  \city{Boston}
+  \state{MA}
+  \country{USA}
+}
+\email{caseyz@bu.edu}
+
+\author{Hongwei Xi}
+\affiliation{
+  \institution{Boston University}
+  \city{Boston}
+  \state{MA}
+  \country{USA}
+}
+\email{hwxi@bu.edu}
+
+\begin{abstract}
+We present \TLLC{} which extends the Two-Level Linear dependent type theory
+(TLL) with session type based concurrency. Equipped with Martin-L\"{o}f style
+dependency, the session types of \TLLC{} allow protocols to specify the
+properties of communicated messages. When used in conjunction with the dependent
+type machinery already present in TLL, dependent session types facilitate the a
+form of relational verification by relating concurrent programs with their
+idealized sequential counterparts. Correctness properties proven for sequential
+programs can now be easily lifted to their corresponding concurrent programs.
+Session types now become a powerful tool for intrinsically verifying the
+correctness of data structures such as queues and concurrent algorithms such as
+map-reduce. To extend TLL with session types, we develop a novel formulation of
+intuitionistic session type which we believe to be widely applicable for
+integrating session types into other type systems beyond the context of \TLLC{}.
+We study the meta-theory of our language, proving its soundness as both a term
+calculus and a process calculus. All reported results are formalized in Coq.
+A prototype compiler which compiles \TLLC{} programs into concurrent C code is
+implemented and freely available.
+\end{abstract}
+\keywords{dependent types, linear types, session types, concurrency}
+
+\maketitle
+
+\section{Introduction}
+\input{intro}
+
+\section{Overview of Dependent Session Types}
+\input{overview}
+
+
+
+\bibliography{reference}
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

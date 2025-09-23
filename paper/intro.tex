@@ -1,0 +1,243 @@
+Session types~\cite{honda93} are an effective typing discipline for coordinating
+concurrent computation. Through type checking, processes are forced to adhere to
+communication protocols and maintain synchronization. This allows session type
+systems to statically rule out runtime bugs for concurrent programs similarly to
+how standard type systems rule out bugs for sequential programs. While (simple)
+session type systems guarantee concurrent programs do not crash catastrophically,
+it remains difficult to write concurrent programs which are semantically correct.
+
+Consider the Pfenning-style concurrent queue which is a common data structure encountered
+in the session type literature. A queue is described by the following type:
+\begin{align*}
+  \textsf{queue}_A \triangleq \&\{
+  \textsf{ins}: A \multimap \textsf{queue}_A,
+  \textsf{del}: \oplus\{\textsf{none}: \End, \textsf{some}: A \otimes \textsf{queue}_A\}
+  \}
+\end{align*}
+The following diagram illustrates the channel topology of a client interacting with
+a queue server.
+\begin{center}
+\vspace{0.4em}
+\begin{tikzpicture}[
+squarednode/.style={rectangle, draw=red!60, fill=red!5, thick, minimum size=7mm},
+roundnode/.style={circle, draw, thick, fill=black!2, minimum size=7mm},
+ghostnode/.style={minimum size=5mm},
+]
+%Nodes
+\node[squarednode]      (c0)       {client};
+\node[roundnode]        (p1)       [right=of c0] {$p_1$};
+\node[roundnode]        (p2)       [right=of p1] {$p_2$};
+\node[roundnode]        (p3)       [right=of p2] {$p_3$};
+\node[ghostnode]        (px)       [right=of p3] {$...$};
+\node[roundnode]        (pn)       [right=of px] {$p_n$};
+
+%Lines
+\draw[<->] (c0.east) -- (p1.west);
+\draw[<->] (p1.east) -- (p2.west);
+\draw[<->] (p2.east) -- (p3.west);
+\draw[<->] (p3.east) -- (px.west);
+\draw[<->] (px.east) -- (pn.west);
+\end{tikzpicture}
+\end{center}
+Each of the $p_i$ nodes here represents a queue cell which holds a value and are
+linked together by bidirectional channels of type $\text{queue}_A$.  As
+indicated by the type constructor $\&$, the first queue node $q_1$ first
+receives either an $\textsf{ins}$ or $\textsf{del}$ label from the client. In
+the case of an $\textsf{ins}$ label, $p_1$ receives a value $v$ of type $A$
+(indicated by $\multimap$) from the client.  The $p_1$ node then sends an
+$\textsf{ins}$ label to $p_2$ and forwards $v$ to it.  This forwarding process
+repeats until the value reaches the end of the queue where a new queue cell
+$p_{n+1}$ is allocated to store $v$. On the other hand, if $p_1$ receives a
+$\textsf{del}$ label, the type constructor $\oplus$ requires that $p_1$ send
+either $\textsf{none}$ or $\textsf{some}$.  The $\textsf{none}$ label is sent to
+signify that the queue is empty and ready to terminate (indicated by $\End$).
+The $\textsf{some}$ label is sent along with a value of type $A$ (indicated by $\otimes$)
+which is the dequeued element. Finally, $p_1$ forwards its channel, connecting to
+$p_2$, to the client so that the client may continue interacting with the rest of the queue.
+
+It is clear from the example above that the session type $\textsf{queue}_A$ only lists
+what operations a queue should support, but does not specify the expected behavior of
+these operations. For instance, it does not specify that an $\textsf{ins}$ operation should
+add an element to the back of the queue or that a $\textsf{del}$ operation should return the
+element at the front of the queue. A correct implementation needs to maintain all of
+these additional invariants not captured by the session type. In fact, due to the under
+specification of the $\textsf{queue}_A$ type, it is possible to implement a ``queue''
+which simply ignores all $\textsf{ins}$ messages and always returns $\textsf{none}$ on $\textsf{del}$.
+
+% The refinement session types of Das et al.~\cite{das20} partially address this issue by
+% using \emph{refinement types} to add more precision to session types. In this approach,
+% the queue type is refined to the following:
+% \begin{align*}
+%   \textsf{queue}[n]_A \triangleq \&\{
+%   \textsf{ins}: A \multimap \textsf{queue}[n+1]_A,
+%   \textsf{del}: \oplus\{\textsf{none}: !\{n = 0\}. \End, \textsf{some}: !\{1 \leq n\}. A \otimes \textsf{queue}_A\}
+%   \}
+% \end{align*}
+% Here, the type $\textsf{queue}[n]_A$ is parameterized by a natural number $n$ which represents
+% the length of the queue. The $\textsf{ins}$ operation is refined to indicate that the length
+% of the queue increases by one after an insertion. The $\textsf{del}$ operation is refined
+% to indicate that the $\textsf{none}$ label may only be sent when the queue is empty (i.e. $n = 0$)
+% and that the $\textsf{some}$ label may only be sent when the queue is non-empty (i.e. $1 \leq n$).
+% While refinement session types are able to capture the length changes of the queue,
+% ruling out many egregiously wrong implementations, they are still unable to capture the actual
+% \emph{functional} behavior of the queue. For instance, a stack-like structure can be implemented
+% with the above type as its length changes still comply with the refinements.
+
+To address this issue, we develop \TLLC{}, a dependent session type system which
+extends the Two-Level Linear dependent type theory (TLL)~\cite{fu23} with
+session-typed concurrency. In \TLLC{}, one could define the queues through the following
+dependent session type:
+\begin{alignat*}{2}
+  &\textsf{queue} (\textit{xs} : \textsf{list}\ A) \triangleq ?(\ell : \textsf{opr}). \Match\ \ell\ \With \\
+  &\qquad\mid \textsf{ins}(v) \Rightarrow \textsf{queue}(\textsf{snoc}(xs, v)) \\
+  &\qquad\mid \textsf{del} \Rightarrow
+    \Match\ \textit{xs}\ \With
+    \ (x :: xs') \Rightarrow !(\textsf{sing}\ x). !(\HC{\textsf{queue}(xs')}). \End
+    \mid [] \Rightarrow \End
+\end{alignat*}
+Here, the type $\textsf{queue}(\textit{xs})$ is parameterized by a list $\textit{xs}$
+which represents the current contents of the queue. Notice that the type no longer needs
+the $\oplus$ and $\&$ type constructors to describe branching behavior. Instead, it uses
+type-level pattern matching to inspect the label $\ell$ received from the client.
+The \textsf{opr} type which $\ell$ inhabits is defined as a simple inductive type with
+two constructors:
+\begin{align*}
+  \Inductive\ \textsf{opr} \triangleq \textsf{ins}: A \rightarrow \textsf{opr} \mid \textsf{del}: \textsf{opr}
+\end{align*}
+When a queue server receives an $\textsf{ins}(v)$ value, the type of the server becomes
+$\textsf{queue}(\textsf{snoc}(xs, v))$ were $\textsf{snoc}$ appends $v$ to the end of $xs$.
+Conversely, when a $\textsf{del}$ label is received, the type-level pattern matching on $xs$
+enforces that if the queue is non-empty (i.e. $x :: xs'$ case), then the server must send
+the front element $x$ of the queue to the client (indicated by the singleton type
+$\textsf{sing}\ x$) along with the channel $\HC{\textsf{queue}(xs')}$ connecting to the remainder
+of the queue. If the queue is empty (i.e. $[]$ case), then the server simply terminates.
+
+Given the \textsf{queue} protocol describe above, we can construct queue process nodes and
+interact with them. The following signatures are of helper functions that wrap interactions with
+the queue nodes into a convenient interface:
+\begin{alignat*}{2}
+  &\textsf{insert} &&: \forall \{xs : \textsf{list}\ A\}\;(x: A) \rightarrow \textsf{Queue}(xs) \rightarrow \textsf{Queue}(\textsf{snoc}(xs, x)) \\
+  &\textsf{delete} &&: \forall \{x: A\}\;\{xs : \textsf{list}\ A\} \rightarrow
+    \textsf{Queue}(x :: xs) \rightarrow \mcC (\textsf{sing}\ x \otimes \textsf{Queue}(xs)) \\
+  &\textsf{free}   &&: \textsf{Queue}([]) \rightarrow \mcC(\textsf{unit})
+\end{alignat*}
+The \textsf{Queue} type here is a type alias for the \emph{channel type} of queues
+(explained later in detail) and the $\mcC$ type constructor here is the \emph{concurrency monad}
+which encapsulates concurrent computations. Notice in the signature of \textsf{insert} and
+\textsf{delete} that there are dependent quantifiers surrounded by curly braces.
+These are the \emph{implicit} quantifiers of TLL which indicate that the corresponding arguments
+are ``ghost'' values used for type checking and erased prior to runtime. For our purposes here,
+such ghost values are especially useful for \emph{relationally} specifying the expected
+behaviors of queue interactions in terms of sequential list operations. For instance, the
+signature of \textsf{insert} states that the queue obtained after inserting $x$ is related to
+the original queue by the list operation $\textsf{snoc}$. Similarly, the signature of
+\textsf{delete} states that deleting from a non-empty queue returns the front element $x$.
+Even though neither of these $xs$ ghost values exist at runtime, they \emph{statically} ensure
+that concurrent processes implementing these interfaces behave like actual queues, i.e.,
+are first-in-first-out data structures. In a later section we will show how a generalized
+map-reduce algorithm can be implemented and verified using similar techniques.
+
+
+% It is important to note that these type-level pattern matches are \emph{static} and do not
+% incur any runtime overhead. But most crucially, they guarantee that any concurrent program
+% implementing this type behaves like an actual queue. Later we will show how a generalized
+% map-reduce algorithm can be implemented and verified using similar techniques.
+
+% Another important aspect of \TLLC{} is its ability to specify and reason about ``ghost'' messages
+% in protocols using the computational irrelevancy machinery of TLL. Consider the session type encoding
+% for an idealized Shannon cipher protocol:
+% \begin{align*}
+%   H(E, D) &\triangleq \forall \{k : \mcK\}\;\{m : \mcM\} \rightarrow D(k, E(k, m)) =_{\mcM} m
+% \qquad\text{(correctness property)}
+%   \\
+%   \mcE(E, D) &\triangleq
+%                !\{k : \mcK\}. !\{m : \mcM\}. !(c : \mcC). !\{p : H(E,D) \times (c =_\mcC E(k, m))\}. \End
+% \end{align*}
+% Given public encryption function $E: \mcK \times \mcM \rightarrow \mcC$ and
+% decryption function $D: \mcK \times \mcC \rightarrow \mcM$, the protocol $\mcE(E,D)$ begins
+% by sending \emph{implicit} messages as indicated by the curly braces: key $k$ of type $\mcK$
+% and message $m$ of type $\mcM$. These implicit messages are \emph{ghosts} in the sense
+% that they are only used for type checking and do not participate in runtime communication.
+% During compilation, the sending and receiving of implicit messages are compiled to no-ops.
+% Next, an \emph{explicit} ciphertext $c$ of type $\mcC$, indicated by round parenthesis,
+% is sent to the client. Explicit messages are actual runtime messages which are sent and received.
+% Finally, another implicit message $p$ is sent which is a proof object witnessing the
+% correctness property of the protocol: $c$ is obtained by encrypting $m$ with key $k$.
+% Observe that for the overall protocol, \emph{only} ciphertext $c$ will be sent at runtime while
+% the other messages (secrets) are erased. The Shannon cipher protocol basically forces communicated messages
+% to always be encrypted and prevents accidental leakage of plaintext.
+
+Integrating session typed based concurrency into TLL is non-trivial due to the
+fact that TLL is a dependently typed functional language. While prior
+works~\cite{gay10,wadler12} have successfully combined \emph{classical} session
+types with functional languages, its is well known that classical session types
+do not easily support recursive session types~\cite{gay20} (needed to express
+our \textsf{queue} type).  The main issue is that classical session types are
+defined in terms of a \emph{dual} operator which does not easily commute with
+recursive type definitions. The addition of arbitrary type-level computations
+through dependent types further complicates this matter.  On the other hand,
+\emph{intuitionistic} session types~\cite{caires10} eschew the dual operator and
+define dual \emph{interpretations} of session types based their \emph{left} or
+\emph{right} sequent rules.  Because intuitionistic session types do not rely on
+a dual operator, they are able to support recursive session types without
+commutativity issues. However, intuitionistic session types are often formulated
+in the context of process calculi without a functional layer. To enjoy the
+benefits of intuitionistic session types in a functional setting, we develop a
+novel form of intuitionistic session types where we separate the notion of
+\emph{protocols} from \emph{channel types}. The $\textsf{queue}(\textit{xs})$
+type from before is, in actuality, a protocol whereas
+$\HC{\textsf{queue}(\textit{xs})}$ is a channel type. In general, a channel type
+is formed by applying the $\CH{\cdot}$ and $\HC{\cdot}$ type constructors to
+protocols. These constructors provide dual interpretations to protocols,
+allowing dual channels of the same protocol to be connected together. For
+example, the protocol $!A. P$ would be interpreted dually as follows:
+\begin{alignat*}{2}
+  &\CH{!A. P}\quad &&(\textsf{send message of type } A) \\
+  &\HC{!A. P}\quad &&(\textsf{receive message of type } A)
+\end{alignat*}
+Such channel types can be naturally included into the contexts of functional
+type systems without needing to instrument the underlying language into a
+sequent calculus formulation.  We believe our treatment of intuitionistic
+session types is not specific to \TLLC{} and is widely applicable for
+integrating intuitionistic session types with other functional languages.
+
+In order to show that \TLLC{} ensures communication safety, we develop a process
+calculus based concurrency semantics. Process configurations in the calculus are
+collections of \TLLC{} programs interconnected by channels. At runtime,
+individual processes are evaluated using the program semantics of base TLL. When
+two processes at opposing ends (i.e. dually typed) of a channel are synchronized
+and ready to communicate, the process level semantics transmits their messages
+across the channel. We study the meta-theory of \TLLC{} and prove that it is
+indeed sound at both the level of terms and at the level of process
+configurations.
+
+All lemmas and theorems reported in the this paper are formalized in
+Coq~\cite{coq}. All examples can be compiled into C programs using our prototype
+compiler where concurrent processes are implemented using POSIX threads.  The
+compiler implements advanced language features such dependent pattern matching
+and functional in-place programming~\cite{lorenzen23} for linear types.  Proofs,
+source code, and examples are available in our git repository\footnote{\TODO}.
+
+In summary, we make the following contributions:
+\begin{itemize}
+  \item We extend the Two-Level Linear dependent type theory (TLL) with session
+        type based concurrency, forming the language of \TLLC{}. \TLLC{} inherits the
+        strengths of TLL such as Martin-L\"{o}f style linear dependent types and the
+        ability to control program erasure.
+  \item We develop a novel formulation of intuitionistic session types
+        through a clear separation of protocols and channel types. We believe
+        this formulation to be widely applicable for integrating session types into
+        other functional languages.
+  \item We study the meta-theoretical properties of \TLLC{}. We show that
+        \TLLC{}, as a term calculus, possesses desirable properties such as confluence and
+        subject reduction and, as a process calculus, guarantees communication safety.
+  \item The entire calculus, with its meta-theorems, is formalized in Coq.
+  \item We implement a prototype compiler which compiles \TLLC{} into safe and
+        efficient C code.
+\end{itemize}
+
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: "main"
+%%% End:

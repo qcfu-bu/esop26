@@ -1,0 +1,98 @@
+In this section, we provide an overview of how dependent session types in
+\TLLC{} facilitate certified concurrent programming. Through examples, we
+illustrate the key features of \TLLC{} and how they are integrated with the
+underlying TLL type theory.
+
+\subsection{Message Specification}
+An obvious, but important, use of dependent session types is the precise specification
+of message properties communicated between parties. This is useful in practical network
+systems where the content of messages may depend on the value of a prior request.
+Consider the following protocol:
+\begin{align*}
+  !(\textit{sz}: \textsf{nat}).\
+  ?(\textit{msg}: \textsf{bytes}).\ ?\{\textsf{sizeOf}(\textit{msg}) = \textit{sz}\}.\ \End
+\end{align*}
+Informally speaking, this protocol first expects a natural number \textit{sz} to be sent
+followed by receiving a byte string \textit{msg}. In simple session type systems without
+dependency, there would be no way of specifying the relationship between \textit{sz} and
+\textit{msg}. However, dependent session types allow us to express relations between messages.
+Notice in the third interaction expected by the protocol, the party sending \textit{msg} must
+provide a \emph{proof} that the size of \textit{msg} is indeed \textit{sz} according to
+an agreed upon \textsf{sizeOf} function. Finally, the protocol terminates with $\End$ and
+communication ends. Notice that the proof here, as indicated by the curly braces, is a
+\emph{ghost message}: it is used for type checking and erased prior to runtime. Even though
+the proof does not participate in actual communication, the necessity for the send of
+\textit{msg} to provide such a proof ensures that the protocol is followed correctly.
+
+This example showcases the main primitives for constructing dependent protocols in
+\TLLC{}: the $!(x : A).B$ and $?(x : A).B$ \emph{protocol actions}. The syntax of these
+constructs take inspiration from binary session types~\cite{gay10,wadler12} and label
+dependent session types~\cite{ldst}, however their usage in \TLLC{} differs from these
+prior works. In the aforementioned works, the $!$ marker indicates that the channel is to send
+and the $?$ marker indicates that the channel is to receive. In \TLLC{}, neither marker
+expresses sending or receiving per se, but rather an abstract action that needs to be
+interpreted through a \emph{channel type}. Hence, the description of the messaging protocol
+above is stated to be informal. To assign a precise meaning to the protocol, we need to
+consider it through the lense of channel types:
+\begin{align*}
+  &\CH{!(\textit{sz}: \textsf{nat}).\ ?(\textit{msg}: \textsf{bytes}).\ ?\{\textsf{sizeOf}(\textit{msg}) = \textit{sz}\}.\ \End} \\
+  &\HC{!(\textit{sz}: \textsf{nat}).\ ?(\textit{msg}: \textsf{bytes}).\ ?\{\textsf{sizeOf}(\textit{msg}) = \textit{sz}\}.\ \End}
+\end{align*}
+Here, these two channel types are constructed using \emph{dual} channel type
+constructors: $\CH{\cdot}$ and $\HC{\cdot}$.  The $\CH{\cdot}$ constructor
+interprets $!$ as sending and $?$ as receiving while the $\HC{\cdot}$
+constructor interprets $!$ as receiving and $?$ as sending. In other words, dual
+channel types interpret protocol actions in opposite ways. These constructors act similarly
+to the duality of left and right rules for intuitionistic session types~\cite{caires10}.
+Unlike intuitionistic session types which require the base type system to be
+based on sequent calculus, our channel types can be integrated into the type
+systems of functional languages so long as linear types are supported.
+
+\subsection{Dependent Ghost Secrets}
+Dependent ghost messages have interesting applications when it comes to message specification.
+Consider the following encoding of a idealized Shannon cipher protocol:
+\begin{align*}
+  H(E, D) &\triangleq \forall \{k : \mcK\}\;\{m : \mcM\} \rightarrow D(k, E(k, m)) =_{\mcM} m
+\qquad\text{(correctness property)}
+  \\
+  \mcE(E, D) &\triangleq
+               !\{k : \mcK\}.\ !\{m : \mcM\}.\ !(c : \mcC).\ !\{H(E,D) \times (c =_\mcC E(k, m))\}.\ \End
+\end{align*}
+Given public encryption and decryption functions
+$E: \mcK \times \mcM \rightarrow \mcC$ and
+$D: \mcK \times \mcC \rightarrow \mcM$ respectively, the protocol $\mcE(E,D)$
+begins by sending ghost messages: key $k$ of type $\mcK$ and message $m$ of type
+$\mcM$.  Next, the ciphertext $c$ of type $\mcC$, indicated by round
+parenthesis, is actually sent to the client. Finally, the last ghost message
+sent is a proof object witnessing the correctness property of the
+protocol: $c$ is obtained by encrypting $m$ with key $k$.  Observe that for the
+overall protocol, \emph{only} ciphertext $c$ will be sent at runtime while the
+other messages (secrets) are erased. The Shannon cipher protocol basically
+forces communicated messages to always be encrypted and prevents the accidental
+leakage of plaintext.
+
+It is important to note that ghost messages and proof specifications, by
+themselves, are \emph{not} sufficient to guaranteeing semantic security.
+An adversary can simply use a different programming language and circumvent the
+proof obligations imposed by \TLLC{}. However, these obligations are useful in
+ensuring that honest parties correctly follow \emph{trusted} protocols to defend
+against attackers. For example, in the Shannon cipher protocol above, an honest
+party is required by the type system to send a ciphertext that is indeed encrypted
+from the (trusted) algorithm $E$.
+
+Another, more concrete, example of using ghost messages to specify secrets is the
+Diffie-Hellman key exchange protocol defined as follows:
+\begin{align*}
+  \textsf{DH}(p\ g: \textsf{int}) \triangleq
+  !\{a: \textsf{int}\}
+\end{align*}
+
+
+
+\subsection{Data Structures and Algorithms}
+
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: "main"
+%%% End:
