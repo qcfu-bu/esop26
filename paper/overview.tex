@@ -51,11 +51,10 @@ systems of functional languages so long as linear types are supported.
 Dependent ghost messages have interesting applications when it comes to message specification.
 Consider the following encoding of a idealized Shannon cipher protocol:
 \begin{align*}
-  H(E, D) &\triangleq \forall \{k : \mcK\}\;\{m : \mcM\} \rightarrow D(k, E(k, m)) =_{\mcM} m
+  H(E, D) &:= \forall \{k : \mcK\}\;\{m : \mcM\} \rightarrow D(k, E(k, m)) =_{\mcM} m
 \qquad\text{(correctness property)}
   \\
-  \mcE(E, D) &\triangleq
-               !\{k : \mcK\}.\ !\{m : \mcM\}.\ !(c : \mcC).\ !\{H(E,D) \times (c =_\mcC E(k, m))\}.\ \End
+  \mcE(E, D) &:=\ !\{k : \mcK\}.\ !\{m : \mcM\}.\ !(c : \mcC).\ !\{H(E,D) \times (c =_\mcC E(k, m))\}.\ \End
 \end{align*}
 Given public encryption and decryption functions
 $E: \mcK \times \mcM \rightarrow \mcC$ and
@@ -83,8 +82,8 @@ Another, more concrete, example of using ghost messages to specify secrets is th
 Diffie-Hellman key exchange~\cite{DH76} protocol defined as follows:
 \begin{align*}
   \textsf{DH}(p\ g: \textsf{int})
-  \triangleq & !\{a: \textsf{int}\}.\ !(A: \textsf{int}).\ !\{A = \textsf{powm}(g, a, p)\}.\\
-             & ?\{b: \textsf{int}\}.\ ?(B: \textsf{int}).\ ?\{B = \textsf{powm}(g, b, p)\}.\ \End
+  :=\ & !\{a: \textsf{int}\}.\ !(A: \textsf{int}).\ !\{A = \textsf{powm}(g, a, p)\}.\\
+      & ?\{b: \textsf{int}\}.\ ?(B: \textsf{int}).\ ?\{B = \textsf{powm}(g, b, p)\}.\ \End
 \end{align*}
 The \textsf{DH} protocol is parameterized by publicly known integers $p$ and $g$.
 Without loss of generality, we refer to the message sender for the first row of the
@@ -155,19 +154,6 @@ Notice that the duality of channel types $\CH{\textsf{DH}(p,g)}$ and $\HC{\texts
 ensure that every send in \textsf{Alice} is matched by a corresponding receive in
 \textsf{Bob} and vice versa. Moreover, \textsf{Alice} and \textsf{Bob} are enforced by the
 type checker to correctly carry out the Diffie-Hellman key exchange.
-
-\subsection{Relational Verification}
-Earlier in the introduction section, we showed a sketch of how dependent session types
-can be used for certified concurrent programming through the example of a concurrent queue.
-In this section, we provide a detailed account of how we can use dependent session types
-to construct a generic map-reduce system. Similarly to the queue example, we will verify
-the correctness of the map-reduce system by relating it to sequential operations on trees.
-
-
-
-
-
-
 
 %%% Local Variables:
 %%% mode: LaTeX

@@ -9,7 +9,7 @@ it remains difficult to write concurrent programs which are semantically correct
 Consider the Pfenning-style concurrent queue which is a common data structure encountered
 in the session type literature. A queue is described by the following type:
 \begin{align*}
-  \textsf{queue}_A \triangleq \&\{
+  \textsf{queue}_A := \&\{
   \textsf{ins}: A \multimap \textsf{queue}_A,
   \textsf{del}: \oplus\{\textsf{none}: \End, \textsf{some}: A \otimes \textsf{queue}_A\}
   \}
@@ -88,11 +88,11 @@ extends the Two-Level Linear dependent type theory (TLL)~\cite{fu23} with
 session-typed concurrency. In \TLLC{}, one could define the queues through the following
 dependent session type:
 \begin{alignat*}{2}
-  &\textsf{queue} (\textit{xs} : \textsf{list}\ A) \triangleq ?(\ell : \textsf{opr}). \Match\ \ell\ \With \\
+  &\textsf{queue} (\textit{xs} : \textsf{list}\ A) :=\ ?(\ell : \textsf{opr}). \Match\ \ell\ \With \\
   &\qquad\mid \textsf{ins}(v) \Rightarrow \textsf{queue}(\textsf{snoc}(xs, v)) \\
   &\qquad\mid \textsf{del} \Rightarrow
     \Match\ \textit{xs}\ \With
-    \ (x :: xs') \Rightarrow !(\textsf{sing}\ x). !(\HC{\textsf{queue}(xs')}). \End
+    \ (x :: xs') \Rightarrow\ !(\textsf{sing}\ x). !(\HC{\textsf{queue}(xs')}). \End
     \mid [] \Rightarrow \End
 \end{alignat*}
 Here, the type $\textsf{queue}(\textit{xs})$ is parameterized by a list $\textit{xs}$
@@ -102,7 +102,7 @@ type-level pattern matching to inspect the label $\ell$ received from the client
 The \textsf{opr} type which $\ell$ inhabits is defined as a simple inductive type with
 two constructors:
 \begin{align*}
-  \Inductive\ \textsf{opr} \triangleq \textsf{ins}: A \rightarrow \textsf{opr} \mid \textsf{del}: \textsf{opr}
+  \Inductive\ \textsf{opr} := \textsf{ins}: A \rightarrow \textsf{opr} \mid \textsf{del}: \textsf{opr}
 \end{align*}
 When a queue server receives an $\textsf{ins}(v)$ value, the type of the server becomes
 $\textsf{queue}(\textsf{snoc}(xs, v))$ were $\textsf{snoc}$ appends $v$ to the end of $xs$.
