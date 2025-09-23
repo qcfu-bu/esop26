@@ -101,8 +101,9 @@ the only the real messages $A$ and $B$ will be exchanged at runtime. The secret 
 $a$ and $b$ and the correctness proofs are all ghost message that are erased prior to
 runtime. Basically, the \textsf{DH} protocol forces communication between Alice and Bob
 to be encrypted and maintain secrecy at runtime.
+\vspace{-0.4em}
 \begin{center}
-\begin{minipage}{0.4\textwidth}
+\begin{minipage}{0.45\textwidth}
 \begingroup
 \small
 \addtolength{\jot}{-0.2em}
@@ -137,12 +138,25 @@ to be encrypted and maintain secrecy at runtime.
 \endgroup
 \end{minipage}
 \end{center}
+\vspace{0.5em}
 
+The \textsf{DH} key exchange protocol can be implemented through two simple monadic
+programs \textsf{Alice} and \textsf{Bob} as shown above. The $\mcC$ type constructor
+here is the concurrency monad for integrating the \emph{effect} of concurrent
+communication with the \emph{pure} functional core of \TLLC{}. There are two kinds of
+\textsf{send} (and respectively \textsf{recv}) operations at play here.
+The first kind, indicated by $\textsf{send}\ c\ \{v\}$ is for sending a ghost message
+$v$ on channel $c$. After type checking, these ghost sends are compiled to no-ops
+to that they do not participate in runtime communication. The second kind, indicated by
+$\textsf{send}\ c\ (v)$, is for sending a real message $v$ on channel $c$. These
+real sends are compiled to actual messages in the generated code. Finally, the
+\textsf{close} and \textsf{wait} operations synchronize the termination of the protocol.
+Notice that the duality of channel types $\CH{\textsf{DH}(p,g)}$ and $\HC{\textsf{DH}(p,g)}$
+ensure that every send in \textsf{Alice} is matched by a corresponding receive in
+\textsf{Bob} and vice versa. Moreover, \textsf{Alice} and \textsf{Bob} are enforced by the
+type checker to correctly carry out the Diffie-Hellman key exchange.
 
-
-
-
-\subsection{Data Structures and Algorithms}
+\subsection{Relational Verification}
 
 
 %%% Local Variables:
