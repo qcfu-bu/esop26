@@ -4,6 +4,36 @@ In this section, we provide a detailed account of how we can use dependent sessi
 to construct a generic map-reduce system. Similarly to the queue example, we will verify
 the correctness of the map-reduce system by relating it to sequential operations on trees.
 
+\begin{figure}[H]
+\begin{tikzpicture}[
+  treenode/.style = {shape=rectangle, rounded corners,
+                     draw, align=center,
+                     fill=blue!20},
+  client/.style   = {shape=rectangle, draw=red!60, fill=red!5},
+  root/.style     = {circle,draw},
+  env/.style      = {treenode},
+  dummy/.style    = {circle,draw,fill=black!2},
+  grow = right,
+  edge from parent/.style = {draw, -latex},
+  sloped,
+  level distance=2cm,
+  level 1/.style={sibling distance=4em},
+  level 2/.style={sibling distance=2em}
+]
+  \node [client]            (c0) {client};
+  \node [root, right= 2cm of c0] (t0) {}
+    child { node [dummy] {}
+      child { node [env] {$a_4$} }
+      child { node [env] {$a_3$} }
+    }
+    child { node [dummy] {}
+      child { node [env] {$a_2$} }
+      child { node [env] {$a_1$} }
+    };
+\draw[-latex] (c0.east) -- (t0.west);
+\end{tikzpicture}
+\end{figure}
+
 The first step in constructing the map-reduce system is to define the kinds of operations
 that can be performed by the system.
 \begingroup
