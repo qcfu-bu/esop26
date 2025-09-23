@@ -4,6 +4,7 @@ In this section, we provide a detailed account of how we can use dependent sessi
 to construct a generic map-reduce system. Similarly to the queue example, we will verify
 the correctness of the map-reduce system by relating it to sequential operations on trees.
 
+Map-reduce is a commonly used programming model for processing large data sets in parallel.
 Intuitively, map-reduce creates a tree of concurrently executing workers as illustrated in
 \Cref{fig:map-reduce}. Initially, the client partitions the data into smaller chunks and sends them to
 the leaf workers of the tree. Next, each leaf worker applies a user-specified
