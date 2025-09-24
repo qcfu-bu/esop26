@@ -109,6 +109,8 @@ The \textsf{opr} type has three constructors:
 \end{itemize}
 
 We are now ready to define the session type for the map-reduce protocol.
+The following \textsf{treeP} protocol is used to describe the interactions between nodes
+in the map-reduce tree.
 \begingroup
 \small
 \addtolength{\jot}{-0.2em}
@@ -118,11 +120,44 @@ We are now ready to define the session type for the map-reduce protocol.
     \begin{alignedat}{4}
       \Match\ o\ \With&\ \textsf{Map}\ \_\ f \Rightarrow\ \textsf{treeP}\ B\ (\textsf{map}\ f\ t) \\
                   \mid&\ \textsf{Reduce}\ \_\ f\ g \Rightarrow\ !(\textsf{sing}\ (\textsf{reduce}\ f\ g\ t)).\ \textsf{treeP}\ t \\
-                  \mid&\ \textsf{Free} \Rightarrow\ \End
+                  \mid&\ \textsf{Free} \Rightarrow \End
     \end{alignedat}
 \end{alignat*}
 \endgroup
+For each node $n$ in the concurrent tree, it will be providing a channel of type
+$\CH{\textsf{treeP}\ A\ t}$ to its parent. The parameter $t$ of type
+$\textsf{tree}\ A$ represents the shape of the sub-tree rooted at $n$. The
+\textsf{treeP} protocol states node $n$ will receive a message $o$ of type
+$\textsf{opr}\ A$ from its parent.  The protocol then branches, via type-level
+pattern matching on $o$, into three cases. If $o$ is of the form
+$\textsf{Map}\ f$, then $n$ will continue the protocol as
+$\textsf{treeP}\ B\ (\textsf{map}\ f\ t)$. Notice that the type parameter of
+\textsf{treeP} has changed from $A$ to $B$ to reflect the fact that the data
+stored at the leaves of the sub-tree has been transformed from type $A$ to type
+$B$. Furthermore, the shape of the sub-tree has also changed from $t$ to
+$\textsf{map}\ f\ t$. In the second case where $o$ is of the form
+$\textsf{Reduce}\ f\ g$, $n$ will first send the result of type
+$\textsf{sing}\ (\textsf{reduce}\ f\ g\ t)$ to its parent. The type
+$\textsf{sing}\ x$ is the \emph{singleton type} whose sole inhabitant is the
+element $x$. After sending the result, $n$ will continue the protocol as
+$\textsf{treeP}\ t$, i.e. remains unchanged. Finally, $n$ will terminate
+the protocol when $o$ is $\textsf{Free}$.
 
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{align*}
+  &\Def\ \textsf{leafWorker}\ \{A : \Un\}\ (x : A)\ (c : \CH{\textsf{treeP}\ A\ (\textsf{Leaf}\ x)}) : \CM{\textsf{unit}} := \\
+  &\quad\Let\ \langle{o, c}\rangle := \Recv\ c\ \In \\
+  &\quad
+    \begin{alignedat}{4}
+      &\Match\ o\ \With\\
+      &\mid \textsf{Map} \Rightarrow \textsf{leafWorker}\ B\ (f\ x)\ c \\
+      &\mid \textsf{Reduce} \Rightarrow \Let\ c \Leftarrow \Send\ c\ (\textsf{just}\ (f\ x))\ \In\ \textsf{leafWorker}\ A\ x\ c  \\
+      &\mid \textsf{Free} \Rightarrow \Close(c)
+    \end{alignedat}
+\end{align*}
+\endgroup
 
 
 %%% Local Variables:
