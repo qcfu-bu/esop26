@@ -255,9 +255,12 @@ $3$ respectively.
   \textsf{cNode}\ (\textsf{cNode}\ (\textsf{cLeaf}\ 0)\ (\textsf{cLeaf}\ 1))\ (\textsf{cNode}\ (\textsf{cLeaf}\ 2)\ (\textsf{cLeaf}\ 3))
 \end{align*}
 The type of this expression is rather verbose to write manually as it contains the full shape
-of the concurrent tree. This is not a problem in practice as constant type arguments
+of the concurrent tree. This is not a problem in practice as \emph{constant} type arguments
 (such as the tree shapes here) can almost always be inferred automatically by the type checker.
 
+Finally, we implement the \textsf{cMap} and \textsf{cReduce} functions that provide the
+map and reduce operations on concurrent trees. These functions are implemented by
+simply sending the appropriate requests to the root worker of the concurrent tree.
 \begingroup
 \small
 \addtolength{\jot}{-0.2em}
@@ -275,6 +278,43 @@ of the concurrent tree. This is not a problem in practice as constant type argum
   &\quad\Return\ \langle{v, \Return\ c}\rangle
 \end{align*}
 \endgroup
+From the type signature of \textsf{cMap}, we can see that it takes a function
+$f : A \rightarrow B$ and a concurrent tree of type $\textsf{cTree A\ t}$ and
+returns a new concurrent tree of type $\textsf{cTree B\ (\textsf{map}\ f\ t)}$.
+In other words, the type of \textsf{cMap} guarantees that the shape of the
+concurrent tree is transformed in the same way as a sequential tree under the
+\textsf{map} function. Similarly, the type signature of \textsf{cReduce} states
+that it takes a concurrent tree of type $\textsf{cTree}\ A\ t$ and returns a
+(linear) pair consisting of the result of type $\textsf{sing}\ (\textsf{reduce}\ f\ g\ t)$,
+and the original concurrent tree. The correctness of \textsf{cReduce} is guaranteed
+by the singleton type of its result: reducing a concurrent tree results in the same
+value as reducing its sequential tree model.
+
+\subsection{Concurrent Mergesort via Map-Reduce}
+By properly instantiating the map-reduce interface defined previously, we can implement
+more complex concurrent algorithms. Moreover, the strong correctness guarantees
+provided by the dependent session types allows us to easily verify the correctness of
+these derived algorithms. As an example, we implement a concurrent version of the
+mergesort algorithm using the map-reduce interface and verify its correctness.
+
+We defining the sequential mergesort algorithm as follows.
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{align*}
+  &\Def\ \textsf{split}\ (xs : \textsf{list}\ \textsf{int}) : \textsf{list}\ \textsf{int} \otimes \textsf{list}\ \textsf{int} := ... \\
+  &\Def\ \textsf{merge}\ (xs\ ys : \textsf{list}\ \textsf{int}) : \textsf{list}\ \textsf{int} := ...
+  \\[0.5em]
+  &\Def\ \textsf{msort}\ (xs : \textsf{list}\ \textsf{int}) : \textsf{list}\ \textsf{int} := \\
+  &\quad\Match\ xs\ \With \\
+  &\quad\mid\ \textsf{nil} \Rightarrow \textsf{nil} \\
+  &\quad\mid\ x :: \textsf{nil} \Rightarrow x :: \textsf{nil} \\
+  &\quad\mid\ zs \Rightarrow \\
+  &\qquad\Let\ \langle{xs, ys}\rangle := \textsf{split}\ zs \In \\
+  &\qquad\textsf{merge}\ (\textsf{msort}\ xs)\ (\textsf{msort}\ ys)
+\end{align*}
+\endgroup
+
 
 %%% Local Variables:
 %%% mode: LaTeX
