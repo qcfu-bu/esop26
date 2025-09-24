@@ -279,12 +279,12 @@ simply sending the appropriate requests to the root worker of the concurrent tre
 \end{align*}
 \endgroup
 From the type signature of \textsf{cMap}, we can see that it takes a function
-$f : A \rightarrow B$ and a concurrent tree of type $\textsf{cTree A\ t}$ and
+$f$ and a concurrent tree of type $\textsf{cTree A\ t}$ and
 returns a new concurrent tree of type $\textsf{cTree B\ (\textsf{map}\ f\ t)}$.
 In other words, the type of \textsf{cMap} guarantees that the shape of the
-concurrent tree is transformed in the same way as a sequential tree under the
-\textsf{map} function. Similarly, the type signature of \textsf{cReduce} states
-that it takes a concurrent tree of type $\textsf{cTree}\ A\ t$ and returns a
+concurrent tree is transformed in the same way as its sequential tree model under the
+\textsf{map} function. Similarly, the \textsf{cReduce} takes a concurrent tree of type
+$\textsf{cTree}\ A\ t$ and returns a
 (linear) pair consisting of the result of type $\textsf{sing}\ (\textsf{reduce}\ f\ g\ t)$,
 and the original concurrent tree. The correctness of \textsf{cReduce} is guaranteed
 by the singleton type of its result: reducing a concurrent tree results in the same
@@ -297,7 +297,12 @@ provided by the dependent session types allows us to easily verify the correctne
 these derived algorithms. As an example, we implement a concurrent version of the
 mergesort algorithm using the map-reduce interface and verify its correctness.
 
-We defining the sequential mergesort algorithm as follows.
+We define the sequential mergesort algorithm, as a point of reference,
+in the usual way using \textsf{split} and \textsf{merge} helper functions.
+We will not go into further details regarding the well-founded recursion
+of \textsf{msort} or the correctness of sorting as these are well-known results~\cite{cpdt}.
+
+\vspace{-1em}
 \begingroup
 \small
 \addtolength{\jot}{-0.2em}
@@ -305,13 +310,10 @@ We defining the sequential mergesort algorithm as follows.
   &\Def\ \textsf{split}\ (xs : \textsf{list}\ \textsf{int}) : \textsf{list}\ \textsf{int} \otimes \textsf{list}\ \textsf{int} := ... \\
   &\Def\ \textsf{merge}\ (xs\ ys : \textsf{list}\ \textsf{int}) : \textsf{list}\ \textsf{int} := ...
   \\[0.5em]
-  &\Def\ \textsf{msort}\ (xs : \textsf{list}\ \textsf{int}) : \textsf{list}\ \textsf{int} := \\
-  &\quad\Match\ xs\ \With \\
+  &\Def\ \textsf{msort}\ (xs : \textsf{list}\ \textsf{int}) : \textsf{list}\ \textsf{int} := \Match\ xs\ \With \\
   &\quad\mid\ \textsf{nil} \Rightarrow \textsf{nil} \\
   &\quad\mid\ x :: \textsf{nil} \Rightarrow x :: \textsf{nil} \\
-  &\quad\mid\ zs \Rightarrow \\
-  &\qquad\Let\ \langle{xs, ys}\rangle := \textsf{split}\ zs \In \\
-  &\qquad\textsf{merge}\ (\textsf{msort}\ xs)\ (\textsf{msort}\ ys)
+  &\quad\mid\ zs \Rightarrow \Let\ \langle{xs, ys}\rangle := \textsf{split}\ zs\ \In\ \textsf{merge}\ (\textsf{msort}\ xs)\ (\textsf{msort}\ ys)
 \end{align*}
 \endgroup
 
