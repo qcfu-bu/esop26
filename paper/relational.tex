@@ -5,8 +5,8 @@ to construct a generic map-reduce system. Similarly to the queue example, we wil
 the correctness of the map-reduce system by relating it to sequential operations on trees.
 
 Map-reduce is a commonly used programming model for processing large data sets in parallel.
-Intuitively, map-reduce creates a tree of concurrently executing workers as illustrated in
-\Cref{fig:map-reduce}. Initially, the client partitions the data into smaller chunks and sends them to
+Initially, map-reduce creates a tree of concurrently executing workers as illustrated in
+\Cref{fig:map-reduce}. The client partitions the data into smaller chunks and sends them to
 the leaf workers of the tree. Next, each leaf worker applies a user-specified
 function $f$ to each of its received data chunks and sends the results to its parent worker.
 When an internal worker receives results from its children, it combines the results using another
@@ -34,31 +34,96 @@ performance than sequential implementations of the same operations.
   \node [client]            (c0) {client};
   \node [root, right= 2cm of c0] (t0) {}
     child { node [dummy] {}
-      child { node [env] {$a_4$} }
       child { node [env] {$a_3$} }
+      child { node [env] {$a_2$} }
     }
     child { node [dummy] {}
-      child { node [env] {$a_2$} }
       child { node [env] {$a_1$} }
+      child { node [env] {$a_0$} }
     };
-\draw[-latex] (c0.east) -- (t0.west);
+\draw[-latex,transform canvas={yshift=+0.5ex}] (c0.east) -- (t0.west) node [midway, above] {data};
+\draw[latex-,transform canvas={yshift=-0.5ex}] (c0.east) -- (t0.west) node [midway, below] {result};
 \end{tikzpicture}
-\vspace{-0.5em}
+\vspace{-0.8em}
 \caption{Tree Diagram of Map-Reduce}
 \label{fig:map-reduce}
 \end{figure}
+\vspace{-0.8em}
 
-The first step in constructing the map-reduce system is to define the kinds of operations
-that can be performed by the system.
+The first step in constructing the map-reduce system is to build a model of our desired
+computation in a sequential setting. For this purpose, we define a simple binary tree
+inductive type:
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{alignat*}{4}
+  &\Inductive\ \textsf{tree}\ (A : \Un) :=\
+    \textsf{Leaf} : A \rightarrow \textsf{tree}(A) \mid\
+    \textsf{Node} : \textsf{tree}(A) \rightarrow \textsf{tree}(A) \rightarrow \textsf{tree}(A)
+  \\[0.4em]
+  &\begin{alignedat}{4}
+    &\Def\ \textsf{map} : \forall \{A\ B : \Un\}\ (f : A \rightarrow B) \rightarrow \textsf{tree}(A) \rightarrow \textsf{tree}(B) \\
+    &\quad\mid\ \textsf{Leaf}\ x \Rightarrow \textsf{Leaf}\ (f\ x) \\
+    &\quad\mid\ \textsf{Node}\ l\ r \Rightarrow \textsf{Node}\ (\textsf{map}\ f\ l) (\textsf{map}\ f\ r)
+  \end{alignedat}
+  \\[0.4em]
+  &\begin{alignedat}{4}
+    &\Def\ \textsf{reduce} : \forall \{A\ B : \Un\}\ (f : A \rightarrow B)\ (g : B \rightarrow B \rightarrow B) \rightarrow \textsf{tree}(A) \rightarrow B \\
+    &\quad\mid\ \textsf{Leaf}\ x \Rightarrow f\ x \\
+    &\quad\mid\ \textsf{Node}\ l\ r \Rightarrow g\ (\textsf{reduce}\ f\ g\ l)\ (\textsf{reduce}\ f\ g\ r)
+  \end{alignedat}
+\end{alignat*}
+\endgroup
+In this definition, the type \Un{} of $A$ is the universe of \emph{unbound}
+(i.e. non-linear) types in \TLLC{}. So \textsf{tree} is parameterized by $A$
+which represents the type of data stored at the leaf nodes. The \emph{sequential}
+\textsf{map} and \textsf{reduce} functions for \textsf{tree} are all defined in a standard way.
+
+To construct the concurrent map-reduce system, we must define the kinds of operations
+that can be performed. This requires the protocol of map-reduce to branch depending on
+what operation the client requests to perform. Unlike many prior
+session type systems~\cite{caires10,das20} which provide built-in constructs
+(e.g. $\oplus$ and $\&$) for internal and external choice, we implement branching
+protocols using just dependent protocols and type-level pattern matching on sent or received
+messages. For our map-reduce system, we define the kinds of operations that can be performed
+through the inductive type \textsf{opr}:
+
 \begingroup
 \small
 \addtolength{\jot}{-0.2em}
 \begin{align*}
-  \Inductive\ \textsf{opr}(A : \Un) :=\ &\textsf{Free}  : \textsf{opr}(A) \\
-  \mid\ &\textsf{Map}   : \forall \{B : \Un\}\ (f : A \rightarrow B) \rightarrow \textsf{opr}(A) \\
-  \mid\ &\textsf{Reduce}: \forall \{B : \Un\}\ (f : A \rightarrow B)\ (g : B \rightarrow B \rightarrow B) \rightarrow \textsf{opr}(A)
+  \Inductive\ \textsf{opr}(A : \Un) :=\ &\textsf{Map}   : \forall \{B : \Un\}\ (f : A \rightarrow B) \rightarrow \textsf{opr}(A) \\
+  \mid\ &\textsf{Reduce}: \forall \{B : \Un\}\ (f : A \rightarrow B)\ (g : B \rightarrow B \rightarrow B) \rightarrow \textsf{opr}(A) \\
+  \mid\ &\textsf{Free}  : \textsf{opr}(A)
 \end{align*}
 \endgroup
+
+The \textsf{opr} type has three constructors:
+\begin{itemize}
+  \item $\textsf{Map}\ f$ represents a map operation that applies the function
+        $f : A \rightarrow B$ to each element of type $A$ and produces results of type $B$.
+  \item $\textsf{Reduce}\ f\ g$ represents a reduce operation that first
+        applies the function $f : A \rightarrow B$ to each element of type $A$ and then
+        combines the results using the binary function $g : B \rightarrow B \rightarrow B$.
+  \item $\textsf{Free}$ is the command that terminates the concurrent tree.
+\end{itemize}
+
+We are now ready to define the session type for the map-reduce protocol.
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{alignat*}{4}
+  &\Def\ \textsf{treeP}\ (A : \Un)\ (t : \textsf{tree}\ A) :=\ ?(o : \textsf{opr}\ A).\\
+  &\quad
+    \begin{alignedat}{4}
+      \Match\ o\ \With&\ \textsf{Map}\ \_\ f \Rightarrow\ \textsf{treeP}\ B\ (\textsf{map}\ f\ t) \\
+                  \mid&\ \textsf{Reduce}\ \_\ f\ g \Rightarrow\ !(\textsf{sing}\ (\textsf{reduce}\ f\ g\ t)).\ \textsf{treeP}\ t \\
+                  \mid&\ \textsf{Free} \Rightarrow\ \End
+    \end{alignedat}
+\end{alignat*}
+\endgroup
+
+
 
 %%% Local Variables:
 %%% mode: LaTeX

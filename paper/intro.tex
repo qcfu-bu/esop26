@@ -108,7 +108,7 @@ When a queue server receives an $\textsf{ins}(v)$ value, the type of the server 
 $\textsf{queue}(\textsf{snoc}(xs, v))$ were $\textsf{snoc}$ appends $v$ to the end of $xs$.
 Conversely, when a $\textsf{del}$ label is received, the type-level pattern matching on $xs$
 enforces that if the queue is non-empty (i.e. $x :: xs'$ case), then the server must send
-the front element $x$ of the queue to the client (indicated by the singleton type
+the front element $x$ of the queue to the client (indicated by the \emph{singleton type}
 $\textsf{sing}\ x$) along with the channel $\HC{\textsf{queue}(xs')}$ connecting to the remainder
 of the queue. If the queue is empty (i.e. $[]$ case), then the server simply terminates.
 
