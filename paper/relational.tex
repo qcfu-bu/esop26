@@ -4,6 +4,7 @@ In this section, we provide a detailed account of how we can use dependent sessi
 to construct a generic map-reduce system. Similarly to the queue example, we will verify
 the correctness of the map-reduce system by relating it to sequential operations on trees.
 
+\subsection{Construction of Map-Reduce}
 Map-reduce is a commonly used programming model for processing large data sets in parallel.
 Initially, map-reduce creates a tree of concurrently executing workers as illustrated in
 \Cref{fig:map-reduce}. The client partitions the data into smaller chunks and sends them to
@@ -87,7 +88,6 @@ session type systems~\cite{caires10,das20} which provide built-in constructs
 protocols using just dependent protocols and type-level pattern matching on sent or received
 messages. For our map-reduce system, we define the kinds of operations that can be performed
 through the inductive type \textsf{opr}:
-
 \begingroup
 \small
 \addtolength{\jot}{-0.2em}
@@ -143,6 +143,10 @@ element $x$. After sending the result, $n$ will continue the protocol as
 $\textsf{treeP}\ t$, i.e. remains unchanged. Finally, $n$ will terminate
 the protocol when $o$ is $\textsf{Free}$.
 
+Using the \textsf{treeP} protocol, we can now implement the worker processes
+that run at each node of the concurrent tree. The implementation of a leaf worker
+is shown below. We have elided uninteresting technical details regarding dependent
+pattern matching.
 \begingroup
 \small
 \addtolength{\jot}{-0.2em}
@@ -152,13 +156,125 @@ the protocol when $o$ is $\textsf{Free}$.
   &\quad
     \begin{alignedat}{4}
       &\Match\ o\ \With\\
-      &\mid \textsf{Map} \Rightarrow \textsf{leafWorker}\ B\ (f\ x)\ c \\
-      &\mid \textsf{Reduce} \Rightarrow \Let\ c \Leftarrow \Send\ c\ (\textsf{just}\ (f\ x))\ \In\ \textsf{leafWorker}\ A\ x\ c  \\
+      &\mid \textsf{Map} \Rightarrow \textsf{leafWorker}\ \{B\}\ (f\ x)\ c \\
+      &\mid \textsf{Reduce} \Rightarrow \Let\ c \Leftarrow \Send\ c\ (\textsf{just}\ (f\ x))\ \In\ \textsf{leafWorker}\ \{A\}\ x\ c  \\
       &\mid \textsf{Free} \Rightarrow \Close(c)
     \end{alignedat}
 \end{align*}
 \endgroup
+The \textsf{leafWorker} function takes two non-ghost arguments: a data element
+$x$ of type $A$ and a channel $c$ of type
+$\CH{\textsf{treeP}\ A\ (\textsf{Leaf}\ x)}$. Through this channel $c$, the leaf
+worker will receive requests from its parent and provide responses accordingly.
+For instance, when the leaf worker receives a $\textsf{Map}\ f$ request, it will
+apply $f: A \rightarrow B$ to its data element $x$ and continue as a leaf worker
+with the new data element $f x$. In this case, the type parameter of
+\textsf{leafWorker} has changed from $A$ to $B$ to reflect the transformation of
+the data element.
 
+To represent internal node workers we implement the following \textsf{nodeWorker}
+function. This function takes (non-ghost) channels $c_l$ and $c_r$ of
+types $\HC{\textsf{treeP}\ A\ l}$ and $\HC{\textsf{treeP}\ A\ r}$ for
+communicating with its left and right children. Notice that the types of these
+channels are indexed by ghost values $l$ and $r$ of type $\textsf{tree}\ A$
+which represent the shapes of the concurrent sub-trees providing $c_l$ and
+$c_r$. The \textsf{nodeWorker} communicates with its parent through the channel
+$c$ whose type is indexed by the ghost value $\textsf{Node}\ l\ r$.
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{align*}
+  &\Def\ \textsf{nodeWorker}\ \{A : \Un\}\ \{l\ r : \textsf{tree}\ A\}\\
+  &\qquad(c_l : \HC{\textsf{treeP}\ A\ l})\ (c_r : \HC{\textsf{treeP}\ A\ r})\ (c : \CH{\textsf{treeP}\ A\ (\textsf{Node}\ l\ r)}) : \CM{\textsf{unit}} := \\
+  &\quad\Let\ \langle{o, c}\rangle := \Recv\ c\ \In \\
+  &\quad
+    \begin{alignedat}{4}
+      &\Match\ o\ \With\\
+      &\mid \textsf{Map}\ \_\ f \Rightarrow \\
+      &\quad\Let\ c_l \Leftarrow \Send\ c_l\ (\textsf{Map}\ f)\ \In \\
+      &\quad\Let\ c_r \Leftarrow \Send\ c_r\ (\textsf{Map}\ f)\ \In \\
+      &\quad\Let\ c \Leftarrow \Send\ c\ (\textsf{just}\ \textsf{unit})\ \In \\
+      &\quad\textsf{nodeWorker}\ \{B\}\ \{(\textsf{map}\ f\ l)\ (\textsf{map}\ f\ r)\}\ c_l\ c_r\ c \\
+      &\mid \textsf{Reduce}\ \_\ f\ g \Rightarrow \\
+      &\quad\Let\ c_l \Leftarrow \Send\ c_l\ (\textsf{Reduce}\ f\ g)\ \In \\
+      &\quad\Let\ c_r \Leftarrow \Send\ c_r\ (\textsf{Reduce}\ f\ g)\ \In \\
+      &\quad\Let\ \langle{\textsf{just}\ v_l, c_l}\rangle \Leftarrow \Recv\ c_l\ \In \\
+      &\quad\Let\ \langle{\textsf{just}\ v_r, c_r}\rangle \Leftarrow \Recv\ c_r\ \In \\
+      &\quad\Let\ c \Leftarrow \Send\ c\ (\textsf{just}\ (g\ v_l\ v_r))\ \In \\
+      &\quad\textsf{nodeWorker}\ \{A\}\ \{l\ r\}\ c_l\ c_r\ c \\
+      &\mid \textsf{Free} \Rightarrow \\
+      &\quad\Let\ c_l \Leftarrow \Send\ c_l\ \textsf{Free}\ \In \\
+      &\quad\Let\ c_r \Leftarrow \Send\ c_r\ \textsf{Free}\ \In \\
+      &\quad\Wait(c_l); \Wait(c_r); \Close(c)
+    \end{alignedat}
+\end{align*}
+\endgroup
+Given the signature of \textsf{nodeWorker} and the definition of
+the \textsf{treeP} protocol, it is not hard to see that the implementation of
+\textsf{nodeWorker} is constrained to function exactly as intended. For instance,
+in the case where \textsf{nodeWorker} receives a $\textsf{Map}\ f$ request from
+its parent, the type of $c$ becomes $\CH{\textsf{treeP}\ B\ (\textsf{map}\ f\ (\textsf{Node}\ l\ r))}$
+which simplifies to $\CH{\textsf{treeP}\ B\ (\textsf{Node}\ (\textsf{map}\ f\ l)\ (\textsf{map}\ f\ r))}$.
+The shapes of the left and right sub-trees after the map operation need to become
+$\textsf{map}\ f\ l$ and $\textsf{map}\ f\ r$ respectively. In other words, the
+type of $c$ forces the \textsf{nodeWorker} process to recursively send the
+$\textsf{Map}\ f$ request to both of its children to transform them into
+sub-trees of type $\HC{\textsf{treeP}\ B\ (\textsf{map}\ f\ l)}$ and
+$\HC{\textsf{treeP}\ B\ (\textsf{map}\ f\ r)}$.
+
+\subsection{A Certified Interface for Map-Reduce}
+Now that we have defined both leaf and internal node workers, we can wrap them
+up into a more convenient interface as presented below.
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{align*}
+  &\Type\ \textsf{cTree}\ (A : \Un)\ (t : \textsf{tree}\ A) := \CM{\HC{\textsf{treeP}\ t}}
+  \\[0.5em]
+  &\Def\ \textsf{cLeaf}\ \{A : \Un\}\ (x : A) : \textsf{cTree}\ A\ (\textsf{Leaf}\ x) := \\
+  &\quad\Fork(c : \CH{\textsf{treeP}\ A\ (\textsf{Leaf}\ x)})\ \With\ \textsf{leafWorker}\ x\ c
+  \\[0.5em]
+  &\Def\ \textsf{cNode}\ \{A : \Un\} \{l\ r : \textsf{tree}\ A\}\ (c_l : \textsf{cTree}\ A\ l)\ (c_r : \textsf{cTree}\ A\ r) : \textsf{cTree}\ (\textsf{Node}\ l\ r) := \\
+  &\quad\Let\ c_l \Leftarrow c_l\ \In \\
+  &\quad\Let\ c_r \Leftarrow c_r\ \In \\
+  &\quad\Fork(c : \CH{\textsf{treeP}\ A\ (\textsf{Node}\ l\ r)})\ \With\ \textsf{nodeWorker}\ c_l\ c_r\ c
+\end{align*}
+\endgroup
+The type alias \textsf{cTree} is defined to aid in the readability of the interface.
+The wrapper functions \textsf{cLeaf} and \textsf{cNode} respectively create leaf
+and internal node workers. This is accomplished by \emph{forking} a new process using
+the \Fork{} construct of the concurrency monad. In particular, when given some a channel type
+$\CH{P}$, the \Fork{} construct will create a new channel and give one end of it to the caller
+at type $\HC{P}$ and spawn a new process that runs the worker with the other end of the channel
+at type $\CH{P}$. The duality of the channels types allows the caller and the worker to communicate.
+Using these wrapper functions, one can construct a concurrent tree in virtually the same way
+as one would construct a sequential tree. For example, the following code constructs a
+concurrent tree with four leaf nodes containing integers $0, 1, 2$ and
+$3$ respectively.
+\begin{align*}
+  \textsf{cNode}\ (\textsf{cNode}\ (\textsf{cLeaf}\ 0)\ (\textsf{cLeaf}\ 1))\ (\textsf{cNode}\ (\textsf{cLeaf}\ 2)\ (\textsf{cLeaf}\ 3))
+\end{align*}
+The type of this expression is rather verbose to write manually as it contains the full shape
+of the concurrent tree. This is not a problem in practice as constant type arguments
+(such as the tree shapes here) can almost always be inferred automatically by the type checker.
+
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{align*}
+  &\Def\ \textsf{cMap}\ \{A\ B : \Un\}\ \{t : \textsf{tree}\ A\}\ (f : A \rightarrow B)\ (c : \textsf{cTree}\ A\ t) : \textsf{cTree}\ B\ (\textsf{map}\ f\ t) := \\
+  &\quad\Let\ c \Leftarrow c\ \In \\
+  &\quad\Let\ c \Leftarrow \Send\ c\ (\textsf{Map}\ f)\ \In \\
+  &\quad\Return\ c
+  \\[0.5em]
+  &\Def\ \textsf{cReduce}\ \{A\ B : \Un\}\ \{t : \textsf{tree}\ A\}\ (f : A \rightarrow B)\ (g : B \rightarrow B \rightarrow B)\ (c : \textsf{cTree}\ A\ t) :\\
+  &\qquad\CM{\textsf{sing}\ (\textsf{reduce}\ f\ g\ t) \otimes \textsf{cTree}\ A\ t} := \\
+  &\quad\Let\ c \Leftarrow c\ \In \\
+  &\quad\Let\ c \Leftarrow \Send\ c\ (\textsf{Reduce}\ f\ g)\ \In \\
+  &\quad\Let\ \langle{v, c}\rangle \Leftarrow \Recv\ c \In \\
+  &\quad\Return\ \langle{v, \Return\ c}\rangle
+\end{align*}
+\endgroup
 
 %%% Local Variables:
 %%% mode: LaTeX
