@@ -357,8 +357,8 @@ by recursively replacing \textsf{Leaf} with \textsf{cLeaf} and \textsf{Node} wit
 such an approach would require traversing both the input list (to construct the splitting tree) 
 and then traversing the resulting tree (to convert it into a concurrent tree). This would lead to a 
 bottleneck in the performance of the overall algorithm as the inputs would need to be traversed 
-sequentially before any parallelism can be exploited. Instead, we define the following function
-\textsf{splittingCTree} that constructs the concurrent splitting tree in a concurrent manner.
+sequentially before any parallelism can be exploited. Instead, we define the \textsf{splittingCTree} 
+function that constructs the concurrent splitting tree in a concurrent manner.
 
 \vspace{-1em}
 \begingroup
@@ -384,8 +384,10 @@ send back the constructed concurrent tree to its caller. This small change allow
 recursive case to fork two new processes to construct the left and right sub-trees
 concurrently. After both sub-trees have been constructed, the parent process can then
 combine them into a single concurrent tree using \textsf{cNode} and send it back
-to its caller. The complete implementation of \textsf{splittingCTree} can be found in the
-supplementary materials but is shortened here for brevity.
+to its caller. Notice that \textsf{splittingCTree} never calls the
+sequential \textsf{splittingTree} function and only uses it at the type level to model
+the shape of the concurrent tree being constructed. The complete implementation of
+\textsf{splittingCTree} can be found in the supplementary materials but is shortened here for brevity.
 
 Now that we have constructed a concurrent splitting tree of our input list, we can
 apply the \textsf{cReduce} operation instantiated with $f := \lambda(x). x$
