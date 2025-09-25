@@ -54,6 +54,8 @@ performance than sequential implementations of the same operations.
 The first step in constructing the map-reduce system is to build a model of our desired
 computation in a sequential setting. For this purpose, we define a simple binary tree
 inductive type:
+
+\vspace{-1em}
 \begingroup
 \small
 \addtolength{\jot}{-0.25em}
@@ -88,6 +90,8 @@ session type systems~\cite{caires10,das20} which provide built-in constructs
 protocols using just dependent protocols and type-level pattern matching on sent or received
 messages. For our map-reduce system, we define the kinds of operations that can be performed
 through the inductive type \textsf{opr}:
+
+\vspace{-1em}
 \begingroup
 \small
 \addtolength{\jot}{-0.25em}
@@ -111,6 +115,8 @@ The \textsf{opr} type has three constructors:
 We are now ready to define the session type for the map-reduce protocol.
 The following \textsf{treeP} protocol is used to describe the interactions between nodes
 in the map-reduce tree.
+
+\vspace{-1em}
 \begingroup
 \small
 \addtolength{\jot}{-0.25em}
@@ -147,6 +153,8 @@ Using the \textsf{treeP} protocol, we can now implement the worker processes
 that run at each node of the concurrent tree. The implementation of a leaf worker
 is shown below. We have elided uninteresting technical details regarding dependent
 pattern matching.
+
+\vspace{-1em}
 \begingroup
 \small
 \addtolength{\jot}{-0.25em}
@@ -180,6 +188,8 @@ channels are indexed by ghost values $l$ and $r$ of type $\textsf{tree}\ A$
 which represent the shapes of the concurrent sub-trees providing $c_l$ and
 $c_r$. The \textsf{nodeWorker} communicates with its parent through the channel
 $c$ whose type is indexed by the ghost value $\textsf{Node}\ l\ r$.
+
+\vspace{-1em}
 \begingroup
 \small
 \addtolength{\jot}{-0.25em}
@@ -225,6 +235,8 @@ $\HC{\textsf{treeP}\ B\ (\textsf{map}\ f\ r)}$.
 \subsection{A Certified Interface for Map-Reduce}
 Now that we have defined both leaf and internal node workers, we can wrap them
 up into a more convenient interface as presented below.
+
+\vspace{-1em}
 \begingroup
 \small
 \addtolength{\jot}{-0.2em}
@@ -261,6 +273,8 @@ of the concurrent tree. This is not a problem in practice as \emph{constant} typ
 Finally, we implement the \textsf{cMap} and \textsf{cReduce} functions that provide the
 map and reduce operations on concurrent trees. These functions are implemented by
 simply sending the appropriate requests to the root worker of the concurrent tree.
+
+\vspace{-1em}
 \begingroup
 \small
 \addtolength{\jot}{-0.2em}
@@ -292,13 +306,13 @@ value as reducing its sequential tree model.
 
 \subsection{Concurrent Mergesort via Map-Reduce}
 By properly instantiating the map-reduce interface defined previously, we can implement
-more complex concurrent algorithms. Moreover, the strong correctness guarantees
-provided by the dependent session types allows us to easily verify the correctness of
-these derived algorithms. As an example, we implement a concurrent version of the
-mergesort algorithm using the map-reduce interface and verify its correctness.
+more complex concurrent algorithms. Moreover, dependent session types allows us to easily 
+verify the correctness of these derived concurrent algorithms relationally through their 
+sequential models. As an extended example, we implement a concurrent version of the mergesort 
+algorithm using the map-reduce interface and verify its correctness.
 
-We define the sequential mergesort algorithm, as a point of reference,
-in the usual way using \textsf{split} and \textsf{merge} helper functions.
+We define sequential \textsf{msort}, as a model of our concurrent implementation,
+in the usual way using \textsf{split} and \textsf{merge} functions.
 We will not go into further details regarding the well-founded recursion
 of \textsf{msort} or the correctness of sorting as these are textbook results~\cite{cpdt}.
 
@@ -323,6 +337,8 @@ For mergesort, the input list can be recursively split into smaller sub-lists
 which can be processed in parallel. To make this decomposition \emph{explicit},
 we define the following \textsf{splittingTree} function that constructs a binary tree
 representation of how the input list is split by the mergesort algorithm.
+
+\vspace{-1em}
 \begingroup
 \small
 \addtolength{\jot}{-0.2em}
@@ -343,6 +359,8 @@ and then traversing the resulting tree (to convert it into a concurrent tree). T
 bottleneck in the performance of the overall algorithm as the inputs would need to be traversed 
 sequentially before any parallelism can be exploited. Instead, we define the following function
 \textsf{splittingCTree} that constructs the concurrent splitting tree in a concurrent manner.
+
+\vspace{-1em}
 \begingroup
 \small
 \addtolength{\jot}{-0.2em}
@@ -382,8 +400,11 @@ returned by the monad \emph{relationally} describes this series of concurrent co
 sequential operations. This allows us to easily verify the correctness of our concurrent mergesort
 implementation by proving the following \emph{theorem} (in the internal logic of TLL) which states that 
 reducing the splitting tree is equivalent to performing mergesort on the original input list.
+
+\vspace{-1em}
 \begingroup
 \small
+\addtolength{\jot}{-0.2em}
 \begin{align*}
   &\Theorem\ \textsf{reduceSplittingTree} : \\
   &\quad\forall (xs : \textsf{list}\ \textsf{int}).\ \textsf{reduce}\ (\lambda(x). x)\ \textsf{merge}\ (\textsf{splittingTree}\ xs) = \textsf{msort}\ xs
@@ -393,6 +414,22 @@ Using this theorem, we can rewrite the singleton value returned by \textsf{cRedu
 $\textsf{sing}\ (\textsf{msort}\ xs)$. In other words, the result of our concurrent
 mergesort implementation is guaranteed to be exactly the same as that of the sequential
 mergesort algorithm, thus completing our verification.
+
+The full pipeline of concurrent mergesort is given in the following \textsf{cMSort} function.
+
+\vspace{-1em}
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{align*}
+  &\Def\ \textsf{cMSort}\ (xs : \textsf{list}\ \textsf{int}) : \CM{\textsf{sing}\ (\textsf{msort}\ xs)} := \\
+  &\quad\Let\ c \Leftarrow \Fork(c)\ \With\ \textsf{splittingCTree}\ xs\ c\ \In \\ 
+  &\quad\Let\ \langle{\textit{ctree}, c}\rangle \Leftarrow \Recv\ c\ \In\ \Wait\ c; \\
+  &\quad\Let\ \langle{v, \textit{ctree}}\rangle \Leftarrow \textsf{cReduce}\ (\lambda(x). x)\ \textsf{merge}\ \textit{ctree}\ \In \\
+  &\quad\Let\ \textit{ctree} \Leftarrow \Send\ \textit{ctree}\ \textsf{Free}\ \In\ \Wait\ \textit{ctree}; \\
+  &\quad\Return\ (\Rewrite[\textsf{reduceSplittingTree}]\ v)
+\end{align*}
+\endgroup
 
 %%% Local Variables:
 %%% mode: LaTeX
