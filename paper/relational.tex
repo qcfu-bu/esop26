@@ -355,9 +355,9 @@ splitting tree with type $\textsf{cTree}\ (\textsf{list}\ \textsf{int})\ (\texts
 While it is tempting to directly convert the result of \textsf{splittingTree} into a concurrent tree
 by recursively replacing \textsf{Leaf} with \textsf{cLeaf} and \textsf{Node} with \textsf{cNode},
 such an approach would require traversing both the input list (to construct the splitting tree) 
-and then traversing the resulting tree (to convert it into a concurrent tree). This would lead to a 
-bottleneck in the performance of the overall algorithm as the inputs would need to be traversed 
-sequentially before any parallelism can be exploited. Instead, we define the \textsf{splittingCTree} 
+and the resulting tree (to convert it into a concurrent tree). This would lead to a 
+bottleneck in the performance of the overall algorithm as the traversals would be done 
+sequentially without exploiting parallelism. Instead, we define the \textsf{splittingCTree} 
 function that constructs the concurrent splitting tree in a concurrent manner.
 
 \vspace{-1em}
@@ -382,11 +382,11 @@ function that constructs the concurrent splitting tree in a concurrent manner.
 The \textsf{splittingCTree} function takes an additional channel argument $c$ which is used to
 send back the constructed concurrent tree to its caller. This small change allows the
 recursive case to fork two new processes to construct the left and right sub-trees
-concurrently. After both sub-trees have been constructed, the parent process can then
+in parallel. After both sub-trees have been constructed, the parent process can then
 combine them into a single concurrent tree using \textsf{cNode} and send it back
 to its caller. Notice that \textsf{splittingCTree} never calls the
 sequential \textsf{splittingTree} function and only uses it at the type level to model
-the shape of the concurrent tree being constructed. The complete implementation of
+the concurrent tree being constructed. The complete implementation of
 \textsf{splittingCTree} can be found in the supplementary materials but is shortened here for brevity.
 
 Now that we have constructed a concurrent splitting tree of our input list, we can
@@ -396,12 +396,12 @@ This gives us an output of type
 \begin{align*}
   \CM{\textsf{sing}\ (\textsf{reduce}\ (\lambda(x). x)\ \textsf{merge}\ (\textsf{splittingTree}\ xs)) \otimes \textsf{cTree}\ (\textsf{list}\ \textsf{int})\ (\textsf{splittingTree}\ xs)} 
 \end{align*}
-Note that the singleton value 
+The singleton value 
 $\textsf{sing}\ (\textsf{reduce}\ (\lambda(x). x)\ \textsf{merge}\ (\textsf{splittingTree}\ xs))$
-returned by the monad \emph{relationally} describes this series of concurrent computations using just 
+returned by the monad relationally describes this series of concurrent computations using just 
 sequential operations. This allows us to easily verify the correctness of our concurrent mergesort
-implementation by proving the following \emph{theorem} (in the internal logic of TLL) which states that 
-reducing the splitting tree is equivalent to performing mergesort on the original input list.
+implementation by proving the following theorem (in the internal logic of TLL) which states that 
+reducing the splitting tree of a list is equivalent to performing mergesort on this list.
 
 \vspace{-1em}
 \begingroup
