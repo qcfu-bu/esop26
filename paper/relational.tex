@@ -56,7 +56,7 @@ computation in a sequential setting. For this purpose, we define a simple binary
 inductive type:
 \begingroup
 \small
-\addtolength{\jot}{-0.2em}
+\addtolength{\jot}{-0.25em}
 \begin{alignat*}{4}
   &\Inductive\ \textsf{tree}\ (A : \Un) :=\
     \textsf{Leaf} : A \rightarrow \textsf{tree}(A) \mid\
@@ -90,7 +90,7 @@ messages. For our map-reduce system, we define the kinds of operations that can 
 through the inductive type \textsf{opr}:
 \begingroup
 \small
-\addtolength{\jot}{-0.2em}
+\addtolength{\jot}{-0.25em}
 \begin{align*}
   \Inductive\ \textsf{opr}(A : \Un) :=\ &\textsf{Map}   : \forall \{B : \Un\}\ (f : A \rightarrow B) \rightarrow \textsf{opr}(A) \\
   \mid\ &\textsf{Reduce}: \forall \{B : \Un\}\ (f : A \rightarrow B)\ (g : B \rightarrow B \rightarrow B) \rightarrow \textsf{opr}(A) \\
@@ -113,7 +113,7 @@ The following \textsf{treeP} protocol is used to describe the interactions betwe
 in the map-reduce tree.
 \begingroup
 \small
-\addtolength{\jot}{-0.2em}
+\addtolength{\jot}{-0.25em}
 \begin{alignat*}{4}
   &\Def\ \textsf{treeP}\ (A : \Un)\ (t : \textsf{tree}\ A) :=\ ?(o : \textsf{opr}\ A).\\
   &\quad
@@ -149,7 +149,7 @@ is shown below. We have elided uninteresting technical details regarding depende
 pattern matching.
 \begingroup
 \small
-\addtolength{\jot}{-0.2em}
+\addtolength{\jot}{-0.25em}
 \begin{align*}
   &\Def\ \textsf{leafWorker}\ \{A : \Un\}\ (x : A)\ (c : \CH{\textsf{treeP}\ A\ (\textsf{Leaf}\ x)}) : \CM{\textsf{unit}} := \\
   &\quad\Let\ \langle{o, c}\rangle := \Recv\ c\ \In \\
@@ -182,7 +182,7 @@ $c_r$. The \textsf{nodeWorker} communicates with its parent through the channel
 $c$ whose type is indexed by the ghost value $\textsf{Node}\ l\ r$.
 \begingroup
 \small
-\addtolength{\jot}{-0.2em}
+\addtolength{\jot}{-0.25em}
 \begin{align*}
   &\Def\ \textsf{nodeWorker}\ \{A : \Un\}\ \{l\ r : \textsf{tree}\ A\}\\
   &\qquad(c_l : \HC{\textsf{treeP}\ A\ l})\ (c_r : \HC{\textsf{treeP}\ A\ r})\ (c : \CH{\textsf{treeP}\ A\ (\textsf{Node}\ l\ r)}) : \CM{\textsf{unit}} := \\
@@ -317,6 +317,82 @@ of \textsf{msort} or the correctness of sorting as these are textbook results~\c
 \end{align*}
 \endgroup
 
+Generally, to implement an algorithm using the map-reduce paradigm, one must first 
+decompose the algorithm and data into a form that is amenable to parallelization. 
+For mergesort, the input list can be recursively split into smaller sub-lists
+which can be processed in parallel. To make this decomposition \emph{explicit},
+we define the following \textsf{splittingTree} function that constructs a binary tree
+representation of how the input list is split by the mergesort algorithm.
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{align*}
+  &\Def\ \textsf{splittingTree}\ (xs : \textsf{list}\ \textsf{int}) : \textsf{tree}\ (\textsf{list}\ \textsf{int}) := \Match\ xs\ \With \\
+  &\quad\mid\ \textsf{nil} \Rightarrow \textsf{Leaf}\ \textsf{nil} \\
+  &\quad\mid\ x :: \textsf{nil} \Rightarrow \textsf{Leaf}\ (x :: \textsf{nil}) \\
+  &\quad\mid\ zs \Rightarrow \Let\ \langle{xs, ys}\rangle := \textsf{split}\ zs\ \In\ \textsf{Node}\ (\textsf{splittingTree}\ xs)\ (\textsf{splittingTree}\ ys)
+\end{align*}
+\endgroup
+
+Given a list of integers $xs$, we need to construct a concurrent representation of its 
+splitting tree with type $\textsf{cTree}\ (\textsf{list}\ \textsf{int})\ (\textsf{splittingTree}\ xs)$.
+While it is tempting to directly convert the result of \textsf{splittingTree} into a concurrent tree
+by recursively replacing \textsf{Leaf} with \textsf{cLeaf} and \textsf{Node} with \textsf{cNode},
+such an approach would require traversing both the input list (to construct the splitting tree) 
+and then traversing the resulting tree (to convert it into a concurrent tree). This would lead to a 
+bottleneck in the performance of the overall algorithm as the inputs would need to be traversed 
+sequentially before any parallelism can be exploited. Instead, we define the following function
+\textsf{splittingCTree} that constructs the concurrent splitting tree in a concurrent manner.
+\begingroup
+\small
+\addtolength{\jot}{-0.2em}
+\begin{align*}
+  &\Def\ \textsf{splittingCTree}\ (xs : \textsf{list}\ \textsf{int}) : 
+      \CH{!(\textsf{cTree}\ (\textsf{list}\ \textsf{int})\ (\textsf{splittingTree}\ xs)).\ \End} \rightarrow \CM{\textsf{unit}} := \\
+  &\quad\Match\ xs\ \With \\
+  &\quad\mid\ \textsf{nil} \Rightarrow 
+    \Let\ c \Leftarrow \Send\ c\ (\textsf{cLeaf}\ \textsf{nil})\ \In\ \Close(c);\ \Return\ () \\
+  &\quad\mid\ x :: \textsf{nil} \Rightarrow 
+    \Let\ c \Leftarrow \Send\ c\ (\textsf{cLeaf}\ (x :: \textsf{nil}))\ \In\ \Close(c);\ \Return\ () \\
+  &\quad\mid\ zs \Rightarrow \\
+  &\qquad\Let\ \langle{xs, ys}\rangle := \textsf{split}\ zs\ \In \\
+  &\qquad\Let\ c_l \Leftarrow \Fork(c)\ \With\ \textsf{splittingCTree}\ xs\ c\ \In \\
+  &\qquad\Let\ c_r \Leftarrow \Fork(c)\ \With\ \textsf{splittingCTree}\ ys\ c\ \In \\
+  &\qquad ...
+\end{align*}
+\endgroup
+The \textsf{splittingCTree} function takes an additional channel argument $c$ which is used to
+send back the constructed concurrent tree to its caller. This small change allows the
+recursive case to fork two new processes to construct the left and right sub-trees
+concurrently. After both sub-trees have been constructed, the parent process can then
+combine them into a single concurrent tree using \textsf{cNode} and send it back
+to its caller. The complete implementation of \textsf{splittingCTree} can be found in the
+supplementary materials but is shortened here for brevity.
+
+Now that we have constructed a concurrent splitting tree of our input list, we can
+apply the \textsf{cReduce} operation instantiated with $f := \lambda(x). x$
+and $g := \textsf{merge}$ to perform merging in parallel.
+This gives us an output of type
+\begin{align*}
+  \CM{\textsf{sing}\ (\textsf{reduce}\ (\lambda(x). x)\ \textsf{merge}\ (\textsf{splittingTree}\ xs)) \otimes \textsf{cTree}\ (\textsf{list}\ \textsf{int})\ (\textsf{splittingTree}\ xs)} 
+\end{align*}
+Note that the singleton value 
+$\textsf{sing}\ (\textsf{reduce}\ (\lambda(x). x)\ \textsf{merge}\ (\textsf{splittingTree}\ xs))$
+returned by the monad \emph{relationally} describes this series of concurrent computations using just 
+sequential operations. This allows us to easily verify the correctness of our concurrent mergesort
+implementation by proving the following \emph{theorem} (in the internal logic of TLL) which states that 
+reducing the splitting tree is equivalent to performing mergesort on the original input list.
+\begingroup
+\small
+\begin{align*}
+  &\Theorem\ \textsf{reduceSplittingTree} : \\
+  &\quad\forall (xs : \textsf{list}\ \textsf{int}).\ \textsf{reduce}\ (\lambda(x). x)\ \textsf{merge}\ (\textsf{splittingTree}\ xs) = \textsf{msort}\ xs
+\end{align*}
+\endgroup
+Using this theorem, we can rewrite the singleton value returned by \textsf{cReduce} to
+$\textsf{sing}\ (\textsf{msort}\ xs)$. In other words, the result of our concurrent
+mergesort implementation is guaranteed to be exactly the same as that of the sequential
+mergesort algorithm, thus completing our verification.
 
 %%% Local Variables:
 %%% mode: LaTeX
