@@ -350,7 +350,7 @@ representation of how the input list is split by the mergesort algorithm.
 \end{align*}
 \endgroup
 
-Given a list of integers $xs$, we need to construct a concurrent representation of its 
+To apply map-reduce, we need to construct a concurrent representation of its 
 splitting tree with type $\textsf{cTree}\ (\textsf{list}\ \textsf{int})\ (\textsf{splittingTree}\ xs)$.
 While it is tempting to directly convert the result of \textsf{splittingTree} into a concurrent tree
 by recursively replacing \textsf{Leaf} with \textsf{cLeaf} and \textsf{Node} with \textsf{cNode},
