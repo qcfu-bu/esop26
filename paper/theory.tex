@@ -7,19 +7,18 @@ Notably, TLL supports \emph{essential linearity}~\cite{luo} through the use of
 a stratified ``two-level'' typing system: the \emph{logical} level and the \emph{program} level. 
 The typing judgments of the two levels are written as follows:
 \begin{center}
+\vspace{0.5em}
 \begin{tikzpicture}[
-    node distance=2cm,
+    node distance=2.4cm,
     >=stealth, auto,
     every state/.style={rectangle, draw, rounded corners}
 ]
 \node[state, fill=blue!5] (l)                {\small$\Gamma \vdash m : A\ \text{(Logical Typing)}$};
 \node[state, fill=red!5]  (p) [right=of l]   {\small$\Gamma ; \Delta \vdash m : A\ \text{(Program Typing)}$};
-\begin{scope}[bend left]%
-\path[->]
-  (l.north east) edge node {\footnotesize{provides types}} (p.north west)
-  (p.south west) edge node {\footnotesize{subjects to verify}} (l.south east);
-\end{scope}
+\path[-latex,transform canvas={yshift=+1.5ex}] (l.east) edge node {\footnotesize{provides types}} (p.west);
+\path[-latex,transform canvas={yshift=-1.5ex}] (p.west) edge node {\footnotesize{subjects to verify}} (l.east);
 \end{tikzpicture}
+\vspace{0.5em}
 \end{center}
 
 First, the \emph{logical} level is a standard dependent type system that supports unrestricted 
@@ -63,7 +62,7 @@ For example, consider the $\lambda$-abstraction rules:
     \Delta \triangleright m }
   { \Gamma ; \Delta \vdash \lamI{t}{x : A}{m} : \PiI{t}{x : A}{B} }
 \end{mathpar}
-In the \textsc{Explicit-Lam} rule, we can see that the bound variable $x$ is added to
+In \textsc{Explicit-Lam}, we can see that the bound variable $x$ is added to
 both contexts $\Gamma$ and $\Delta$. This indicates that $x$ is a variable which can be
 used both logically (in types and ghost values) through $\Gamma$, 
 and computationally (in real values) through $\Delta$. On the other hand, in the
