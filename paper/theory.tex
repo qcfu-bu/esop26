@@ -43,6 +43,9 @@ Program level terms which inhabit unrestricted types can be freely duplicated or
 while those which inhabit linear types must be used exactly once.
 Note that this usage restriction is \emph{not} enforced at the logical level
 as the logical level typing judgment is completely structural.
+This is safe because the logical level will never be executed at runtime and 
+is only used for type checking and verification. Thus, multiple uses of
+a linear resource at the logical level will not lead to any runtime errors.
 
 At the program level, the typing judgment $\Gamma ; \Delta \vdash m : A$ is used to
 exclusively type \emph{terms}.  In other words, no rules for forming types are defined
@@ -54,24 +57,32 @@ For example, consider the $\lambda$-abstraction rules:
 \begin{mathpar}
   \inferrule[Explicit-Lam]
   { \Gamma, x : A ; \Delta, x :_s A \vdash m : B \\ 
-    \Delta \triangleright m }
+    \Delta \triangleright t }
   { \Gamma ; \Delta \vdash \lamR{t}{x : A}{m} : \PiR{t}{x : A}{B} }
 
   \inferrule[Implicit-Lam]
   { \Gamma, x : A ; \Delta \vdash m : B \\
-    \Delta \triangleright m }
+    \Delta \triangleright t }
   { \Gamma ; \Delta \vdash \lamI{t}{x : A}{m} : \PiI{t}{x : A}{B} }
 \end{mathpar}
 In \textsc{Explicit-Lam}, we can see that the bound variable $x$ is added to
-both contexts $\Gamma$ and $\Delta$. This indicates that $x$ is a variable which can be
-used both logically (in types and ghost values) through $\Gamma$, 
-and computationally (in real values) through $\Delta$. On the other hand, in the
+both contexts $\Gamma$ and $\Delta$. This indicates that $x$ is a variable which
+can be used both logically (in types and ghost values) through $\Gamma$, and
+computationally (in real values) through $\Delta$. On the other hand, in the
 \textsc{Implicit-Lam} rule, $x$ is only added to $\Gamma$ but not $\Delta$.
 This indicates that $x$ is a ghost variable which can only be used logically.
-The premise $\Delta \triangleright s$ is a simple side condition that states: if $s = \Un$,
-then all variables in $\Delta$ must be unrestricted. This is to prevent
-$\lambda$-abstractions with unrestricted usage (i.e. $s = \Un$) from capturing
-linear variables from $\Delta$.
+The premise $\Delta \triangleright t$ is a simple side condition that states: if
+$t = \Un$, then all variables in $\Delta$ must be unrestricted. In other words,
+the $\lambda$-abstractions that can be applied unrestrictedly (with $t = \Un$)
+are not allowed to capture linearly typed variables from $\Delta$. This is
+similar to the restriction imposed on closures implementing the $\textsf{Fn}$
+trait (i.e. those that can be called multiple times) in Rust~\cite{rust} where
+capturing of mutable references is prohibited. If such a restriction is not
+imposed, then evaluating a $\lambda$-abstraction (that captures a linear
+variable) twice may lead to unsafe memory accesses such as double frees or
+use-after-frees.
+
+The application rules for both explicit and implicit functions are as follows:
 \begin{mathpar}
   \inferrule[Explicit-App]
   { \Gamma ; \Delta_1 \vdash m : \PiR{t}{x : A}{B} \\ 
@@ -83,3 +94,11 @@ linear variables from $\Delta$.
     \Gamma \vdash n : A }
   { \Gamma ; \Delta \vdash \appI{m}{n} : B[n/x] }
 \end{mathpar}
+In \textsc{Explicit-App}, the argument $n$ is a real value which must be typed
+at the program level. The $\dotcup$ operator merges the two program context
+$\Delta_1$ and $\Delta_2$ by contracting unrestricted variables and 
+requiring that linear variables be disjoint, thus preventing the sharing of
+linear resources. In \textsc{Implicit-App}, the argument $n$ is a ghost value 
+that is typed at the logical level. Due to the fact that ghost values are erased
+prior to runtime, the program context $\Delta$ in the conclusion only tracks the
+computationally relevant variables used in $m$.
