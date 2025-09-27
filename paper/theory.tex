@@ -27,12 +27,12 @@ for types which will be used at the logical level. For example, the rules for de
 function type ($\Pi$-types) formation are defined at the logical level as follows:
 \begin{mathpar}
   \inferrule[Explicit-Fun]
-  { \Gamma \vdash A : s \\  
+  { \Gamma \vdash A : s \\
     \Gamma, x : A \vdash B : r }
   { \Gamma \vdash \PiR{t}{x : A}{B} : t }
 
   \inferrule[Implicit-Fun]
-  { \Gamma \vdash A : s \\  
+  { \Gamma \vdash A : s \\
     \Gamma, x : A \vdash B : r }
   { \Gamma \vdash \PiI{t}{x : A}{B} : t }
 \end{mathpar}
@@ -48,7 +48,7 @@ is only used for type checking and verification. Thus, multiple uses of
 a linear resource at the logical level will not lead to any runtime errors.
 
 At the program level, the typing judgment $\Gamma ; \Delta \vdash m : A$ is used to
-exclusively type \emph{terms}.  In other words, no rules for forming types are defined
+exclusively type \emph{terms}. In other words, no rules for forming types are defined
 at the program level. All the types used in $\Gamma$, $\Delta$, $m$ and $A$ must be well-formed
 according to the logical level typing judgment. This typing judgment possesses two contexts:
 $\Gamma$ of all variables in scope, and $\Delta$ of all variables that are computationally relevant
