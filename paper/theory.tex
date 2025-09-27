@@ -71,7 +71,20 @@ can be used both logically (in types and ghost values) through $\Gamma$, and
 computationally (in real values) through $\Delta$. On the other hand, in the
 \textsc{Implicit-Lam} rule, $x$ is only added to $\Gamma$ but not $\Delta$.
 This indicates that $x$ is a ghost variable which can only be used logically.
-The premise $\Delta \triangleright t$ is a simple side condition that states: if
+A ubiquitous example of ghost variables are type parameters in polymorphic functions.
+For example, the polymorphic identity function can be implemented as
+\begin{align*}
+  \lamI{\Un}{A : \Un}{\lamR{\Un}{x : A}{x}}
+\end{align*}
+which has the type $\PiI{\Un}{A : \Un}{\PiR{\Un}{x : A}{A}}$.
+Arguments to implicit functions are typed at the logical level, thus
+allowing polymorphic functions to be instantiated with a type as an argument.
+Additionally, as demonstrated in the examples of prior sections,
+ghost variables also facilitate program verification by statically describing 
+abstractions and invariants of program states.
+
+In the two $\lambda$-abstraction rules above, 
+the premise $\Delta \triangleright t$ is a simple side condition that states: if
 $t = \Un$, then all variables in $\Delta$ must be unrestricted. In other words,
 the $\lambda$-abstractions that can be applied unrestrictedly (with $t = \Un$)
 are not allowed to capture linearly typed variables from $\Delta$. This is
@@ -96,9 +109,11 @@ The application rules for both explicit and implicit functions are as follows:
 \end{mathpar}
 In \textsc{Explicit-App}, the argument $n$ is a real value which must be typed
 at the program level. The $\dotcup$ operator merges the two program context
-$\Delta_1$ and $\Delta_2$ by contracting unrestricted variables and 
-requiring that linear variables be disjoint, thus preventing the sharing of
-linear resources. In \textsc{Implicit-App}, the argument $n$ is a ghost value 
-that is typed at the logical level. Due to the fact that ghost values are erased
-prior to runtime, the program context $\Delta$ in the conclusion only tracks the
-computationally relevant variables used in $m$.
+$\Delta_1$ and $\Delta_2$ by contracting unrestricted variables and requiring
+that linear variables be disjoint, thus preventing the sharing of linear
+resources. In \textsc{Implicit-App}, the argument $n$ is a ghost value that is
+typed at the logical level. Due to the fact that ghost values are erased prior
+to runtime, the program context $\Delta$ in the conclusion only tracks the
+computationally relevant variables used in $m$. Notice how in \textsc{Explicit-App}, 
+the argument $n$ is substituted into the return type $B$. This allows types to depend 
+on program level terms regardless of whether they are of linear or unrestricted types.
