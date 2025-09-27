@@ -5,6 +5,7 @@
 \usepackage{tikz-cd}
 \usetikzlibrary{
   positioning,
+  automata,
   shapes.geometric,
   arrows,
   arrows.meta,
@@ -106,8 +107,8 @@
 \newcommand{\fix}[2]{\mu({#1}).{#2}}
 \newcommand{\ActP}{\Uparrow}
 \newcommand{\ActN}{\Downarrow}
-\newcommand{\ActR}[3]{{{#1}({#2})\rightarrow{#3}}}
-\newcommand{\ActI}[3]{{{#1}\{{#2}\}\rightarrow{#3}}}
+\newcommand{\ActR}[3]{{{#1}({#2}).\ {#3}}}
+\newcommand{\ActI}[3]{{{#1}\{{#2}\}.\ {#3}}}
 \newcommand{\dual}[1]{(#1)^{\bot}}
 \newcommand{\End}{\textbf{\textsf{1}}}
 \newcommand{\Ch}[2]{{{#1}\textbf{\textsf{ch}}\langle{#2}\rangle}}

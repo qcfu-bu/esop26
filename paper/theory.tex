@@ -1,0 +1,86 @@
+\subsection{Core TLL}
+In this section, we give a brief summary of the Two-Level Linear dependent type theory (TLL)~\cite{fu23}. 
+TLL is a dependent type theory that combines 
+Martin-L\"{o}f-style dependent types~\cite{martinlof} 
+with linear types~\cite{girard,wadler1990}. 
+Notably, TLL supports \emph{essential linearity}~\cite{luo} through the use of
+a stratified ``two-level'' typing system: the \emph{logical} level and the \emph{program} level. 
+The typing judgments of the two levels are written as follows:
+\begin{center}
+\begin{tikzpicture}[
+    node distance=2cm,
+    >=stealth, auto,
+    every state/.style={rectangle, draw, rounded corners}
+]
+\node[state, fill=blue!5] (l)                {\small$\Gamma \vdash m : A\ \text{(Logical Typing)}$};
+\node[state, fill=red!5]  (p) [right=of l]   {\small$\Gamma ; \Delta \vdash m : A\ \text{(Program Typing)}$};
+\begin{scope}[bend left]%
+\path[->]
+  (l.north east) edge node {\footnotesize{provides types}} (p.north west)
+  (p.south west) edge node {\footnotesize{subjects to verify}} (l.south east);
+\end{scope}
+\end{tikzpicture}
+\end{center}
+
+First, the \emph{logical} level is a standard dependent type system that supports unrestricted 
+usage of types and terms. The primary purpose of the logical level is to provide typing rules
+for types which will be used at the logical level. For example, the rules for dependent 
+function type ($\Pi$-types) formation are defined at the logical level as follows:
+\begin{mathpar}
+  \inferrule[Explicit-Fun]
+  { \Gamma \vdash A : s \\  
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \PiR{t}{x : A}{B} : t }
+
+  \inferrule[Implicit-Fun]
+  { \Gamma \vdash A : s \\  
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \PiI{t}{x : A}{B} : t }
+\end{mathpar}
+The symbols $s, r, t$ range over the \emph{sorts} of type universes, i.e. 
+$\Un$ or $\Ln$. These sorts are used to classify types into two categories: 
+unrestricted types ($A : \Un$) and linear types ($A : \Ln$).
+Program level terms which inhabit unrestricted types can be freely duplicated or discarded,
+while those which inhabit linear types must be used exactly once.
+Note that this usage restriction is \emph{not} enforced at the logical level
+as the logical level typing judgment is completely structural.
+
+At the program level, the typing judgment $\Gamma ; \Delta \vdash m : A$ is used to
+exclusively type \emph{terms}.  In other words, no rules for forming types are defined
+at the program level. All the types used in $\Gamma$, $\Delta$, $m$ and $A$ must be well-formed
+according to the logical level typing judgment. This typing judgment possesses two contexts:
+$\Gamma$ of all variables in scope, and $\Delta$ of all variables that are computationally relevant
+in program $m$. Context $\Delta$ is crucial for enforcing linearity at the program level.
+For example, consider the $\lambda$-abstraction rules:
+\begin{mathpar}
+  \inferrule[Explicit-Lam]
+  { \Gamma, x : A ; \Delta, x :_s A \vdash m : B \\ 
+    \Delta \triangleright m }
+  { \Gamma ; \Delta \vdash \lamR{t}{x : A}{m} : \PiR{t}{x : A}{B} }
+
+  \inferrule[Implicit-Lam]
+  { \Gamma, x : A ; \Delta \vdash m : B \\
+    \Delta \triangleright m }
+  { \Gamma ; \Delta \vdash \lamI{t}{x : A}{m} : \PiI{t}{x : A}{B} }
+\end{mathpar}
+In the \textsc{Explicit-Lam} rule, we can see that the bound variable $x$ is added to
+both contexts $\Gamma$ and $\Delta$. This indicates that $x$ is a variable which can be
+used both logically (in types and ghost values) through $\Gamma$, 
+and computationally (in real values) through $\Delta$. On the other hand, in the
+\textsc{Implicit-Lam} rule, $x$ is only added to $\Gamma$ but not $\Delta$.
+This indicates that $x$ is a ghost variable which can only be used logically.
+The premise $\Delta \triangleright s$ is a simple side condition that states: if $s = \Un$,
+then all variables in $\Delta$ must be unrestricted. This is to prevent
+$\lambda$-abstractions with unrestricted usage (i.e. $s = \Un$) from capturing
+linear variables from $\Delta$.
+\begin{mathpar}
+  \inferrule[Explicit-App]
+  { \Gamma ; \Delta_1 \vdash m : \PiR{t}{x : A}{B} \\ 
+    \Gamma ; \Delta_2 \vdash n : A }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \appR{m}{n} : B[n/x] }
+
+  \inferrule[Implicit-App]
+  { \Gamma ; \Delta \vdash m : \PiI{t}{x : A}{B} \\ 
+    \Gamma \vdash n : A }
+  { \Gamma ; \Delta \vdash \appI{m}{n} : B[n/x] }
+\end{mathpar}
