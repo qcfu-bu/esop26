@@ -136,9 +136,7 @@ functions or threads outside of $f$. Wadler, in his seminal
 work~\cite{wadler1991}, also made a similar distinction between \emph{linearity}
 and \emph{uniqueness} in the context of functional programming, coining the term
 \emph{steadfast types} to refer to type systems that enforce both linearity and
-uniqueness. In the context of session type based concurrency, the steadfast property
-of TLL 
-
-
-% In the
-% context of session type based concurrency,
+uniqueness. In the context of concurrency, the steadfast type system of TLL
+makes it especially suitable for integration with session types: linear usage
+prevents replaying of communication protocols and uniqueness prevents multiple
+threads from simultaneously accessing the same communication channel.
