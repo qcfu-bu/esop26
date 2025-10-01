@@ -143,5 +143,26 @@ threads from simultaneously accessing the same communication channel.
 
 \subsection{Dependent Session Types of \TLLC{}}
 In this section, we formally present the dependent session types of \TLLC{}.
+
 \paragraph{\textbf{Protocols and Channel Types}}
+As touched on in \Cref{sec:message-specification}, intuitionistic session types
+of \TLLC{} are decoupled into \emph{protocols} and \emph{channel types}. The
+rule for forming protocols is as follows:
+\begin{mathpar}
+  \inferrule[Proto] 
+  { \Gamma \vdash }
+  { \Gamma \vdash \Proto : \Un }
+
+  \inferrule[Explicit-Action]
+  { \Gamma, x : A \vdash P : \Proto }
+  { \Gamma \vdash \ActR{\rho}{x : A}{P} : \Proto }
+
+  \inferrule[Implicit-Action]
+  { \Gamma, x : A \vdash P : \Proto }
+  { \Gamma \vdash \ActI{\rho}{x : A}{P} : \Proto }
+
+  \text{where } \rho \in \{!, ?\}
+\end{mathpar}
+Here, the \textsc{Proto} rule
+
 \paragraph{\textbf{Concurrency Monad}}
