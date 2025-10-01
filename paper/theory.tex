@@ -146,23 +146,42 @@ In this section, we formally present the dependent session types of \TLLC{}.
 
 \paragraph{\textbf{Protocols and Channel Types}}
 As touched on in \Cref{sec:message-specification}, intuitionistic session types
-of \TLLC{} are decoupled into \emph{protocols} and \emph{channel types}. The
-rule for forming protocols is as follows:
+of \TLLC{} are decoupled into \emph{protocols} and \emph{channel types}. 
+The rule for forming protocols is as follows:
 \begin{mathpar}
   \inferrule[Proto] 
   { \Gamma \vdash }
   { \Gamma \vdash \Proto : \Un }
 
   \inferrule[Explicit-Action]
-  { \Gamma, x : A \vdash P : \Proto }
-  { \Gamma \vdash \ActR{\rho}{x : A}{P} : \Proto }
+  { \Gamma, x : A \vdash B : \Proto }
+  { \Gamma \vdash \ActR{\rho}{x : A}{B} : \Proto }
 
   \inferrule[Implicit-Action]
-  { \Gamma, x : A \vdash P : \Proto }
-  { \Gamma \vdash \ActI{\rho}{x : A}{P} : \Proto }
+  { \Gamma, x : A \vdash B : \Proto }
+  { \Gamma \vdash \ActI{\rho}{x : A}{B} : \Proto }
+
+  \inferrule[End]
+  { \Gamma \vdash }
+  { \Gamma \vdash \End : \Proto }
 
   \text{where } \rho \in \{!, ?\}
 \end{mathpar}
-Here, the \textsc{Proto} rule
+Here, the \textsc{Proto} rule introduces the \Proto{} type which is the type of all protocols. 
+Note that \Proto{} is an unrestricted type, thus protocols can be freely duplicated or discarded.
+The \textsc{Explicit-Action} and \textsc{Implicit-Action} rules form dependent protocols which 
+inhabit the \Proto{} type. The \textsc{End} rule marks the termination of a protocol.
+
+\begin{mathpar}
+  \inferrule[ChType]
+  { \Gamma \vdash A : \Proto }
+  { \Gamma \vdash \CH{A} : \Ln }
+
+  \inferrule[Ch]
+  { \Gamma ; \Delta \vdash \\ 
+    \epsilon \vdash A : \Proto \\ 
+    \Delta \triangleright \Un }
+  { c :_\Ln \CH{A} ; \Gamma ; \Delta \vdash c : \CH{A} }
+\end{mathpar}
 
 \paragraph{\textbf{Concurrency Monad}}
