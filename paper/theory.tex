@@ -117,3 +117,28 @@ to runtime, the program context $\Delta$ in the conclusion only tracks the
 computationally relevant variables used in $m$. Notice how in \textsc{Explicit-App}, 
 the argument $n$ is substituted into the return type $B$. This allows types to depend 
 on program level terms regardless of whether they are of linear or unrestricted types.
+
+\paragraph{\textbf{Usage vs Uniqueness}}
+Compared to other linear dependent type
+theories~\cite{qtt,nothing,llf,vakar14,luo} which only enforce the linear
+\emph{usage} of resources, the TLL type system prevents the \emph{sharing} of
+linear resources as well. This is similar to the subtle difference between
+linear logic~\cite{girard} and bunched implications~\cite{ohearn99,ohearn03}. 
+Consider a linear function $f$, in the aforementioned dependent type theories,
+of some type $A \multimap B$. When function $f$ is applied to some argument $v$
+of type $A$, the argument $v$ is guaranteed to be used exactly once in the 
+\emph{body} of $f$. Notice that this notion of linearity does not preclude the
+possibility of sharing $v$ with other functions or threads outside of $f$. In
+contrast, the shared interpretation of linearity, as described by
+O'Hearn~\cite{ohearn03}, require that $v$ be a unique resource which is
+exclusively owned by $f$. In other words, $v$ cannot be shared with any other
+functions or threads outside of $f$. Wadler, in his seminal
+work~\cite{wadler1991}, also made a similar distinction between \emph{linearity}
+and \emph{uniqueness} in the context of functional programming, coining the term
+\emph{steadfast types} to refer to type systems that enforce both linearity and
+uniqueness. In the context of session type based concurrency, the steadfast property
+of TLL 
+
+
+% In the
+% context of session type based concurrency,
