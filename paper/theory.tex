@@ -151,7 +151,7 @@ a single owner.
 \subsection{Dependent Session Types of \TLLC{}}
 In this section, we formally present the dependent session types of \TLLC{}.
 
-\paragraph{\textbf{Protocols and Channel Types}}
+\paragraph{\textbf{Basic Protocols and Channel Types}}
 As touched on in \Cref{sec:message-specification}, intuitionistic session types
 of \TLLC{} are decoupled into \emph{protocols} and \emph{channel types}. 
 The rule for forming protocols is as follows:
@@ -179,23 +179,6 @@ Note that \Proto{} is an unrestricted type, thus protocols can be freely duplica
 The \textsc{Explicit-Action} and \textsc{Implicit-Action} rules form dependent protocols which 
 inhabit the \Proto{} type. The \textsc{End} rule marks the termination of a protocol.
 
-Recursive protocols can be formed using the $\fix{x : A}{m}$ construct which is typed as follows:
-\begin{mathpar}
-  \inferrule[Fixpoint]
-  { \Gamma, x : A \vdash m : A \\ 
-    A\ \text{is an \emph{arity} ending on } \Proto \\
-    x\ \text{is \emph{guarded} by protocol action in}\ m }
-  { \Gamma \vdash \fix{x : A}{m} : A }
-\end{mathpar}
-For a $\fix{x : A}{m}$ term, we require that $A$ be an \emph{arity} ending on \Proto{}.
-This prevents $\mu$ from introducing logical inconsistencies as it can only be used to
-construct protocols and not proofs for arbitrary propositions. To ensure that protocols
-defined through $\fix{x : A}{m}$ are always productive, recursive usages of $x$ must be
-syntactically \emph{guarded} behind a protocol action in $m$. This enforces the 
-\emph{contractiveness} condition for recursive session types~\cite{gay10}. Both the
-arity and guardedness conditions are stable under substitution. Due to space limitations,
-we present the rules of arities and guardedness in the appendix.
-
 Once a protocol is defined, we can form channel types using the following rules:
 \begin{mathpar}
   \inferrule[ChType]
@@ -212,4 +195,54 @@ channels must be used exactly once. Furthermore, as explained in the previous
 section, the unique ownership of linear types in TLL ensures that only a single
 entity has access to a channel at any point in time, thus preventing race conditions.
 
+\paragraph{\textbf{Recursive Protocols}}
+Recursive protocols can be formed using the $\fix{x : A}{m}$ construct:
+\begin{mathpar}
+  \inferrule[Fixpoint]
+  { \Gamma, x : A \vdash m : A \\ 
+    A\ \text{is an \emph{arity} ending on } \Proto \\
+    x\ \text{is \emph{guarded} by protocol action in}\ m }
+  { \Gamma \vdash \fix{x : A}{m} : A }
+\end{mathpar}
+For a $\fix{x : A}{m}$ term, we require that $A$ be an \emph{arity} ending on \Proto{}.
+This prevents $\mu$ from introducing logical inconsistencies as it can only be used to
+construct protocols and not proofs for arbitrary propositions. To ensure that protocols
+defined through $\fix{x : A}{m}$ can be productively unfolded, recursive usages of $x$ must be
+syntactically \emph{guarded} behind a protocol action in $m$. This enforces the 
+\emph{contractiveness} condition for recursive session types~\cite{gay10}. Both the
+arity and guardedness conditions are stable under substitution. Due to space limitations,
+we present the rules of arities and guardedness in the appendix.
+
+The difficulty of integrating recursive protocols in classical session type systems
+is well documented~\cite{gay20}. The key challenge is to define a suitable \emph{duality}
+operator that commutes with recursion. Suppose we define a reasonable, but naive, duality
+operator $(\cdot)^\bot$ which simply flips $!$ and $?$ in protocols. Let us consider
+the dual of recursive protocol $\mu{X}.{?X}.X$. If we first apply duality and then
+unfold the recursion, we get:
+\begin{align*}
+  (\mu{X}.{?X}.X)^\bot  = \mu{X}.{!X}.X =\; !(\mu{X}.{!X}.X).(\mu{X}.{!X}.X)
+\end{align*} 
+On the other hand, if we first unfold the recursion and then apply duality, we get:
+\begin{align*}
+  (\mu{X}.{?X}.X)^\bot = (?(\mu{X}.{?X}.X).(\mu{X}.{?X}.X))^\bot =\; !(\mu{X}.{?X}.X).(\mu{X}.{!X}.X)
+\end{align*} 
+Notice that the resulting protocols do not agree on the type of the sent message.
+While solutions have been proposed to address this issue~\cite{bernardi16,bernardi14},
+they do not generalize to dependent session types due to the presence of arbitrary
+type-level computation. In \TLLC{}, the separation of protocols and channels types
+allows us to sidestep the duality problem entirely. Suppose we define our previously
+problematic recursive protocol in \TLLC{} as follows:
+\begin{align*}
+  T \triangleq \fix{X : \Proto}{?(\_ : X). X} =\; ?\big(\_ : \fix{X : \Proto}{?(\_ : X). X}\big).\ \fix{X : \Proto}{?(\_ : X). X}
+\end{align*}
+When viewed through the lens of channel type constructors $\CH{\cdot}$ and $\HC{\cdot}$,
+the actions specified by the unfolded protocol are correctly dual to each other.
+More specifically, a channel of type $\CH{T}$ receives a protocol of type $T$ whereas
+a channel of type $\HC{T}$ sends a protocol of type $T$.
+
 \paragraph{\textbf{Concurrency Monad}}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: "main"
+%%% End:
