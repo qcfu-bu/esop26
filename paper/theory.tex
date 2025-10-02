@@ -241,6 +241,40 @@ More specifically, a channel of type $\CH{T}$ receives a protocol of type $T$ wh
 a channel of type $\HC{T}$ sends a protocol of type $T$.
 
 \paragraph{\textbf{Concurrency Monad}}
+In order to integrate concurrency into the pure functional core of TLL, \TLLC{} 
+introduces a concurrency monad $\mcC$ which encapsulates the side effects 
+of concurrent computations. The concurrency monad is defined in the following \textsc{$\mcC$Type} rule.
+
+\vspace{-1em}
+\begin{mathpar}
+  \inferrule[$\mcC$Type]
+  { \Gamma \vdash A : s }
+  { \Gamma \vdash \CM{A} : \Ln }
+
+  \inferrule[Return]
+  { \Theta ; \Gamma ; \Delta \vdash m : A }
+  { \Theta ; \Gamma ; \Delta \vdash \return{m} : \CM{A} }
+
+  \inferrule[Let]
+  { \Gamma \vdash B : s \\
+    \Theta_1 ; \Gamma ; \Delta_1 \vdash m : \CM{A} \\\\
+    \Theta_2 ; \Gamma, x : A ; \Delta_2 \vdash n : \CM{B} }
+  { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \letin{m}{x}{n} : \CM{B} }
+\end{mathpar}
+
+To account for the addition of communication channels, the program typing judgment
+${\Gamma ; \Delta \vdash m : A}$ of TLL is extended into ${\Theta ; \Gamma ; \Delta \vdash m : A}$.
+The new context $\Theta$ tracks all the channels used in $m$. The \textsc{Let} rule above merges 
+the channel contexts $\Theta_1$ and $\Theta_2$ in its conclusion.
+
+
+
+% introduce a concurrency monad $\mcC$ which encapsulates the side effects of
+% concurrent computations. The concurrency monad is defined as follows:
+
+% Here, the \textsc{$\mcC$Type} rule forms the concurrency monad type $\CM{A}$
+% which lifts a type $A$ into a linear type. The next two rules, \textsc{Return}
+% and \textsc{Let} extend the program typing judgment ${\Gamma ; \Delta \vdash m : A}$ of TLL
 
 %%% Local Variables:
 %%% mode: LaTeX
