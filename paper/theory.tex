@@ -1,4 +1,4 @@
-\subsection{Core TLL}
+\subsection{Core TLL}\label{sec:core-tll}
 In this section, we give a brief summary of the Two-Level Linear dependent type theory (TLL)~\cite{fu23}. 
 TLL is a dependent type theory that combines 
 Martin-L\"{o}f-style dependent types~\cite{martinlof} 
@@ -122,24 +122,31 @@ on program level terms regardless of whether they are of linear or unrestricted 
 Compared to other linear dependent type
 theories~\cite{qtt,nothing,llf,vakar14,luo} which only enforce the linear
 \emph{usage} of resources, the TLL type system prevents the \emph{sharing} of
-linear resources as well. This is similar to the subtle difference between
-linear logic~\cite{girard} and bunched implications~\cite{ohearn99,ohearn03}. 
+linear resources as well. This is similar to the subtle distinction between
+linear logic~\cite{girard} and bunched implications~\cite{ohearn99,ohearn03}
+described by O'Hearn. 
 Consider a linear function $f$, in the aforementioned dependent type theories,
 of some type $A \multimap B$. When function $f$ is applied to some argument $v$
 of type $A$, the argument $v$ is guaranteed to be used exactly once in the 
-\emph{body} of $f$. Notice that this notion of linearity does not preclude the
-possibility of sharing $v$ with other functions or threads outside of $f$. In
-contrast, the shared interpretation of linearity, as described by
-O'Hearn~\cite{ohearn03}, require that $v$ be a unique resource which is
-exclusively owned by $f$. In other words, $v$ cannot be shared with any other
-functions or threads outside of $f$. Wadler, in his seminal
-work~\cite{wadler1991}, also made a similar distinction between \emph{linearity}
-and \emph{uniqueness} in the context of functional programming, coining the term
-\emph{steadfast types} to refer to type systems that enforce both linearity and
-uniqueness. In the context of concurrency, the steadfast type system of TLL
-makes it especially suitable for integration with session types: linear usage
-prevents replaying of communication protocols and uniqueness prevents multiple
-threads from simultaneously accessing the same communication channel.
+\emph{body} of $f$. Notice that this notion of linearity does not guarantee that
+$f$ has unique access to $v$. If $v$ was obtain from some $!$-exponential or
+$\omega$-quantity (the sharable quantity in graded systems \cite{qtt,nothing}),
+then there may be other aliases of $v$ which can be used outside of $f$.
+
+Wadler, in his seminal work~\cite{wadler1991}, made a similar distinction
+between linearity and uniqueness in the context of functional programming,
+noting that implicit uses of \emph{promotion} and \emph{dereliction} in linear
+logic can lead to violations of uniqueness.  He coins the term \emph{steadfast
+types} to refer to type systems that enforce both linearity and uniqueness. In
+this sense, TLL is steadfast as its \emph{sort-uniqueness} property (i.e. types
+uniquely inhabit either $\Un$ or $\Ln$) prohibits the implicit promotion and
+dereliction of linear types, thus preventing the sharing of linear resources.
+The heap semantics~\cite{turner99} of TLL shows that its programs enjoy the 
+\emph{single-pointer} property which is a consequence of uniqueness at runtime.  In
+the context of concurrency, the steadfast type system of TLL makes it especially
+suitable for integration with session types: linear usage prevents replaying of
+communication protocols and uniqueness ensures that a communication channel has
+a single owner.
 
 \subsection{Dependent Session Types of \TLLC{}}
 In this section, we formally present the dependent session types of \TLLC{}.
@@ -172,16 +179,37 @@ Note that \Proto{} is an unrestricted type, thus protocols can be freely duplica
 The \textsc{Explicit-Action} and \textsc{Implicit-Action} rules form dependent protocols which 
 inhabit the \Proto{} type. The \textsc{End} rule marks the termination of a protocol.
 
+Recursive protocols can be formed using the $\fix{x : A}{m}$ construct which is typed as follows:
+\begin{mathpar}
+  \inferrule[Fixpoint]
+  { \Gamma, x : A \vdash m : A \\ 
+    A\ \text{is an \emph{arity} ending on } \Proto \\
+    x\ \text{is \emph{guarded} by protocol action in}\ m }
+  { \Gamma \vdash \fix{x : A}{m} : A }
+\end{mathpar}
+For a $\fix{x : A}{m}$ term, we require that $A$ be an \emph{arity} ending on \Proto{}.
+This prevents $\mu$ from introducing logical inconsistencies as it can only be used to
+construct protocols and not proofs for arbitrary propositions. To ensure that protocols
+defined through $\fix{x : A}{m}$ are always productive, recursive usages of $x$ must be
+syntactically \emph{guarded} behind a protocol action in $m$. This enforces the 
+\emph{contractiveness} condition for recursive session types~\cite{gay10}. Both the
+arity and guardedness conditions are stable under substitution. Due to space limitations,
+we present the rules of arities and guardedness in the appendix.
+
+Once a protocol is defined, we can form channel types using the following rules:
 \begin{mathpar}
   \inferrule[ChType]
   { \Gamma \vdash A : \Proto }
   { \Gamma \vdash \CH{A} : \Ln }
 
-  \inferrule[Channel]
-  { \Gamma ; \Delta \vdash \\ 
-    \epsilon \vdash A : \Proto \\ 
-    \Delta \triangleright \Un }
-  { c :_\Ln \CH{A} ; \Gamma ; \Delta \vdash c : \CH{A} }
+  \inferrule[HcType]
+  { \Gamma \vdash A : \Proto }
+  { \Gamma \vdash \HC{A} : \Ln }
 \end{mathpar}
+Notice that the channel type constructors $\CH{\cdot}$ and $\HC{\cdot}$
+lift protocols, which are unrestricted values, into linear types. This means that
+channels must be used exactly once. Furthermore, as explained in the previous
+section, the unique ownership of linear types in TLL ensures that only a single
+entity has access to a channel at any point in time, thus preventing race conditions.
 
 \paragraph{\textbf{Concurrency Monad}}
