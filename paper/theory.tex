@@ -241,11 +241,8 @@ More specifically, a channel of type $\CH{T}$ receives a protocol of type $T$ wh
 a channel of type $\HC{T}$ sends a protocol of type $T$.
 
 \paragraph{\textbf{Concurrency Monad}}
-In order to integrate concurrency into the pure functional core of TLL, \TLLC{} 
-introduces a concurrency monad $\mcC$ which encapsulates the side effects 
-of concurrent computations. The concurrency monad is defined in the following \textsc{$\mcC$Type} rule.
-
-\vspace{-1em}
+Concurrency is integrated into the pure functional core of TLL through a concurrency monad $\mcC$.
+The basic components of the monad are given in the following rules.
 \begin{mathpar}
   \inferrule[$\mcC$Type]
   { \Gamma \vdash A : s }
@@ -261,7 +258,6 @@ of concurrent computations. The concurrency monad is defined in the following \t
     \Theta_2 ; \Gamma, x : A ; \Delta_2 \vdash n : \CM{B} }
   { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \letin{m}{x}{n} : \CM{B} }
 \end{mathpar}
-
 To account for the addition of communication channels, the program typing judgment
 ${\Gamma ; \Delta \vdash m : A}$ of TLL is extended into ${\Theta ; \Gamma ; \Delta \vdash m : A}$.
 The new context $\Theta$ tracks all the channels used in $m$. The \textsc{Bind} rule above merges 
@@ -295,13 +291,18 @@ value $v$ of type $A$ and returns a concurrent computation of type
 $\CM{\CH{B[v/x]}}$ which represents the continuation of the protocol after
 sending a real value of type $A$. When this monadic value is bound by rule
 \textsc{Bind} and executed at runtime, the value $v$ will be sent on channel
-$c$. The elided \textsc{Explicit-Recv-HC} dual rule receives on a channel of
-type $\HC{!(x : A).B}$ which produces a (monadic) dependent pair similarly to
-\textsc{Explicit-Recv-CH}. The first component of the pair is the value of
-type $A$ that was received, and the second component is a channel of type
-$\HC{B[v/x]}$ representing the continuation of the protocol. Notice that due to
-the linearity of the $\mcC$ monad, all of the intermediate monadic values are
-guaranteed to be executed.
+$c$. The dual \textsc{Explicit-Recv-HC} rule, as shown here,
+\begin{mathpar}
+  \inferrule[Explicit-Recv-HC]
+  { \Theta ; \Gamma ; \Delta \vdash c : \HC{\ActR{!}{x : A}{B}}}
+  { \Theta ; \Gamma ; \Delta \vdash \Recv\ c : \CM{\SigR{\Ln}{x : A}{\HC{B}}} }
+\end{mathpar}
+receives on a channel of type $\HC{!(x : A).B}$ which produces a (monadic)
+dependent pair (similarly to \textsc{Explicit-Recv-CH}). The first component of
+the pair is the value of type $A$ that was received, and the second component is
+a channel of type $\HC{B[v/x]}$ representing the continuation of the protocol.
+Notice that, due to the linearity of the $\mcC$ monad, all of the intermediate
+monadic values are guaranteed to be bound by the \textsc{Bind} rule and executed.
 
 The implicit send and receive rules are similar to their explicit counterparts,
 except that they send and receive ghost values instead of real values. This 
@@ -314,7 +315,7 @@ by \textsc{Implicit-Recv-CH} is also an erased ghost value. The underlying type
 system of TLL ensures that these ghost values will only be used logically, thus
 are safe to erase.
 
-The final communication rules govern the creation and termination of channels:
+The last communication rules govern the creation and termination of channels:
 
 \vspace{-1em}
 \begin{small}
@@ -337,4 +338,14 @@ The \textsc{Fork} rule is used for creating a child process which concurrently
 executes the monadic computation $m$. The child process is provided with a fresh
 channel of type $\CH{A}$ which is bound to the variable $x$ in $m$. Dually, the
 parent process obtains the channel endpoint of type $\HC{A}$, which can be used
-to communicate with the spawned process.
+to communicate with the spawned process. Note that the newly spawned process $m$ 
+is allowed to capture pre-existing channels from $\Theta$
+and program variables from $\Delta$. Compared to intuitionistic session type
+systems based on the sequent calculus~\cite{caires10,pfenning11,das20}, the $\CH{A}$
+channel handed to the child process behaves like the right-hand side of a sequent
+(i.e. the \emph{provided} channel), while the $\HC{A}$ channel handed
+to the parent process behaves like the left-hand side of a sequent 
+(i.e. the \emph{consumed} channels).
+
+The \textsc{Close} and \textsc{Wait}
+rules are used to terminate channels whose protocols have reached \End{}.
