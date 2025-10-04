@@ -1,0 +1,34 @@
+\subsection{Process Configurations}
+In the previous section, we have presented the typing rules for \TLLC{} terms
+which form individual processes. To compose multiple processes together, we
+introduce the process level typing judgment $\Theta \Vdash P$ below. This judgment
+formally states that a configuration of processes $P$ is well-typed under the
+context $\Theta$, which tracks the channels used by the processes in $P$.
+\begin{mathpar}
+  \inferrule[Expr] 
+  { \Theta ; \epsilon ; \epsilon \vdash m : \CM{\unit} }
+  { \Theta \Vdash \proc{m} }
+
+  \inferrule[Par]
+  { \Theta_1 \Vdash P_1 \\ 
+    \Theta_2 \Vdash P_2 }
+  { \Theta_1 \dotcup \Theta_2 \Vdash P_1 \mid P_2 }
+
+  \inferrule[Scope]
+  { \Theta, c :_\Ln \CH{A}, d :_\Ln \HC{A} \Vdash P }
+  { \Theta \Vdash \scope{cd}{P} }
+\end{mathpar}
+
+The process configuration rules are standard. The \textsc{Expr} rule lifts
+well-typed closed terms of type $\CM{\unit}$ to processes. It is important for
+the term $m$ to be closed as processes in a configuration cannot rely on
+external substitutions to resolve free variables, they can only communicate
+through channels. In the \textsc{Par} rule, well-typed configurations $P$ and
+$Q$ can be composed in parallel as long as their contexts $\Theta_1$ and
+$\Theta_2$ can be combined. The \textsc{Scope} rule allows two dual channels
+to be connected together, allowing processes holding channels $c$ and $d$ to communicate.
+
+\subsection{Semantics}
+\subsection{Meta-Theory}
+\paragraph{\textbf{Session Fidelity}}
+\paragraph{\textbf{Erasure Safety}}
