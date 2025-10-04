@@ -152,8 +152,7 @@ a single owner.
 In this section, we formally present the dependent session types of \TLLC{}.
 
 \paragraph{\textbf{Basic Protocols and Channel Types}}
-As touched on in \Cref{sec:message-specification}, intuitionistic session types
-of \TLLC{} are decoupled into \emph{protocols} and \emph{channel types}. 
+The intuitionistic session types of \TLLC{} are decoupled into \emph{protocols} and \emph{channel types}. 
 The rule for forming protocols is as follows:
 \begin{mathpar}
   \inferrule[Proto] 
@@ -213,12 +212,13 @@ syntactically \emph{guarded} behind a protocol action in $m$. This enforces the
 arity and guardedness conditions are stable under substitution. Due to space limitations,
 we present the rules of arities and guardedness in the appendix.
 
-The difficulty of integrating recursive protocols in classical session type systems
-is well documented~\cite{gay20}. The key challenge is to define a suitable \emph{duality}
-operator that commutes with recursion. Suppose we define a reasonable, but naive, duality
-operator $(\cdot)^\bot$ which simply flips $!$ and $?$ in protocols. Let us consider
-the dual of recursive protocol $\mu{X}.{?X}.X$. If we first apply duality and then
-unfold the recursion, we get:
+The difficulty of integrating recursive protocols in classical session type
+systems is well documented~\cite{gay20}. The key challenge is to define a
+suitable \emph{duality} operator that commutes with recursion. The following
+example is due to Bernardi and Hennessy~\cite{bernardi16}. Suppose we define a 
+reasonable, but naive, duality operator $(\cdot)^\bot$ which simply flips $!$
+and $?$ in protocols.  For the dual of recursive protocol $\mu{X}.{?X}.X$, if we
+first apply duality and then unfold the recursion, we get:
 \begin{align*}
   (\mu{X}.{?X}.X)^\bot  = \mu{X}.{!X}.X =\; !(\mu{X}.{!X}.X).(\mu{X}.{!X}.X)
 \end{align*} 
@@ -255,7 +255,7 @@ of concurrent computations. The concurrency monad is defined in the following \t
   { \Theta ; \Gamma ; \Delta \vdash m : A }
   { \Theta ; \Gamma ; \Delta \vdash \return{m} : \CM{A} }
 
-  \inferrule[Let]
+  \inferrule[Bind]
   { \Gamma \vdash B : s \\
     \Theta_1 ; \Gamma ; \Delta_1 \vdash m : \CM{A} \\\\
     \Theta_2 ; \Gamma, x : A ; \Delta_2 \vdash n : \CM{B} }
@@ -264,19 +264,77 @@ of concurrent computations. The concurrency monad is defined in the following \t
 
 To account for the addition of communication channels, the program typing judgment
 ${\Gamma ; \Delta \vdash m : A}$ of TLL is extended into ${\Theta ; \Gamma ; \Delta \vdash m : A}$.
-The new context $\Theta$ tracks all the channels used in $m$. The \textsc{Let} rule above merges 
-the channel contexts $\Theta_1$ and $\Theta_2$ in its conclusion.
+The new context $\Theta$ tracks all the channels used in $m$. The \textsc{Bind} rule above merges 
+the channel contexts $\Theta_1$ and $\Theta_2$ in its conclusion similarly to how program contexts
+are merged. This prevents channels from being shared between $m$ and $n$.
 
+As explained in \Cref{sec:message-specification}, the protocol actions $!(x : A).B$ and $?(x : A).B$
+are abstract constructs that need to be interpreted through channel types. Since $\CH{\cdot}$ and $\HC{\cdot}$
+interpret protocol actions in opposite ways, we only present the typing rules for $\CH{\cdot}$ below.
+\begin{mathpar}
+  \inferrule[Explicit-Send-CH]
+  { \Theta ; \Gamma ; \Delta \vdash c : \CH{\ActR{!}{x : A}{B}}}
+  { \Theta ; \Gamma ; \Delta \vdash \Send\ c : \PiR{\Ln}{x : A}{\CM{\CH{B}}} }
 
+  \inferrule[Explicit-Recv-CH]
+  { \Theta ; \Gamma ; \Delta \vdash c : \CH{\ActR{?}{x : A}{B}}}
+  { \Theta ; \Gamma ; \Delta \vdash \Recv\ c : \CM{\SigR{\Ln}{x : A}{\CH{B}}} }
 
-% introduce a concurrency monad $\mcC$ which encapsulates the side effects of
-% concurrent computations. The concurrency monad is defined as follows:
+  \inferrule[Implicit-Send-CH]
+  { \Theta ; \Gamma ; \Delta \vdash c : \CH{\ActI{!}{x : A}{B}}}
+  { \Theta ; \Gamma ; \Delta \vdash \SendI\ c : \PiI{\Ln}{x : A}{\CM{\CH{B}}} }
 
-% Here, the \textsc{$\mcC$Type} rule forms the concurrency monad type $\CM{A}$
-% which lifts a type $A$ into a linear type. The next two rules, \textsc{Return}
-% and \textsc{Let} extend the program typing judgment ${\Gamma ; \Delta \vdash m : A}$ of TLL
+  \inferrule[Implicit-Recv-CH]
+  { \Theta ; \Gamma ; \Delta \vdash c : \CH{\ActI{?}{x : A}{B}}}
+  { \Theta ; \Gamma ; \Delta \vdash \RecvI\ c : \CM{\SigI{\Ln}{x : A}{\CH{B}}} }
+\end{mathpar}
 
-%%% Local Variables:
-%%% mode: LaTeX
-%%% TeX-master: "main"
-%%% End:
+For the \textsc{Explicit-Send-CH} rule, a channel of type $\CH{!(x : A).B}$ is
+applied to the \Send{} operator. This produces a function which takes a real
+value $v$ of type $A$ and returns a concurrent computation of type
+$\CM{\CH{B[v/x]}}$ which represents the continuation of the protocol after
+sending a real value of type $A$. When this monadic value is bound by rule
+\textsc{Bind} and executed at runtime, the value $v$ will be sent on channel
+$c$. The elided \textsc{Explicit-Recv-HC} dual rule receives on a channel of
+type $\HC{!(x : A).B}$ which produces a (monadic) dependent pair similarly to
+\textsc{Explicit-Recv-CH}. The first component of the pair is the value of
+type $A$ that was received, and the second component is a channel of type
+$\HC{B[v/x]}$ representing the continuation of the protocol. Notice that due to
+the linearity of the $\mcC$ monad, all of the intermediate monadic values are
+guaranteed to be executed.
+
+The implicit send and receive rules are similar to their explicit counterparts,
+except that they send and receive ghost values instead of real values. This 
+distinction manifests by having the \SendI{} and \RecvI{} operators produce
+implicit functions and implicit pairs respectively. When the implicit function
+of \textsc{Implicit-Send-CH} is applied to a ghost argument using
+\textsc{Implicit-App} (\Cref{sec:core-tll}), the ghost argument will be erased
+prior to runtime. Similarly, the first component of the implicit pair produced
+by \textsc{Implicit-Recv-CH} is also an erased ghost value. The underlying type
+system of TLL ensures that these ghost values will only be used logically, thus
+are safe to erase.
+
+The final communication rules govern the creation and termination of channels:
+
+\vspace{-1em}
+\begin{small}
+\begin{mathpar}
+  \inferrule[Fork]
+  { \Theta ; \Gamma, x : \CH{A} ; \Delta, x :_\Ln \CH{A} \vdash m : \CM{\unit} }
+  { \Theta ; \Gamma ; \Delta \vdash \Fork (x : \CH{A})\ \With\ m : \CM{\HC{A}} }
+  \and\hspace{-0.5em}
+  \inferrule[Close]
+  { \Theta; \Gamma ; \Delta \vdash c : \CH{\End} }
+  { \Theta ; \Gamma ; \Delta \vdash \Close\ c : \CM{\unit} }
+  \and\hspace{-1.5em}
+  \inferrule[Wait]
+  { \Theta; \Gamma ; \Delta \vdash c : \HC{\End} }
+  { \Theta ; \Gamma ; \Delta \vdash \Wait\ c : \CM{\unit} }
+\end{mathpar}
+\end{small}
+
+The \textsc{Fork} rule is used for creating a child process which concurrently
+executes the monadic computation $m$. The child process is provided with a fresh
+channel of type $\CH{A}$ which is bound to the variable $x$ in $m$. Dually, the
+parent process obtains the channel endpoint of type $\HC{A}$, which can be used
+to communicate with the spawned process.

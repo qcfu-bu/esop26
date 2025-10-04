@@ -77,8 +77,8 @@
 \newcommand{\ty}[1]{:_{#1}}
 \newcommand{\tL}{:_{\text{L}}}
 \newcommand{\tU}{:_{\text{U}}}
-\newcommand{\PiR}[3]{\forall({#2}) \rightarrow_{#1} {#3}}
-\newcommand{\PiI}[3]{\forall\{{#2}\} \rightarrow_{#1} {#3}}
+\newcommand{\PiR}[3]{\Pi_{#1}({#2}).{#3}}
+\newcommand{\PiI}[3]{\Pi_{#1}\{{#2}\}.{#3}}
 \newcommand{\lamR}[3]{\lambda_{#1}({#2}).{#3}}
 \newcommand{\lamI}[3]{\lambda_{#1}\{{#2}\}.{#3}}
 \newcommand{\appR}[2]{{#1}\;{#2}}
@@ -128,7 +128,7 @@
 \newcommand{\CM}[1]{\mathcal{C}({#1})}
 \newcommand{\return}[1]{\textbf{return }{#1}}
 \newcommand{\letin}[3]{\textbf{let}\;{#1}\Leftarrow{#2}\textbf{ in }{#3}}
-\newcommand{\unit}{\textbf{unit}}
+\newcommand{\unit}{\textsf{unit}}
 \newcommand{\ii}{{()}}
 \newcommand{\proc}[1]{{\langle{#1}\rangle}}
 \newcommand{\scope}[2]{{\nu{#1}.{#2}}}
@@ -141,7 +141,9 @@
 \newcommand{\Let}{\textsf{\color{eminence}let}}
 \newcommand{\In}{\textsf{\color{eminence}in}}
 \newcommand{\Send}{\textbf{\textsf{send}}}
+\newcommand{\SendI}{\underline{\textbf{\textsf{send}}}}
 \newcommand{\Recv}{\textbf{\textsf{recv}}}
+\newcommand{\RecvI}{\underline{\textbf{\textsf{recv}}}}
 \newcommand{\Close}{\textbf{\textsf{close}}}
 \newcommand{\Wait}{\textbf{\textsf{wait}}}
 \newcommand{\Fork}{\textbf{\textsf{fork}}}
