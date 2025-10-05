@@ -115,7 +115,7 @@ in one step. The process reduction rules are presented below.
 \end{small}
 
 \noindent
-The first four rules define the core communication semantics of \TLLC{}. The
+The first four rules define the synchronous communication semantics of \TLLC{}. The
 \textsc{Proc-Fork} rule creates a pair of dual channels $c$ and $d$ to connect
 the continuation $n$ of the parent process with the newly forked child process $m$.
 We can see here that the newly created channels $c$ and $d$ are substituted for 
@@ -146,5 +146,6 @@ processes to reduce up to structural congruence.
 
 
 \subsection{Meta-Theory}
+\paragraph{\textbf{Structural Congruence}}
 \paragraph{\textbf{Session Fidelity}}
 \paragraph{\textbf{Erasure Safety}}
