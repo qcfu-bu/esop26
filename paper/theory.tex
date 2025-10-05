@@ -256,7 +256,7 @@ The basic components of the monad are given in the following rules.
   { \Gamma \vdash B : s \\
     \Theta_1 ; \Gamma ; \Delta_1 \vdash m : \CM{A} \\\\
     \Theta_2 ; \Gamma, x : A ; \Delta_2 \vdash n : \CM{B} }
-  { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \letin{m}{x}{n} : \CM{B} }
+  { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \letin{x}{m}{n} : \CM{B} }
 \end{mathpar}
 
 To reason about the communication channels that will appear at \emph{runtime}, the program level

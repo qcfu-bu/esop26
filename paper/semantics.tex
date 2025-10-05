@@ -200,14 +200,17 @@ The session fidelity theorem is then stated as follows.
 \noindent
 
 One of the primary challenges in proving session fidelity is to show that typing
-is preserved during communication steps, specifically the \textsc{Proc-Com}, and 
-\textsc{Proc-\underline{Com}} cases. Unlike simple type systems where one could
-simply swap two values for each other so long as they have the same type. 
-However, in dependent type systems, the values being exchanged could appear in types. 
-This means that a naive swapping of values could lead to ill-typed terms.
-For instance, swapping $1$ for $2$ in the dependent pair 
-$\pairR{1}{\Refl}{} : \Sigma(x : \text{nat}).(x = 1)$ would clearly lead to an ill-typed
-term.
+is preserved during communication steps, specifically the \textsc{Proc-Com}, and
+\textsc{Proc-\underline{Com}} cases. In these cases, the message being
+communicated is ``teleported'' from the sender to the receiver without the use
+of a substitution as in the case of term reduction. This means that we need to
+show that the message is consistently typed in regards to the receiver's
+context.  Unlike simple type systems where one could simply place a value into
+any larger context so long as the value has the expected type, dependent type
+systems require more care.  For instance, the evaluation context
+$\pairR{[\cdot]}{\Refl}{} : \Sigma(x : \textsf{nat}).(x = 1)$  would only be
+well-typed if the hole is filled with exactly $1$. To address this challenge, 
+we design the \textsc{Bind} rule to disallow dependency on the bound value.
 
 
 \paragraph{\textbf{Global Progress}}
