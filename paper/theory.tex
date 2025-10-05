@@ -263,7 +263,7 @@ To reason about the communication channels that will appear at \emph{runtime}, t
 typing judgment is extended to include a \emph{channel context} $\Theta$ which tracks the
 channels used by the program. It is crucial to understand that the channel context is
 largely a technical device for analyzing the type safety of \TLLC{}. Prior to runtime, the 
-channel context is empty as no channels have been created. Program construction 
+channel context is empty as no channels have been created. Programming
 is carried out using normal variables in $\Delta$. At runtime, channels will be created and
 substituted for appropriate variables in $\Delta$. It is these runtime channels that occupy the 
 channel context $\Theta$ and are typed as follows:

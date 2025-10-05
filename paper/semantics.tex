@@ -51,19 +51,98 @@ considered equivalent regarding their communication behavior.
 
 \subsection{Semantics}
 \paragraph{\textbf{Term Reduction}}
-The operational semantics of \TLLC{} terms is mostly the same as that of
+The operational semantics of \TLLC{} programs is mostly the same as that of
 call-by-value TLL~\cite{fu23}.  The relation $m \Leadsto m'$ is used to denote a
 single step of \emph{program} level reduction. Due to the monadic formulation of
 concurrency in \TLLC{}, the only additional (non-trivial) program reduction rule
 is the following \textsc{BindElim} rule which reduces a monadic
 \bsf{let}-expression when its bound term is a \bsf{return} expression:
 \begin{align*}
-  \letin{x}{\return{v}}{m} \Leadsto m[v/x] \tag*{(\text{where $v$ is a value})}
+ (\textsc{BindElim})\quad \letin{x}{\return{v}}{m} \Leadsto m[v/x] \tag*{(\text{where $v$ is a value})}
 \end{align*}
 Values now additionally include channels, partially applied communication operators
-and thunked monadic expressions. We present the full definition of values in the appendix.
+and thunked monadic expressions. We will use the metavariable $v$ to denote values
+for the rest of this paper. The full definition of values is presented in the appendix.
 
 \paragraph{\textbf{Process Reduction}}
+The semantics of processes is defined through the relation $P \Rrightarrow Q$ which
+states that process configuration $P$ reduces to process configuration $Q$
+in one step. The process reduction rules are presented below.
+
+\vspace{0.5em}
+\begin{small}
+\begin{tabular}{l L}
+  (\textsc{Proc-Fork}) &
+    \proc{\letin{x}{\fork{y : A}{m}}{n}}
+    \Rrightarrow
+    \scope{cd}{(\proc{n[c/x]} \mid \proc{m[d/y]})} 
+  \\
+  (\textsc{Proc-End}) 
+    &\scope{cd}{(\proc{\letin{x}{\close{c}}{m}} \mid \proc{\letin{y}{\wait{d}}{n}})} \\
+    &\quad\Rrightarrow 
+     \proc{\letin{x}{\return{\ii}}{m}} \mid \proc{\letin{y}{\return{\ii}}{n}} 
+  \\
+  (\textsc{Proc-Com}) 
+    &\scope{cd}{(\proc{\letin{x}{\appR{\sendR{c}}{v}}{m}} \mid \proc{\letin{y}{\recvR{d}}{n}})} \\
+    &\quad\Rrightarrow 
+     \scope{cd}{(\proc{\letin{x}{\return{c}}{m}} \mid \proc{\letin{y}{\return{\pairR{v}{d}{\Ln}}}{n}})}
+  \\
+  (\textsc{Proc-\underline{Com}}) 
+    &\scope{cd}{(\proc{\letin{x}{\appI{\sendI{c}}{o}}{m}} \mid \proc{\letin{y}{\recvI{d}}{n}})} \\
+    &\quad\Rrightarrow 
+     \scope{cd}{(\proc{\letin{x}{\return{c}}{m}} \mid \proc{\letin{y}{\return{\pairI{o}{d}{\Ln}}}{n}})}
+\end{tabular}
+\vspace{0.2em}
+\begin{mathpar}
+  \inferrule[(Proc-Expr)]
+  { m \Leadsto m' }
+  { \proc{m} \Rrightarrow \proc{m'} }
+
+  \inferrule[(Proc-Par)]
+  { P \Rrightarrow Q }
+  { O \mid P \Rrightarrow O \mid Q }
+
+  \inferrule[(Proc-Scope)]
+  { P \Rrightarrow Q }
+  { \scope{cd}{P} \Rrightarrow \scope{cd}{Q} }
+
+  \inferrule[(Proc-Congr)]
+  { P \equiv P' \\ 
+    P' \Rrightarrow Q' \\ 
+    Q' \equiv Q }
+  { P \Rrightarrow Q }
+\end{mathpar}
+\end{small}
+
+\noindent
+The first four rules define the core communication semantics of \TLLC{}. The
+\textsc{Proc-Fork} rule creates a pair of dual channels $c$ and $d$ to connect
+the continuation $n$ of the parent process with the newly forked child process $m$.
+We can see here that the newly created channels $c$ and $d$ are substituted for 
+the variables $x$ and $y$ in $n$ and $m$ respectively.
+
+The \textsc{Proc-End} rule synchronizes the termination of communicating on dual 
+channels $c$ and $d$. The resulting process configuration contains two processes
+which are no longer connected by any channels. Additionally, the close and wait 
+operations are replaced by unit return values once the termination is synchronized.
+
+The \textsc{Proc-Com} rule governs the communication of a real message $v$ from
+a sender to a receiver. The sending process continues as $m$ with the channel
+$c$ while the receiving process continues as $n$ with the received
+message $v$ and the channel $d$ paired together as $\pairR{v}{d}{\Ln}$.
+
+The \textsc{Proc-\underline{Com}} rule is similar to \textsc{Proc-Com} except
+that it handles the communication of a ghost message $o$. While this rule seems
+to indicate that ghost messages are communicated at runtime, we will later show
+through the erasure safety theorem that ghost messages are always safe to be erased.
+The exchange of ghost messages here is only for the purpose of establishing a 
+reference point for reasoning about the correctness of erasure safety.
+
+The remaining four rules are standard. The \textsc{Proc-Expr} rule allows a
+singleton process to reduce by reducing its underlying term. The \textsc{Proc-Par} and
+\textsc{Proc-Scope} rules allow a process to reduce in parallel composition and
+under channel scope respectively. Finally, the \textsc{Proc-Congr} rule allows
+processes to reduce up to structural congruence.
 
 
 \subsection{Meta-Theory}
