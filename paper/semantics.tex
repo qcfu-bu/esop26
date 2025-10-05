@@ -58,7 +58,7 @@ concurrency in \TLLC{}, the only additional (non-trivial) program reduction rule
 is the following \textsc{BindElim} rule which reduces a monadic
 \bsf{let}-expression when its bound term is a \bsf{return} expression:
 \begin{align*}
- (\textsc{BindElim})\quad \letin{x}{\return{v}}{m} \Leadsto m[v/x] \tag*{(\text{where $v$ is a value})}
+ (\textsc{BindElim})\qquad \letin{x}{\return{v}}{m} \Leadsto m[v/x] \tag*{(\text{where $v$ is a value})}
 \end{align*}
 Values now additionally include channels, partially applied communication operators
 and thunked monadic expressions. We will use the metavariable $v$ to denote values
@@ -144,8 +144,60 @@ singleton process to reduce by reducing its underlying term. The \textsc{Proc-Pa
 under channel scope respectively. Finally, the \textsc{Proc-Congr} rule allows
 processes to reduce up to structural congruence.
 
-
 \subsection{Meta-Theory}
-\paragraph{\textbf{Structural Congruence}}
+\paragraph{\textbf{Compatibility}}
+We first show that the concurrency extensions of \TLLC{} are compatible with the
+underlying TLL type system. To this end, we prove that \TLLC{} enjoys the same
+meta-theoretical properties as TLL. Due to the fact that these properties do not involve 
+concurrency, their proofs indicate that \TLLC{} is sound as a term calculus.
+Here we present a few representative theorems. The full list of theorems and their proofs
+can be found in our Rocq formalization.
+
+The first theorem we present is the validity theorem which states that
+well-typed terms have well-sorted types. This theorem is important as it
+ensures that the types appearing in typing judgments are indeed valid (i.e. they inhabit a sort).
+\begin{theorem}[Validity]
+  Given $\Theta ; \Gamma ; \Delta \vdash m : A$, there exists
+  sort $s$ such that $\Gamma \vdash A : s$.
+\end{theorem}
+
+In TLL and \TLLC{}, the sort of a type determines whether the type is a unrestricted or linear.
+This means that it is crucial for a type to have a unique sort, otherwise the same type
+could be interpreted as both unrestricted and linear, leading to unsoundness. To address this
+concern, we prove the sort uniqueness theorem below which states that a type can have at most one sort.
+This ensures no ambiguity on whether a type is to be considered unrestricted or linear.
+\begin{theorem}[Sort Uniqueness]
+  Given $\Gamma \vdash A : s$ and $\Gamma \vdash A : t$,
+  we have $s = t$.
+\end{theorem}
+
+The next theorem we present is the standard subject reduction theorem which states that
+types are preserved under term reduction. This theorem is necessary for ensuring that
+session fidelity holds during process reduction as singleton processes reduce by reducing their
+underlying terms.
+\begin{theorem}[Subject Reduction]
+  Given $\Theta ; \epsilon ; \epsilon \vdash m : A$ and
+  $m \Leadsto m'$, we have
+  $\Theta ; \epsilon ; \epsilon \vdash m' : A$.
+\end{theorem}
+
 \paragraph{\textbf{Session Fidelity}}
+The session fidelity theorem ensures that processes adhere to the communication
+protocols specified by their types. This property guarantees that well-typed
+processes will not encounter communication mismatches at runtime. Since we consider
+processes up to structural congruence, we must first show that configuration
+typing is preserved under structural congruence. This manifests as the following lemma.
+
+\begin{lemma}[Congruence Preservation]
+  Given $\Theta \Vdash P$ and $P \equiv Q$, we have $\Theta \Vdash Q$.
+\end{lemma}
+
+\noindent
+The session fidelity theorem is then stated as follows.
+\begin{theorem}[Session Fidelity]
+  Given $\Theta \Vdash P$ and $P \Rrightarrow Q$, we have $\Theta \Vdash Q$.
+\end{theorem}
+
+
+\paragraph{\textbf{Global Progress}}
 \paragraph{\textbf{Erasure Safety}}
