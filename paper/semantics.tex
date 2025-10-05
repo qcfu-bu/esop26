@@ -3,7 +3,7 @@ In the previous section, we have presented the typing rules for \TLLC{} terms
 which form individual processes. To compose multiple processes together, we
 introduce the process level typing judgment $\Theta \Vdash P$ below. This judgment
 formally states that a configuration of processes $P$ is well-typed under the
-context $\Theta$, which tracks the channels used by the processes in $P$.
+context $\Theta$, which tracks the channels used by the processes in $P$ at runtime.
 \begin{mathpar}
   \inferrule[Expr] 
   { \Theta ; \epsilon ; \epsilon \vdash m : \CM{\unit} }
@@ -50,6 +50,18 @@ Intuitively, two structurally congruent configurations should be
 considered equivalent regarding their communication behavior.
 
 \subsection{Semantics}
+\paragraph{\textbf{Term Reduction}}
+The operational semantics of \TLLC{} terms is mostly the same as that of TLL~\cite{fu23}.
+The relation $m \Leadsto m'$ is used to denote a single step of 
+\emph{program} level reduction. Due to the monadic formulation of concurrency in \TLLC{}, 
+the only additional (non-trivial) program reduction rule is the following \textsc{BindElim}
+rule which reduces a monadic \bsf{let}-expression when its bound term is a
+\bsf{return} expression:
+
+
+\paragraph{\textbf{Process Reduction}}
+
+
 \subsection{Meta-Theory}
 \paragraph{\textbf{Session Fidelity}}
 \paragraph{\textbf{Erasure Safety}}

@@ -5,7 +5,7 @@ Martin-L\"{o}f-style dependent types~\cite{martinlof}
 with linear types~\cite{girard,wadler1990}. 
 Notably, TLL supports \emph{essential linearity}~\cite{luo} through the use of
 a stratified ``two-level'' typing system: the \emph{logical} level and the \emph{program} level. 
-The typing judgments of the two levels are written as follows:
+The typing judgments of the two levels are written and organized as follows:
 \begin{center}
 \vspace{0.5em}
 \begin{tikzpicture}[
@@ -258,31 +258,52 @@ The basic components of the monad are given in the following rules.
     \Theta_2 ; \Gamma, x : A ; \Delta_2 \vdash n : \CM{B} }
   { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \letin{m}{x}{n} : \CM{B} }
 \end{mathpar}
-To account for the addition of communication channels, the program typing judgment
-${\Gamma ; \Delta \vdash m : A}$ of TLL is extended into ${\Theta ; \Gamma ; \Delta \vdash m : A}$.
-The new context $\Theta$ tracks all the channels used in $m$. The \textsc{Bind} rule above merges 
-the channel contexts $\Theta_1$ and $\Theta_2$ in its conclusion similarly to how program contexts
-are merged. This prevents channels from being shared between $m$ and $n$.
+
+To reason about the communication channels that will appear at \emph{runtime}, the program level
+typing judgment is extended to include a \emph{channel context} $\Theta$ which tracks the
+channels used by the program. It is crucial to understand that the channel context is
+largely a technical device for analyzing the type safety of \TLLC{}. Prior to runtime, the 
+channel context is empty as no channels have been created. Program construction 
+is carried out using normal variables in $\Delta$. At runtime, channels will be created and
+substituted for appropriate variables in $\Delta$. It is these runtime channels that occupy the 
+channel context $\Theta$ and are typed as follows:
+\begin{mathpar}
+  \inferrule[Channel-CH]
+  { \Gamma ; \Delta \vdash \\ 
+    \epsilon \vdash A : \Proto \\
+    \Delta \triangleright \Un }
+  { c :_\Ln \CH{A} ; \Gamma ; \Delta \vdash c : \CH{A} }
+
+  \inferrule[Channel-HC]
+  { \Gamma ; \Delta \vdash \\ 
+    \epsilon \vdash A : \Proto \\
+    \Delta \triangleright \Un }
+  { c :_\Ln \HC{A} ; \Gamma ; \Delta \vdash c : \HC{A} }
+\end{mathpar}
+The protocol $A$ used in the channels types here must be \emph{closed}. 
+This is because channels at runtime must follow fully concretized protocols.
+The $\Gamma$ and $\Delta$ contexts are allowed to be non-empty for the
+purely technical reason of facilitating proofs for renaming and substitution lemmas.
 
 As explained in \Cref{sec:message-specification}, the protocol actions $!(x : A).B$ and $?(x : A).B$
 are abstract constructs that need to be interpreted through channel types. Since $\CH{\cdot}$ and $\HC{\cdot}$
 interpret protocol actions in opposite ways, we only present the typing rules for $\CH{\cdot}$ below.
 \begin{mathpar}
   \inferrule[Explicit-Send-CH]
-  { \Theta ; \Gamma ; \Delta \vdash c : \CH{\ActR{!}{x : A}{B}}}
-  { \Theta ; \Gamma ; \Delta \vdash \Send\ c : \PiR{\Ln}{x : A}{\CM{\CH{B}}} }
+  { \Theta ; \Gamma ; \Delta \vdash m : \CH{\ActR{!}{x : A}{B}}}
+  { \Theta ; \Gamma ; \Delta \vdash \Send\ m : \PiR{\Ln}{x : A}{\CM{\CH{B}}} }
 
   \inferrule[Explicit-Recv-CH]
-  { \Theta ; \Gamma ; \Delta \vdash c : \CH{\ActR{?}{x : A}{B}}}
-  { \Theta ; \Gamma ; \Delta \vdash \Recv\ c : \CM{\SigR{\Ln}{x : A}{\CH{B}}} }
+  { \Theta ; \Gamma ; \Delta \vdash m : \CH{\ActR{?}{x : A}{B}}}
+  { \Theta ; \Gamma ; \Delta \vdash \Recv\ m : \CM{\SigR{\Ln}{x : A}{\CH{B}}} }
 
   \inferrule[Implicit-Send-CH]
-  { \Theta ; \Gamma ; \Delta \vdash c : \CH{\ActI{!}{x : A}{B}}}
-  { \Theta ; \Gamma ; \Delta \vdash \SendI\ c : \PiI{\Ln}{x : A}{\CM{\CH{B}}} }
+  { \Theta ; \Gamma ; \Delta \vdash m : \CH{\ActI{!}{x : A}{B}}}
+  { \Theta ; \Gamma ; \Delta \vdash \SendI\ m : \PiI{\Ln}{x : A}{\CM{\CH{B}}} }
 
   \inferrule[Implicit-Recv-CH]
-  { \Theta ; \Gamma ; \Delta \vdash c : \CH{\ActI{?}{x : A}{B}}}
-  { \Theta ; \Gamma ; \Delta \vdash \RecvI\ c : \CM{\SigI{\Ln}{x : A}{\CH{B}}} }
+  { \Theta ; \Gamma ; \Delta \vdash m : \CH{\ActI{?}{x : A}{B}}}
+  { \Theta ; \Gamma ; \Delta \vdash \RecvI\ m : \CM{\SigI{\Ln}{x : A}{\CH{B}}} }
 \end{mathpar}
 
 For the \textsc{Explicit-Send-CH} rule, a channel of type $\CH{!(x : A).B}$ is
@@ -291,11 +312,11 @@ value $v$ of type $A$ and returns a concurrent computation of type
 $\CM{\CH{B[v/x]}}$ which represents the continuation of the protocol after
 sending a real value of type $A$. When this monadic value is bound by rule
 \textsc{Bind} and executed at runtime, the value $v$ will be sent on channel
-$c$. The dual \textsc{Explicit-Recv-HC} rule, as shown here,
+$m$. The dual \textsc{Explicit-Recv-HC} rule, as shown here,
 \begin{mathpar}
   \inferrule[Explicit-Recv-HC]
-  { \Theta ; \Gamma ; \Delta \vdash c : \HC{\ActR{!}{x : A}{B}}}
-  { \Theta ; \Gamma ; \Delta \vdash \Recv\ c : \CM{\SigR{\Ln}{x : A}{\HC{B}}} }
+  { \Theta ; \Gamma ; \Delta \vdash m : \HC{\ActR{!}{x : A}{B}}}
+  { \Theta ; \Gamma ; \Delta \vdash \Recv\ m : \CM{\SigR{\Ln}{x : A}{\HC{B}}} }
 \end{mathpar}
 receives on a channel of type $\HC{!(x : A).B}$ which produces a (monadic)
 dependent pair (similarly to \textsc{Explicit-Recv-CH}). The first component of
