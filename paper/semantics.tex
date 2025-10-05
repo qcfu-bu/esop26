@@ -51,13 +51,17 @@ considered equivalent regarding their communication behavior.
 
 \subsection{Semantics}
 \paragraph{\textbf{Term Reduction}}
-The operational semantics of \TLLC{} terms is mostly the same as that of TLL~\cite{fu23}.
-The relation $m \Leadsto m'$ is used to denote a single step of 
-\emph{program} level reduction. Due to the monadic formulation of concurrency in \TLLC{}, 
-the only additional (non-trivial) program reduction rule is the following \textsc{BindElim}
-rule which reduces a monadic \bsf{let}-expression when its bound term is a
-\bsf{return} expression:
-
+The operational semantics of \TLLC{} terms is mostly the same as that of
+call-by-value TLL~\cite{fu23}.  The relation $m \Leadsto m'$ is used to denote a
+single step of \emph{program} level reduction. Due to the monadic formulation of
+concurrency in \TLLC{}, the only additional (non-trivial) program reduction rule
+is the following \textsc{BindElim} rule which reduces a monadic
+\bsf{let}-expression when its bound term is a \bsf{return} expression:
+\begin{align*}
+  \letin{x}{\return{v}}{m} \Leadsto m[v/x] \tag*{(\text{where $v$ is a value})}
+\end{align*}
+Values now additionally include channels, partially applied communication operators
+and thunked monadic expressions. We present the full definition of values in the appendix.
 
 \paragraph{\textbf{Process Reduction}}
 

@@ -343,7 +343,7 @@ The last communication rules govern the creation and termination of channels:
 \begin{mathpar}
   \inferrule[Fork]
   { \Theta ; \Gamma, x : \CH{A} ; \Delta, x :_\Ln \CH{A} \vdash m : \CM{\unit} }
-  { \Theta ; \Gamma ; \Delta \vdash \Fork (x : \CH{A})\ \With\ m : \CM{\HC{A}} }
+  { \Theta ; \Gamma ; \Delta \vdash \fork{x : \CH{A}}{m} : \CM{\HC{A}} }
   \and\hspace{-0.5em}
   \inferrule[Close]
   { \Theta; \Gamma ; \Delta \vdash c : \CH{\End} }

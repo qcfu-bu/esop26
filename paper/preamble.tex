@@ -14,6 +14,7 @@
 \usepackage{mathpartir}
 \usepackage{xcolor}
 \usepackage{listings}
+\usepackage{array}   % for \newcolumntype macro
 \usepackage[scaled=1.0]{beramono}
 \usepackage{bm}
 \usepackage[utf8x]{inputenc}
@@ -22,6 +23,9 @@
 \usepackage{cleveref}
 \usepackage{soul}
 \newtheorem*{remark}{Remark}
+\newcolumntype{L}{>{$}l<{$}} % math-mode version of "l" column type
+\newcolumntype{C}{>{$}c<{$}} % math-mode version of "c" column type
+\newcolumntype{R}{>{$}r<{$}} % math-mode version of "r" column type
 
 \tikzstyle{startstop} = [rectangle, minimum width=0.6cm, minimum height=0.8cm, text centered, draw=black]
 \tikzstyle{process}   = [rectangle, minimum width=0.6cm, minimum height=0.8cm, text centered, text width=2.2cm, draw=black]
@@ -118,13 +122,13 @@
 \newcommand{\HC}[1]{{\textbf{\textsf{hc}}\langle{#1}\rangle}}
 \newcommand{\Proto}{\textbf{\textsf{proto}}}
 \newcommand{\xor}{\,\text{\string^}\,}
-\newcommand{\fork}[2]{\textbf{fork}\,({#1}).{#2}}
-\newcommand{\recvI}[1]{\underline{\textbf{recv}}\,{#1}}
-\newcommand{\recvR}[1]{\textbf{recv}\,{#1}}
-\newcommand{\sendI}[1]{\underline{\textbf{send}}\,{#1}}
-\newcommand{\sendR}[1]{\textbf{send}\,{#1}}
-\newcommand{\close}[1]{\textbf{close}\,{#1}}
-\newcommand{\wait}[1]{\textbf{wait}\,{#1}}
+\newcommand{\fork}[2]{\Fork\,({#1})\,\With\ {#2}}
+\newcommand{\recvI}[1]{\underline{\textbf{\textsf{recv}}}\,{#1}}
+\newcommand{\recvR}[1]{\textbf{\textsf{recv}}\,{#1}}
+\newcommand{\sendI}[1]{\underline{\textbf{\textsf{send}}}\,{#1}}
+\newcommand{\sendR}[1]{\textbf{\textsf{send}}\,{#1}}
+\newcommand{\close}[1]{\textbf{\textsf{close}}\,{#1}}
+\newcommand{\wait}[1]{\textbf{\textsf{wait}}\,{#1}}
 \newcommand{\C}{\mathcal{C}}
 \newcommand{\CM}[1]{\mathcal{C}({#1})}
 \newcommand{\return}[1]{\textbf{return }{#1}}
