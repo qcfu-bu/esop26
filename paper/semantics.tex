@@ -188,7 +188,7 @@ processes will not encounter communication mismatches at runtime. Since we consi
 processes up to structural congruence, we must first show that configuration
 typing is preserved under structural congruence. This manifests as the following lemma.
 
-\begin{lemma}[Congruence Preservation]
+\begin{lemma}[Congruence]
   Given $\Theta \Vdash P$ and $P \equiv Q$, we have $\Theta \Vdash Q$.
 \end{lemma}
 
@@ -197,6 +197,17 @@ The session fidelity theorem is then stated as follows.
 \begin{theorem}[Session Fidelity]
   Given $\Theta \Vdash P$ and $P \Rrightarrow Q$, we have $\Theta \Vdash Q$.
 \end{theorem}
+\noindent
+
+One of the primary challenges in proving session fidelity is to show that typing
+is preserved during communication steps, specifically the \textsc{Proc-Com}, and 
+\textsc{Proc-\underline{Com}} cases. Unlike simple type systems where one could
+simply swap two values for each other so long as they have the same type. 
+However, in dependent type systems, the values being exchanged could appear in types. 
+This means that a naive swapping of values could lead to ill-typed terms.
+For instance, swapping $1$ for $2$ in the dependent pair 
+$\pairR{1}{\Refl}{} : \Sigma(x : \text{nat}).(x = 1)$ would clearly lead to an ill-typed
+term.
 
 
 \paragraph{\textbf{Global Progress}}
