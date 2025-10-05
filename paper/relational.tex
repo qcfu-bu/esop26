@@ -82,14 +82,14 @@ In this definition, the type \Un{} of $A$ is the universe of \emph{unbound}
 which represents the type of data stored at the leaf nodes. The \emph{sequential}
 \textsf{map} and \textsf{reduce} functions for \textsf{tree} are all defined in a standard way.
 
-To construct the concurrent map-reduce system, we must define the kinds of operations
-that can be performed. This requires the protocol of map-reduce to branch depending on
-what operation the client requests to perform. Unlike many prior
-session type systems~\cite{caires10,das20} which provide built-in constructs
-(e.g. $\oplus$ and $\&$) for internal and external choice, we implement branching
-protocols using just dependent protocols and type-level pattern matching on sent or received
-messages. For our map-reduce system, we define the kinds of operations that can be performed
-through the inductive type \textsf{opr}:
+To construct the concurrent map-reduce system, the protocol of map-reduce must
+be able to branch depending on what operation the client requests to perform.
+Unlike many prior session type systems~\cite{caires10,das20} which provide
+built-in constructs (e.g. $\oplus$ and $\&$) for internal and external choice,
+we implement branching protocols using just dependent protocols and type-level
+pattern matching on sent or received messages. For our map-reduce system, we
+define the kinds of operations that can be performed through the inductive type
+\textsf{opr}:
 
 \vspace{-1em}
 \begingroup
@@ -112,9 +112,8 @@ The \textsf{opr} type has three constructors:
   \item $\textsf{Free}$ is the command that terminates the concurrent tree.
 \end{itemize}
 
-We are now ready to define the session type for the map-reduce protocol.
-The following \textsf{treeP} protocol is used to describe the interactions between nodes
-in the map-reduce tree.
+We are now ready to define the following \textsf{treeP} protocol 
+to describe the interactions between nodes in the map-reduce tree.
 
 \vspace{-1em}
 \begingroup
@@ -138,8 +137,8 @@ $\textsf{opr}\ A$ from its parent.  The protocol then branches, via type-level
 pattern matching on $o$, into three cases. If $o$ is of the form
 $\textsf{Map}\ f$, then $n$ will continue the protocol as
 $\textsf{treeP}\ B\ (\textsf{map}\ f\ t)$. Notice that the type parameter of
-\textsf{treeP} has changed from $A$ to $B$ to reflect the fact that the data
-stored at the leaves of the sub-tree has been transformed from type $A$ to type
+\textsf{treeP} is changed from $A$ to $B$ to reflect the fact that the data
+stored at the leaves of the sub-tree is transformed from type $A$ to type
 $B$. Furthermore, the shape of the sub-tree has also changed from $t$ to
 $\textsf{map}\ f\ t$. In the second case where $o$ is of the form
 $\textsf{Reduce}\ f\ g$, $n$ will first send the result of type
