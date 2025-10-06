@@ -19,8 +19,8 @@ a queue server.
 \begin{center}
 \vspace{0.4em}
 \begin{tikzpicture}[
-squarednode/.style={rectangle, draw=red!60, fill=red!5, thick, minimum size=7mm},
-roundnode/.style={circle, draw, thick, fill=black!2, minimum size=7mm},
+squarednode/.style={rectangle, draw=red!60, fill=red!5, thick, minimum size=6mm},
+roundnode/.style={circle, draw, thick, fill=black!2, minimum size=6mm},
 ghostnode/.style={minimum size=5mm},
 ]
 %Nodes
@@ -190,7 +190,7 @@ $\HC{\textsf{queue}(\textit{xs})}$ is a channel type. In general, a channel type
 is formed by applying the $\CH{\cdot}$ and $\HC{\cdot}$ type constructors to
 protocols. These constructors provide dual interpretations to protocols,
 allowing dual channels of the same protocol to be connected together. For
-example, the protocol $!A. P$ would be interpreted dually as follows:
+example, $!A. P$ would be interpreted dually as follows:
 \begin{alignat*}{2}
   &\CH{!A. P}\quad &&(\textsf{send message of type } A) \\
   &\HC{!A. P}\quad &&(\textsf{receive message of type } A)

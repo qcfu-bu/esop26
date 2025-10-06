@@ -227,6 +227,85 @@ carried out on \bsf{let}-expressions, the dependency restriction ensures that
 session fidelity holds during communication steps.
 
 \paragraph{\textbf{Global Progress}}
-
+Global program, i.e. deadlock-freedom, is a desirable property for concurrent programs.
+Many session type systems~\cite{wadler12,caires10,das20} guarantee global progress by 
+construction through a disciplined use of channel types. However, there are also session 
+type systems~\cite{honda93,honda16,ldst,balzer17} that eschew global progress in favor of
+more expressive session types. \TLLC{} belongs to the latter category if we consider
+arbitrary well-typed process configurations. This is because the process type system of
+\TLLC{} does not prevent cyclic channel topologies which can lead to deadlocks.
+However, we can still prove a weaker form of global progress for \TLLC{} by
+considering only \emph{reachable} process configurations. 
+Intuitively, reachable configurations are those that can be constructed
+by \bsf{fork} operations starting from a single process. The global progress theorem
+is then stated as follows.
+\begin{theorem}[Global Progress]
+  Given $\epsilon \Vdash P$ where $P$ is reachable, either
+  \begin{itemize}
+    \item $P \equiv \proc{\return{\ii}}$, or
+    \item there exists $Q$ such that $P \Rrightarrow Q$.
+  \end{itemize}
+\end{theorem}
 
 \paragraph{\textbf{Erasure Safety}}
+To show that ghost messages are safe to erase, we define an erasure relation
+$\Theta ; \Gamma ; \Delta \vdash m \sim m' : A$. This relation states that all
+ghost arguments and type annotations in $m$ are replaced by a special opaque 
+value $\square$ in $m'$. This relation is similar to the one defined for
+the erasure of \emph{propositions} in standard dependent type 
+theories~\cite{barras08,letouzey03,sozeau20}.
+The most important erasure rule is shown below. The full set of erasure
+rules can be found in the appendix.
+\begin{mathpar}
+  \inferrule[Erase-Implicit-App]
+  { \Theta ; \Gamma ; \Delta \vdash m \sim m' : \PiI{t}{x : A}{B} \\ 
+    \Gamma \vdash n : A }
+  { \Theta ; \Gamma ; \Delta \vdash \appI{m}{n} \sim \appI{m'}{\square} : B[n/x] }
+\end{mathpar}
+
+The \textsc{Erase-Implicit-App} rule states that when erasing an implicit
+application $\appI{m}{n}$, the ghost argument $n$ is replaced by $\square$ in the
+erased term. Consider the $\SendI{}\ c$ operator for sending ghost messages on channel 
+$c$. As defined in \Cref{sec:dependent-session-types}, this partially applied operator 
+has a type of the form $\PiI{\Ln}{x : A}{\CM{B}}$. When fully applied as $\appI{\SendI{}\ c}{n}$, 
+the ghost argument $n$ is erased to $\square$ by \textsc{Erase-Implicit-App}.
+Since $\square$ is an opaque value, it cannot be inspected or pattern matched on.
+Thus, if programs can be evaluated soundly after erasing all ghost arguments
+and type annotations, we can conclude that ghost messages are safe to erase.
+
+The erasure relation is then naturally lifted to the process level as $\Theta \Vdash P \sim P'$
+where $P'$ is the erased version of $P$. The rules for this relation are as follows:
+
+\begin{small}
+\begin{mathpar}
+  \inferrule[Erase-Expr]
+  { \Theta ; \epsilon ; \epsilon \vdash m \sim m' : \CM{\unit} }
+  { \Theta \Vdash \proc{m} \sim \proc{m'} }
+
+  \inferrule[Erase-Par]
+  { \Theta_1 \Vdash P \sim P' \\ 
+    \Theta_2 \Vdash Q \sim Q' }
+  { \Theta_1 \dotcup \Theta_2 \Vdash (P \mid Q) \sim (P' \mid Q') }
+
+  \inferrule[Erase-Scope]
+  { \Theta, c :_\Ln \CH{A}, d :_\Ln \HC{A} \Vdash P \sim P' }
+  { \Theta \Vdash \scope{cd}{P} \sim \scope{cd}{P'} }
+\end{mathpar}
+\end{small}
+
+We show that erasure is safe through the following two theorems. These theorems
+tell us that any possible reduction on an original object (either a term or process) 
+can be simulated on its erased counterpart. Moreover, the erased object obtained after 
+reduction also satisfies the erasure relation with respect to the reduced original object.
+Basically, these theorems state that any possible evaluation path of the original object
+remains valid after erasure.
+
+\begin{theorem}[Term Simulation]
+  Given $\Theta ; \epsilon ; \epsilon \vdash m \sim m' : A$ and $m \Leadsto n$, there exists $n'$ such that
+  $m' \Leadsto^* n'$ and $\Theta ; \epsilon ; \epsilon \vdash n \sim n' : A$.
+\end{theorem}
+
+\begin{theorem}[Process Simulation]
+  Given $\Theta \Vdash P \sim P'$ and reduction $P \Rrightarrow Q$, there exists $Q'$ such that
+  $P' \Rrightarrow Q'$ and $\Theta \Vdash Q \sim Q'$.
+\end{theorem}
