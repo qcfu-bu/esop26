@@ -1,0 +1,19 @@
+We implement a prototype compiler for \TLLC{}. The main components of the compiler
+are written in OCaml while a minimalistic runtime library is implemented in C.
+The compiler takes \TLLC{} source files as input and generates safe C code which
+can be further compiled into executable binaries on POSIX compliant systems.
+In this section, we give an overview of the inference, linearity checking
+and optimization phases of the compiler.
+
+\paragraph{\textbf{Inference}}
+To reduce code duplication and type annotation burden, we implement two forms of inference: 
+(1) automatic instantiation of \emph{sort-polymorphic schemes} similarly to the TLL compiler and 
+(2) elaboration of inferred arguments.
+
+Consider the identity function below:
+\begin{align*}
+  \Def\ \textsf{id}\flq{s}\frq\ \%\!\{ A : \textsf{Type}\flq{s}\frq\}\ (x : A) : A := x
+\end{align*}
+
+\paragraph{\textbf{Linearity Checking}}
+\paragraph{\textbf{Optimization}}
