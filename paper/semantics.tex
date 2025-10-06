@@ -202,16 +202,31 @@ The session fidelity theorem is then stated as follows.
 One of the primary challenges in proving session fidelity is to show that typing
 is preserved during communication steps, specifically the \textsc{Proc-Com}, and
 \textsc{Proc-\underline{Com}} cases. In these cases, the message being
-communicated is ``teleported'' from the sender to the receiver without the use
-of a substitution as in the case of term reduction. This means that we need to
-show that the message is consistently typed in regards to the receiver's
-context.  Unlike simple type systems where one could simply place a value into
-any larger context so long as the value has the expected type, dependent type
-systems require more care.  For instance, the evaluation context
-$\pairR{[\cdot]}{\Refl}{} : \Sigma(x : \textsf{nat}).(x = 1)$  would only be
-well-typed if the hole is filled with exactly $1$. To address this challenge, 
-we design the \textsc{Bind} rule to disallow dependency on the bound value.
-
+communicated is transported from the sender to the receiver without the use of a
+substitution. We need to show that the message, after communication, is
+consistently typed with regards to the receiver's context. Unlike simple type
+systems where one could simply place a value into any context so long as
+the value has the expected type, dependent type systems require more care. For
+instance, the evaluation context $\pairR{[\cdot]}{\Refl}{} : \Sigma(x : \textsf{nat}).(x = 1)$ 
+is well-typed if and only if the hole is filled with $1$. To address this challenge, 
+we design the monadic \textsc{Bind} rule (\Cref{sec:dependent-session-types})
+to disallow dependency on the bound value. More specifically, for
+$\letin{x}{m}{n}$ expressions, the type of $n$ \emph{cannot} depend on $x$. This
+restriction means that $m$ can be replaced by any other expression of the same
+type without affecting the type of $n$. Consider the \textsc{Proc-Com} step below:
+\begin{align*}
+  &\scope{cd}{(\proc{\letin{x}{\appR{\sendR{c}}{v}}{m}} \mid \proc{\letin{y}{\recvR{d}}{n}})} \\
+  &\quad\Rrightarrow \scope{cd}{(\proc{\letin{x}{\return{c}}{m}} \mid \proc{\letin{y}{\return{\pairR{v}{d}{\Ln}}}{n}})}
+\end{align*}
+This operation is carried out between two singleton processes that are
+evaluating monadic \bsf{let}-expressions. Due to the dependency restriction of
+the \textsc{Bind} rule, we can replace $\appR{\sendR{c}}{v}$ with $\return{c}$
+and $\recvR{d}$ with $\return{\pairR{v}{d}{\Ln}}$ without affecting the types of
+$m$ and $n$. Due to the fact that all communication operations in \TLLC{} are
+carried out on \bsf{let}-expressions, the dependency restriction ensures that
+session fidelity holds during communication steps.
 
 \paragraph{\textbf{Global Progress}}
+
+
 \paragraph{\textbf{Erasure Safety}}
