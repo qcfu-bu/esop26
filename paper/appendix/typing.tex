@@ -28,7 +28,7 @@ Note that the context validity judgment is \emph{mutually inductively} defined w
 The core typing rules is responsible for the functional fragment of \TLLC{}.
 The convertibility relation $A \simeq B$ is used in the conversion rule to
 allow type equivalence up to $\beta$-reduction. We will present the definition
-of the convertibility relation in \Cref{appendix:semantics}. 
+of the convertibility relation in \Cref{appendix:logical-semantics}. 
 \begin{mathpar}\footnotesize
   \inferrule[Sort]
   { \Gamma \vdash }
@@ -161,7 +161,7 @@ The standard rules for monadic return and bind are presented below.
 \end{mathpar}
 
 \paragraph{\textbf{Session Typing}}
-The session typing rules govern the typing of protocol, channels and communication
+The session typing rules govern the typing of protocol, channels and concurrency
 primitives. The rules are presented below.
 \begin{mathpar}\footnotesize
   \inferrule[Proto]
@@ -250,7 +250,7 @@ primitives. The rules are presented below.
 \end{mathpar}
 \clearpage
 
-\subsection{Program Level}
+\subsection{Program Level}\label{appendix:program-typing}
 The typing judgment for the program level has the form $\Theta ; \Gamma ; \Delta \vdash m : A$.
 This judgment states that under the channel context $\Theta$, logical context $\Gamma$ and the
 \emph{program context} $\Delta$, term $m$ has type $A$. The program level is \emph{substructural}
@@ -387,7 +387,7 @@ The standard rules for monadic return and bind are presented below.
 \end{mathpar}
 
 \paragraph{\textbf{Session Typing}}
-The session typing rules govern the typing of channels and communication
+The session typing rules govern the typing of channels and concurrency
 primitives. The rules are presented below.
 \begin{mathpar}\footnotesize
   \inferrule[Channel-CH]

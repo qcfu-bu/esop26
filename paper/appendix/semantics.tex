@@ -1,0 +1,230 @@
+In this section, we present the operational semantics of \TLLC{}. 
+Similarly to the typing rules, we organize the presentation of the semantics
+into the logical level, program level, and process level.
+
+\subsection{Logical Level}\label{appendix:logical-semantics}
+The semantics of the logical level is defined in terms of the 
+\emph{parallel reduction} relation $m \Rightarrow m'$. This relation allows 
+multiple redexes to be reduced simultaneously.
+
+\paragraph{\textbf{Core Reduction}}
+The parallel reduction for core functional terms is defined as follows:
+\begin{mathpar}\footnotesize
+  \inferrule[PStep-Var]
+  { }
+  { x \Rightarrow x }
+
+  \inferrule[PStep-Sort]
+  { }
+  { s \Rightarrow s }
+
+  \inferrule[PStep-Explicit-Fun]
+  { A \Rightarrow A' \\ B \Rightarrow B' }
+  { \PiR{s}{x : A}{B} \Rightarrow \PiR{s}{x : A'}{B'} }
+
+  \inferrule[PStep-Implicit-Fun]
+  { A \Rightarrow A' \\ B \Rightarrow B' }
+  { \PiI{s}{x : A}{B} \Rightarrow \PiI{s}{x : A'}{B'} }
+
+  \inferrule[PStep-Explicit-Lam]
+  { A \Rightarrow A' \\ B \Rightarrow B' }
+  { \lamR{s}{x : A}{B} \Rightarrow \lamR{s}{x : A'}{B'} }
+
+  \inferrule[PStep-Implicit-Lam]
+  { A \Rightarrow A' \\ B \Rightarrow B' }
+  { \lamI{s}{x : A}{B} \Rightarrow \lamI{s}{x : A'}{B'} }
+
+  \inferrule[PStep-Explicit-App]
+  { m \Rightarrow m' \\ n \Rightarrow n' }
+  { \appR{m}{n} \Rightarrow \appR{m'}{n'} }
+
+  \inferrule[PStep-Implicit-App]
+  { m \Rightarrow m' \\ n \Rightarrow n' }
+  { \appI{m}{n} \Rightarrow \appI{m'}{n'} }
+
+  \inferrule[PStep-Explicit-Beta]
+  { m \Rightarrow m' \\ n \Rightarrow n' }
+  { \appR{(\lamR{s}{x : A}{m})}{n} \Rightarrow m'[n'/x] }
+
+  \inferrule[PStep-Implicit-Beta]
+  { m \Rightarrow m' \\ n \Rightarrow n' }
+  { \appI{(\lamI{s}{x : A}{m})}{n} \Rightarrow m'[n'/x] }
+
+  \inferrule[PStep-Explicit-Sum]
+  { A \Rightarrow A' \\ B \Rightarrow B' }
+  { \SigR{s}{x : A}{B} \Rightarrow \SigR{s}{x : A'}{B'} }
+
+  \inferrule[PStep-Implicit-Sum]
+  { A \Rightarrow A' \\ B \Rightarrow B' }
+  { \SigI{s}{x : A}{B} \Rightarrow \SigI{s}{x : A'}{B'} }
+
+  \inferrule[PStep-Explicit-Pair]
+  { m \Rightarrow m' \\ n \Rightarrow n' }
+  { \pairR{m}{n}{s} \Rightarrow \pairR{m'}{n'}{s} }
+
+  \inferrule[PStep-Implicit-Pair]
+  { m \Rightarrow m' \\ n \Rightarrow n' }
+  { \pairI{m}{n}{s} \Rightarrow \pairI{m'}{n'}{s} }
+
+  \inferrule[PStep-SumElim]
+  { A \Rightarrow A' \\ m \Rightarrow m' \\ n \Rightarrow n' }
+  { \SigElim{[z]A}{m}{[x,y]n} \Rightarrow \SigElim{[z]A'}{m'}{[x,y]n'} }
+
+  \inferrule[PStep-Explicit-PairElim]
+  { m_1 \Rightarrow m_1' \\ m_2 \Rightarrow m_2' \\ n \Rightarrow n' }
+  { \SigElim{[z]A}{\pairR{m_1}{m_2}{s}}{[x,y]n} \Rightarrow n'[m_1/x,m_2/y] }
+
+  \inferrule[PStep-Implicit-PairElim]
+  { m_1 \Rightarrow m_1' \\ m_2 \Rightarrow m_2' \\ n \Rightarrow n' }
+  { \SigElim{[z]A}{\pairI{m_1}{m_2}{s}}{[x,y]n} \Rightarrow n'[m_1/x,m_2/y] }
+\end{mathpar}
+
+\paragraph{\textbf{Data Reduction}}
+The parallel reduction for data terms is defined as follows:
+\begin{mathpar}\footnotesize
+  \inferrule[PStep-Unit]
+  { }
+  { \unit \Rightarrow \unit }
+
+  \inferrule[PStep-UnitVal]
+  { }
+  { \ii \Rightarrow \ii }
+
+  \inferrule[PStep-Bool]
+  { }
+  { \Bool \Rightarrow \Bool }
+
+  \inferrule[PStep-True]
+  { }
+  { \bTrue \Rightarrow \bTrue }
+
+  \inferrule[PStep-False]
+  { }
+  { \bFalse \Rightarrow \bFalse }
+
+  \inferrule[PStep-BoolElim]
+  { A \Rightarrow A' \\
+    m \Rightarrow m' \\
+    n_1 \Rightarrow n_1' \\
+    n_2 \Rightarrow n_2' }
+  { \boolElim{[z]A}{m}{n_1}{n_2} \Rightarrow \boolElim{[z]A'}{m'}{n_1'}{n_2'} }
+
+  \inferrule[PStep-TrueElim]
+  { n_1 \Rightarrow n_1' }
+  { \boolElim{[z]A}{\bTrue}{n_1}{n_2} \Rightarrow n_1' }
+
+  \inferrule[PStep-FalseElim]
+  { n_2 \Rightarrow n_2' }
+  { \boolElim{[z]A}{\bFalse}{n_1}{n_2} \Rightarrow n_2' }
+\end{mathpar}
+
+\paragraph{\textbf{Monadic Reduction}}
+The parallel reduction for monadic terms is defined as follows:
+\begin{mathpar}\footnotesize
+  \inferrule[PStep-$\mcC$Type]
+  { A \Rightarrow A' }
+  { \CM{A} \Rightarrow \CM{A'} }
+
+  \inferrule[PStep-Return]
+  { m \Rightarrow m' }
+  { \return{m} \Rightarrow \return{m'} }
+
+  \inferrule[PStep-Bind]
+  { m \Rightarrow m' \\ n \Rightarrow n' }
+  { \letin{x}{m}{n} \Rightarrow \letin{x}{m'}{n'} }
+
+  \inferrule[PStep-ReturnBind]
+  { m \Rightarrow m' \\ n \Rightarrow n' }
+  { \letin{x}{\return{m}}{n} \Rightarrow n'[m'/x] }
+\end{mathpar}
+\clearpage
+
+\paragraph{\textbf{Session Reduction}}
+The parallel reduction for protocols, channels and concurrency primitives are defined as follows:
+\begin{mathpar}\footnotesize
+  \inferrule[PStep-Proto]
+  { }
+  { \Proto \Rightarrow \Proto }
+
+  \inferrule[PStep-End]
+  { }
+  { \End \Rightarrow \End }
+
+  \inferrule[PStep-RecProto]
+  { A \Rightarrow A' \\ m \Rightarrow m' }
+  { \fix{x : A}{m} \Rightarrow \fix{x : A'}{m'} }
+
+  \inferrule[PStep-RecUnfold]
+  { A \Rightarrow A' \\ m \Rightarrow m' }
+  { \fix{x : A}{m} \Rightarrow m'[(\fix{x : A'}{m'})/x] }
+
+  \inferrule[PStep-Explicit-Action]
+  { A \Rightarrow A' \\ B \Rightarrow B' }
+  { \ActR{\rho}{x : A}{B} \Rightarrow \ActR{\rho}{x : A'}{B'} }
+
+  \inferrule[PStep-Implicit-Action]
+  { A \Rightarrow A' \\ B \Rightarrow B' }
+  { \ActI{\rho}{x : A}{B} \Rightarrow \ActI{\rho}{x : A'}{B'} }
+
+  \inferrule[PStep-CH]
+  { A \Rightarrow A' }
+  { \CH{A} \Rightarrow \CH{A'} }
+
+  \inferrule[PStep-HC]
+  { A \Rightarrow A' }
+  { \HC{A} \Rightarrow \HC{A'} }
+
+  \inferrule[PStep-Channel]
+  { }
+  { c \Rightarrow d }
+
+  \inferrule[PStep-Fork]
+  { A \Rightarrow A' \\ m \Rightarrow m' }
+  { \fork{x : A}{m} \Rightarrow \fork{x : A'}{m'} }
+
+  \inferrule[PStep-Explicit-Send]
+  { m \Rightarrow m' }
+  { \sendR{m} \Rightarrow \sendR{m'} }
+
+  \inferrule[PStep-Implicit-Send]
+  { m \Rightarrow m' }
+  { \sendI{m} \Rightarrow \sendI{m'} }
+
+  \inferrule[PStep-Explicit-Recv]
+  { m \Rightarrow m' }
+  { \recvR{m} \Rightarrow \recvR{m'} }
+
+  \inferrule[PStep-Implicit-Recv]
+  { m \Rightarrow m' }
+  { \recvI{m} \Rightarrow \recvI{m'} }
+
+  \inferrule[PStep-Close]
+  { m \Rightarrow m' }
+  { \close{m} \Rightarrow \close{m'} }
+
+  \inferrule[PStep-Wait]
+  { m \Rightarrow m' }
+  { \wait{m} \Rightarrow \wait{m'} }
+\end{mathpar}
+
+\paragraph{\textbf{Convertibility Relation}}
+The convertibility relation $A \simeq B$ is the reflexive, symmetric and
+transitive closure of the parallel reduction relation. It can be inductively
+defined as follows:
+\begin{mathpar}
+  \inferrule[Conv-Refl]
+  { }
+  { A \simeq A }
+
+  \inferrule[Conv-PStep]
+  { A \simeq B \\ 
+    B \Rightarrow C }
+  { A \simeq C }
+
+  \inferrule[Conv-PStep-Rev]
+  { A \simeq B \\ 
+    C \Rightarrow B }
+  { A \simeq C }
+\end{mathpar}
+Note that the program level \textsc{Conversion} rule (\Cref{appendix:program-typing}) 
+also uses this convertibility relation.
