@@ -42,11 +42,11 @@ The parallel reduction for core functional terms is defined as follows:
   { m \Rightarrow m' \\ n \Rightarrow n' }
   { \appI{m}{n} \Rightarrow \appI{m'}{n'} }
 
-  \inferrule[PStep-Explicit-Beta]
+  \inferrule[PStep-Explicit-$\beta$]
   { m \Rightarrow m' \\ n \Rightarrow n' }
   { \appR{(\lamR{s}{x : A}{m})}{n} \Rightarrow m'[n'/x] }
 
-  \inferrule[PStep-Implicit-Beta]
+  \inferrule[PStep-Implicit-$\beta$]
   { m \Rightarrow m' \\ n \Rightarrow n' }
   { \appI{(\lamI{s}{x : A}{m})}{n} \Rightarrow m'[n'/x] }
 
@@ -228,3 +228,190 @@ defined as follows:
 \end{mathpar}
 Note that the program level \textsc{Conversion} rule (\Cref{appendix:program-typing}) 
 also uses this convertibility relation.
+\clearpage
+
+\subsection{Program Level}\label{appendix:program-semantics}
+The semantics of the program level is defined in terms of a small-step reduction
+relation $m \Leadsto m'$. Unlike the logical level which has a non-deterministic
+reduction strategy, the program level follows call-by-value evaluation.
+Arguments are fully evaluated before substitution into functions.
+
+\paragraph{\textbf{Core Reduction}}
+The small-step reduction for core functional terms is defined as follows:
+\begin{mathpar}\footnotesize
+  \inferrule[Step-Explicit-App$_1$]
+  { m \Leadsto m' }
+  { \appR{m}{n} \Leadsto \appR{m'}{n} }
+
+  \inferrule[Step-Explicit-App$_2$]
+  { n \Leadsto n' }
+  { \appR{m}{n} \Leadsto \appR{m}{n'} }
+
+  \inferrule[Step-Implicit-App$_1$]
+  { m \Leadsto m' }
+  { \appI{m}{n} \Leadsto \appI{m'}{n} }
+  
+  \inferrule[Step-Explicit-$\beta$]
+  { }
+  { \appR{(\lamR{s}{x : A}{m})}{v} \Leadsto m[v/x] }
+
+  \inferrule[Step-Implicit-$\beta$]
+  { }
+  { \appI{(\lamI{s}{x : A}{m})}{n} \Leadsto m[n/x] }
+
+  \inferrule[Step-Explicit-Pair$_1$]
+  { m \Leadsto m' }
+  { \pairR{m}{n}{s} \Leadsto \pairR{m'}{n}{s} }
+
+  \inferrule[Step-Explicit-Pair$_2$]
+  { n \Leadsto n' }
+  { \pairR{m}{n}{s} \Leadsto \pairR{m}{n'}{s} }
+
+  \inferrule[Step-Implicit-Pair$_2$]
+  { n \Leadsto n' }
+  { \pairI{m}{n}{s} \Leadsto \pairI{m}{n'}{s} }
+
+  \inferrule[Step-SumElim$_1$]
+  { m \Leadsto m' }
+  { \SigElim{[z]A}{m}{[x,y]n} \Leadsto \SigElim{[z]A}{m'}{[x,y]n} }
+
+  \inferrule[Step-Explicit-PairElim]
+  { }
+  { \SigElim{[z]A}{\pairR{u}{v}{s}}{[x,y]n} \Leadsto n[u/x,v/y] }
+
+  \inferrule[Step-Implicit-PairElim]
+  { }
+  { \SigElim{[z]A}{\pairI{m}{v}{s}}{[x,y]n} \Leadsto n[m/x,v/y] }
+\end{mathpar}
+
+\paragraph{\textbf{Data Reduction}}
+The small-step reduction for data terms is defined as follows:
+\begin{mathpar}\small
+  \inferrule[Step-BoolElim]
+  { m \Leadsto m' }
+  { \boolElim{[z]A}{m}{n_1}{n_2} \Leadsto \boolElim{[z]A}{m'}{n_1}{n_2} }
+
+  \inferrule[Step-TrueElim]
+  { }
+  { \boolElim{[z]A}{\bTrue}{n_1}{n_2} \Leadsto n_1 }
+
+  \inferrule[Step-FalseElim]
+  { }
+  { \boolElim{[z]A}{\bFalse}{n_1}{n_2} \Leadsto n_2 }
+\end{mathpar}
+
+\paragraph{\textbf{Monadic Reduction}}
+The small-step reduction for monadic terms is defined as follows:
+\begin{mathpar}\small
+  \inferrule[Step-Return]
+  { m \Leadsto m' }
+  { \return{m} \Leadsto \return{m'} }
+
+  \inferrule[Step-Bind]
+  { m \Leadsto m' }
+  { \letin{x}{m}{n} \Leadsto \letin{x}{m'}{n} }
+
+  \inferrule[Step-ReturnBind]
+  { v~\val }
+  { \letin{x}{\return{v}}{n} \Leadsto n[v/x] }
+\end{mathpar}
+
+\paragraph{\textbf{Session Reduction}}
+The small-step reduction for session terms is defined as follows:
+\begin{mathpar}\small
+  \inferrule[Step-Explicit-Send]
+  { m \Leadsto m' }
+  { \sendR{m} \Leadsto \sendR{m'} }
+
+  \inferrule[Step-Implicit-Send]
+  { m \Leadsto m' }
+  { \sendI{m} \Leadsto \sendI{m'} }
+
+  \inferrule[Step-Explicit-Recv]
+  { m \Leadsto m' }
+  { \recvR{m} \Leadsto \recvR{m'} }
+
+  \inferrule[Step-Implicit-Recv]
+  { m \Leadsto m' }
+  { \recvI{m} \Leadsto \recvI{m'} }
+
+  \inferrule[Step-Close]
+  { m \Leadsto m' }
+  { \close{m} \Leadsto \close{m'} }
+
+  \inferrule[Step-Wait]
+  { m \Leadsto m' }
+  { \wait{m} \Leadsto \wait{m'} }
+\end{mathpar}
+\clearpage
+
+\subsection{Process Level}\label{appendix:process-semantics}
+The semantics of the process level is defined in terms of a small-step reduction
+relation $P \Rrightarrow Q$. This relation is what gives \TLLC{} its concurrent
+behavior. Before we present the reduction rules, we first define the notion of
+\emph{structural congruence} $\equiv$ which identifies processes that are
+the same up to reordering of parallel components and renaming of bound channels.
+
+\paragraph{\textbf{Structural Congruence}}
+The structural congruence relation $\equiv$ is defined as follows:
+\begin{mathpar}\small
+  P \mid Q \equiv Q \mid P 
+
+  O \mid (P \mid Q) \equiv (O \mid P) \mid Q
+
+  P \mid \proc{\return{\ii}} \equiv P
+  \\
+  \scope{cd}{P} \mid Q \equiv \scope{cd}{(P \mid Q)}
+
+  \scope{cd}{P} \equiv \scope{dc}{P}
+
+  \scope{cd}{\scope{c'd'}{P}} \equiv \scope{c'd'}{\scope{cd}{P}}
+\end{mathpar}
+
+\paragraph{\textbf{Process Reduction}}
+The small-step reduction for processes is defined as follows:
+
+\vspace{1em}
+\begin{small}
+\begin{tabular}{l L}
+  (\textsc{Proc-Fork}) &
+    \proc{\letin{x}{\fork{y : A}{m}}{n}}
+    \Rrightarrow
+    \scope{cd}{(\proc{n[c/x]} \mid \proc{m[d/y]})} 
+  \\
+  (\textsc{Proc-End}) 
+    &\scope{cd}{(\proc{\letin{x}{\close{c}}{m}} \mid \proc{\letin{y}{\wait{d}}{n}})} \\
+    &\quad\Rrightarrow 
+     \proc{\letin{x}{\return{\ii}}{m}} \mid \proc{\letin{y}{\return{\ii}}{n}} 
+  \\
+  (\textsc{Proc-Com}) 
+    &\scope{cd}{(\proc{\letin{x}{\appR{\sendR{c}}{v}}{m}} \mid \proc{\letin{y}{\recvR{d}}{n}})} \\
+    &\quad\Rrightarrow 
+     \scope{cd}{(\proc{\letin{x}{\return{c}}{m}} \mid \proc{\letin{y}{\return{\pairR{v}{d}{\Ln}}}{n}})}
+  \\
+  (\textsc{Proc-\underline{Com}}) 
+    &\scope{cd}{(\proc{\letin{x}{\appI{\sendI{c}}{o}}{m}} \mid \proc{\letin{y}{\recvI{d}}{n}})} \\
+    &\quad\Rrightarrow 
+     \scope{cd}{(\proc{\letin{x}{\return{c}}{m}} \mid \proc{\letin{y}{\return{\pairI{o}{d}{\Ln}}}{n}})}
+\end{tabular}
+\vspace{0.2em}
+\begin{mathpar}
+  \inferrule[(Proc-Expr)]
+  { m \Leadsto m' }
+  { \proc{m} \Rrightarrow \proc{m'} }
+
+  \inferrule[(Proc-Par)]
+  { P \Rrightarrow Q }
+  { O \mid P \Rrightarrow O \mid Q }
+
+  \inferrule[(Proc-Scope)]
+  { P \Rrightarrow Q }
+  { \scope{cd}{P} \Rrightarrow \scope{cd}{Q} }
+
+  \inferrule[(Proc-Congr)]
+  { P \equiv P' \\ 
+    P' \Rrightarrow Q' \\ 
+    Q' \equiv Q }
+  { P \Rrightarrow Q }
+\end{mathpar}
+\end{small}
