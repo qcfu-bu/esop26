@@ -1,5 +1,5 @@
-In this section, we present the full typing rules of \TLLC{}.
-We organize the typing rules into logical rules and program rules.
+In this section, we present the full typing rules of \TLLC{}. We organize the
+typing rules into logical level, program level and process level.
 
 \subsection{Logical Level}
 The typing judgment for the logical level has the form $\Gamma \vdash m : A$.
@@ -237,11 +237,14 @@ primitives. The rules are presented below.
   { \Gamma \vdash m : \HC{\ActI{!}{x : A}{B}} }
   { \Gamma \vdash \recvI{m} : \CM{\SigI{\Ln}{x : A}{\HC{B}}} }
 
-  \inferrule[Close$_{L}$]
+  \inferrule[Close]
   { \Gamma \vdash m : \CH{\End} }
   { \Gamma \vdash \close{m} : \CM{\unit} }
 
-  \inferrule[Wait$_{L}$]
+  \inferrule[Wait]
   { \Gamma \vdash m : \HC{\End} }
   { \Gamma \vdash \wait{m} : \CM{\unit} }
 \end{mathpar}
+\clearpage
+
+\subsection{Program Level}
