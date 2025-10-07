@@ -123,7 +123,7 @@ to describe the interactions between nodes in the map-reduce tree.
   &\Def\ \textsf{treeP}\ (A : \Un)\ (t : \textsf{tree}\ A) :=\ ?(\ell : \textsf{opr}\ A).\\
   &\quad
     \begin{alignedat}{4}
-      \Match\ o\ \With&\ \textsf{Map}\ \_\ f \Rightarrow\ \textsf{treeP}\ B\ (\textsf{map}\ f\ t) \\
+      \Match\ \ell\ \With&\ \textsf{Map}\ \_\ f \Rightarrow\ \textsf{treeP}\ B\ (\textsf{map}\ f\ t) \\
                   \mid&\ \textsf{Reduce}\ \_\ f\ g \Rightarrow\ !(\textsf{sing}\ (\textsf{reduce}\ f\ g\ t)).\ \textsf{treeP}\ t \\
                   \mid&\ \textsf{Free} \Rightarrow \End
     \end{alignedat}
@@ -159,10 +159,10 @@ pattern matching.
 \addtolength{\jot}{-0.25em}
 \begin{align*}
   &\Def\ \textsf{leafWorker}\ \{A : \Un\}\ (x : A)\ (c : \CH{\textsf{treeP}\ A\ (\textsf{Leaf}\ x)}) : \CM{\textsf{unit}} := \\
-  &\quad\Let\ \langle{o, c}\rangle := \Recv\ c\ \In \\
+  &\quad\Let\ \langle{\ell, c}\rangle := \Recv\ c\ \In \\
   &\quad
     \begin{alignedat}{4}
-      &\Match\ o\ \With\\
+      &\Match\ \ell\ \With\\
       &\mid \textsf{Map} \Rightarrow \textsf{leafWorker}\ \{B\}\ (f\ x)\ c \\
       &\mid \textsf{Reduce} \Rightarrow \Let\ c \Leftarrow \Send\ c\ (\textsf{Just}\ (f\ x))\ \In\ \textsf{leafWorker}\ \{A\}\ x\ c  \\
       &\mid \textsf{Free} \Rightarrow \Close(c)
@@ -195,10 +195,10 @@ $c$ whose type is indexed by the ghost value $\textsf{Node}\ l\ r$.
 \begin{align*}
   &\Def\ \textsf{nodeWorker}\ \{A : \Un\}\ \{l\ r : \textsf{tree}\ A\}\\
   &\qquad(c_l : \HC{\textsf{treeP}\ A\ l})\ (c_r : \HC{\textsf{treeP}\ A\ r})\ (c : \CH{\textsf{treeP}\ A\ (\textsf{Node}\ l\ r)}) : \CM{\textsf{unit}} := \\
-  &\quad\Let\ \langle{o, c}\rangle := \Recv\ c\ \In \\
+  &\quad\Let\ \langle{\ell, c}\rangle := \Recv\ c\ \In \\
   &\quad
     \begin{alignedat}{4}
-      &\Match\ o\ \With\\
+      &\Match\ \ell\ \With\\
       &\mid \textsf{Map}\ \_\ f \Rightarrow \\
       &\quad\Let\ c_l \Leftarrow \Send\ c_l\ (\textsf{Map}\ f)\ \In \\
       &\quad\Let\ c_r \Leftarrow \Send\ c_r\ (\textsf{Map}\ f)\ \In \\
