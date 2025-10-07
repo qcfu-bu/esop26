@@ -4,7 +4,7 @@ typing rules into logical level, program level and process level.
 \subsection{Logical Level}
 The typing judgment for the logical level has the form $\Gamma \vdash m : A$.
 This judgment states that under the \emph{logical context} $\Gamma$, term $m$
-has type $A$. 
+has type $A$. The logical level is completely \emph{structural}.
 
 \paragraph{\textbf{Logical Context}}
 The logical context $\Gamma$ is a sequence of variable bindings of the form 
@@ -248,3 +248,35 @@ primitives. The rules are presented below.
 \clearpage
 
 \subsection{Program Level}
+The typing judgment for the program level has the form $\Gamma ; \Delta \vdash m : A$.
+This judgment states that under the logical context $\Gamma$ and the
+\emph{program context} $\Delta$, term $m$ has type $A$.
+
+\paragraph{\textbf{Program Context}}
+The program context $\Delta$ is a sequence of variable bindings of the form
+$x_0 :_{s_0} A_0, x_1 :_{s_1} A_1, \dots, x_n :_{s_n} A_n$. 
+Each variable $x_i$ is bound to a type $A_i$ with a sort annotation $s_i$.
+The variables in the program context are allowed to appear in computationally
+relevant positions inside $m$. To ensure that all types appear in the program
+context are well-formed, we define the program context validity judgment
+$\Gamma ; \Delta \vdash $. The rules for this judgment are presented below.
+\begin{mathpar}
+  \inferrule[Ctx-Empty]
+  { }
+  { \epsilon ; \epsilon \vdash }
+
+  \inferrule[Ctx-Implicit-Var]
+  { \Gamma ; \Delta \vdash \\
+    \Gamma \vdash A : s \\
+    x \notin \Gamma }
+  { \Gamma, x : A ; \Delta \vdash }
+
+  \inferrule[Ctx-Explicit-Var]
+  { \Gamma ; \Delta \vdash \\
+    \Gamma \vdash A : s \\
+    x \notin \Gamma }
+  { \Gamma, x : A ; \Delta, x \ty{s} A \vdash }
+\end{mathpar}
+From these rules we can see that $\text{dom}(\Delta)$ is a subset of
+$\text{dom}(\Gamma)$. Additionally, the sort annotation $s$ in each program
+context binding $x \ty{s} A$ is the sort of the associated $A$ type.
