@@ -120,7 +120,7 @@ to describe the interactions between nodes in the map-reduce tree.
 \small
 \addtolength{\jot}{-0.25em}
 \begin{alignat*}{4}
-  &\Def\ \textsf{treeP}\ (A : \Un)\ (t : \textsf{tree}\ A) :=\ ?(o : \textsf{opr}\ A).\\
+  &\Def\ \textsf{treeP}\ (A : \Un)\ (t : \textsf{tree}\ A) :=\ ?(\ell : \textsf{opr}\ A).\\
   &\quad
     \begin{alignedat}{4}
       \Match\ o\ \With&\ \textsf{Map}\ \_\ f \Rightarrow\ \textsf{treeP}\ B\ (\textsf{map}\ f\ t) \\
@@ -132,21 +132,21 @@ to describe the interactions between nodes in the map-reduce tree.
 For each node $n$ in the concurrent tree, it will be providing a channel of type
 $\CH{\textsf{treeP}\ A\ t}$ to its parent. The parameter $t$ of type
 $\textsf{tree}\ A$ represents the shape of the sub-tree rooted at $n$. The
-\textsf{treeP} protocol states node $n$ will receive a message $o$ of type
+\textsf{treeP} protocol states node $n$ will receive a message $\ell$ of type
 $\textsf{opr}\ A$ from its parent.  The protocol then branches, via type-level
-pattern matching on $o$, into three cases. If $o$ is of the form
+pattern matching on $\ell$, into three cases. If $\ell$ is of the form
 $\textsf{Map}\ f$, then $n$ will continue the protocol as
 $\textsf{treeP}\ B\ (\textsf{map}\ f\ t)$. Notice that the type parameter of
 \textsf{treeP} is changed from $A$ to $B$ to reflect the fact that the data
 stored at the leaves of the sub-tree is transformed from type $A$ to type
 $B$. Furthermore, the shape of the sub-tree has also changed from $t$ to
-$\textsf{map}\ f\ t$. In the second case where $o$ is of the form
+$\textsf{map}\ f\ t$. In the second case where $\ell$ is of the form
 $\textsf{Reduce}\ f\ g$, $n$ will first send the result of type
 $\textsf{sing}\ (\textsf{reduce}\ f\ g\ t)$ to its parent. The type
 $\textsf{sing}\ x$ is the \emph{singleton type} whose sole inhabitant is the
 element $x$. After sending the result, $n$ will continue the protocol as
 $\textsf{treeP}\ t$, i.e. remains unchanged. Finally, $n$ will terminate
-the protocol when $o$ is $\textsf{Free}$.
+the protocol when $\ell$ is $\textsf{Free}$.
 
 Using the \textsf{treeP} protocol, we can now implement the worker processes
 that run at each node of the concurrent tree. The implementation of a leaf worker

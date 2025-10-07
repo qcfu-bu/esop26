@@ -85,7 +85,7 @@ which simply ignores all $\textsf{ins}$ messages and always returns $\textsf{non
 
 To address this issue, we develop \TLLC{}, a dependent session type system which
 extends the Two-Level Linear dependent type theory (TLL)~\cite{fu23} with
-session-typed concurrency. In \TLLC{}, one could define the queues through the following
+session-typed concurrency. In \TLLC{}, one could define queues through the following
 dependent session type:
 \begin{alignat*}{2}
   &\textsf{queue} (\textit{xs} : \textsf{list}\ A) :=\ ?(\ell : \textsf{opr}). \Match\ \ell\ \With \\
