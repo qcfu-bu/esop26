@@ -164,7 +164,7 @@ pattern matching.
     \begin{alignedat}{4}
       &\Match\ o\ \With\\
       &\mid \textsf{Map} \Rightarrow \textsf{leafWorker}\ \{B\}\ (f\ x)\ c \\
-      &\mid \textsf{Reduce} \Rightarrow \Let\ c \Leftarrow \Send\ c\ (\textsf{just}\ (f\ x))\ \In\ \textsf{leafWorker}\ \{A\}\ x\ c  \\
+      &\mid \textsf{Reduce} \Rightarrow \Let\ c \Leftarrow \Send\ c\ (\textsf{Just}\ (f\ x))\ \In\ \textsf{leafWorker}\ \{A\}\ x\ c  \\
       &\mid \textsf{Free} \Rightarrow \Close(c)
     \end{alignedat}
 \end{align*}
@@ -202,14 +202,14 @@ $c$ whose type is indexed by the ghost value $\textsf{Node}\ l\ r$.
       &\mid \textsf{Map}\ \_\ f \Rightarrow \\
       &\quad\Let\ c_l \Leftarrow \Send\ c_l\ (\textsf{Map}\ f)\ \In \\
       &\quad\Let\ c_r \Leftarrow \Send\ c_r\ (\textsf{Map}\ f)\ \In \\
-      &\quad\Let\ c \Leftarrow \Send\ c\ (\textsf{just}\ \textsf{unit})\ \In \\
+      &\quad\Let\ c \Leftarrow \Send\ c\ (\textsf{Just}\ \textsf{unit})\ \In \\
       &\quad\textsf{nodeWorker}\ \{B\}\ \{(\textsf{map}\ f\ l)\ (\textsf{map}\ f\ r)\}\ c_l\ c_r\ c \\
       &\mid \textsf{Reduce}\ \_\ f\ g \Rightarrow \\
       &\quad\Let\ c_l \Leftarrow \Send\ c_l\ (\textsf{Reduce}\ f\ g)\ \In \\
       &\quad\Let\ c_r \Leftarrow \Send\ c_r\ (\textsf{Reduce}\ f\ g)\ \In \\
-      &\quad\Let\ \langle{\textsf{just}\ v_l, c_l}\rangle \Leftarrow \Recv\ c_l\ \In \\
-      &\quad\Let\ \langle{\textsf{just}\ v_r, c_r}\rangle \Leftarrow \Recv\ c_r\ \In \\
-      &\quad\Let\ c \Leftarrow \Send\ c\ (\textsf{just}\ (g\ v_l\ v_r))\ \In \\
+      &\quad\Let\ \langle{\textsf{Just}\ v_l, c_l}\rangle \Leftarrow \Recv\ c_l\ \In \\
+      &\quad\Let\ \langle{\textsf{Just}\ v_r, c_r}\rangle \Leftarrow \Recv\ c_r\ \In \\
+      &\quad\Let\ c \Leftarrow \Send\ c\ (\textsf{Just}\ (g\ v_l\ v_r))\ \In \\
       &\quad\textsf{nodeWorker}\ \{A\}\ \{l\ r\}\ c_l\ c_r\ c \\
       &\mid \textsf{Free} \Rightarrow \\
       &\quad\Let\ c_l \Leftarrow \Send\ c_l\ \textsf{Free}\ \In \\

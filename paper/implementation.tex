@@ -64,8 +64,29 @@ patterns involving linear inductive types. We plan to present the details of our
 algorithm in a future publication.
 
 \paragraph{\textbf{Optimization}}
-Once linearity checking is complete, ghost terms are erased in a type directed manner.
-The intermediate representation obtained from erasure carries metadata that mark the
-linearity of certain critical expressions. For example, metadata is attached to \Match{}-expressions
-to indicate whether the scrutinee is linear or unrestricted. This information is used to
-guide further optimizations for improving runtime efficiency.
+Once linearity checking is complete, ghost terms are erased in a type directed
+manner.  The intermediate representation (IR) obtained from erasure carries
+metadata that mark the linearity of certain critical expressions. For example,
+metadata is attached to \Match{}-expressions to indicate whether the scrutinee
+is linear or unrestricted. This information is used to guide further
+optimizations for improving runtime efficiency.
+
+One of the optimizations performed is constructor unboxing. The layouts of inductive type
+constructors are analyzed to determine if the inductive type is suitable for unboxing.
+For example, consider the singleton type defined as follows:
+\begin{align*}
+  \Inductive\ \textsf{sing}\flq{s}\frq\ \%\!\{A : \textsf{Type}\flq{s}\frq\}\ (x : A) := 
+  \textsf{Just} : \forall (x : A) \rightarrow \textsf{sing}\ x
+\end{align*}
+Here, \textsf{Just} is the only constructor of type \textsf{sing}. This means that
+pattern matching on a value of type \textsf{sing} is redundant as there is only one possible case.
+Expressions of the form $\textsf{Just}\ m$ are unboxed to $m$ to reduce the number of indirections
+at runtime. In general, an inductive type can be unboxed if it has a single constructor and
+the constructor has a single non-ghost field.
+
+To reduce the time spent on allocating and deallocating heap objects, we utilize
+in-place updates for linear values. This optimization is similar to recent works on
+function in-place programming~\cite{lorenzen23,perceus} where allocated heap memory
+is reused instead of being garbage collected. Unlike these works which utilize reference
+counting to dynamically check the viability of an in-place update, the metadata in our 
+IR is sufficient to statically determine if an in-place optimization is safe.
