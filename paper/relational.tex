@@ -1,5 +1,5 @@
 Earlier in the introduction section, we showed a sketch of how dependent session types
-can be used for certified concurrent programming through the example of a concurrent queue.
+can be used for verified concurrent programming through the example of a concurrent queue.
 In this section, we provide a detailed account of how we can use dependent session types
 to construct a generic map-reduce system. Similarly to the queue example, we will verify
 the correctness of the map-reduce system by relating it to sequential operations on trees.
@@ -148,10 +148,9 @@ element $x$. After sending the result, $n$ will continue the protocol as
 $\textsf{treeP}\ t$, i.e. remains unchanged. Finally, $n$ will terminate
 the protocol when $\ell$ is $\textsf{Free}$.
 
-Using the \textsf{treeP} protocol, we can now implement the worker processes
-that run at each node of the concurrent tree. The implementation of a leaf worker
-is shown below. We have elided uninteresting technical details regarding dependent
-pattern matching.
+Using the \textsf{treeP} protocol, we implement the processes that run at
+each leaf of the concurrent tree. We have elided uninteresting
+technical details regarding dependent pattern matching.
 
 \vspace{-1em}
 \begingroup
@@ -219,7 +218,7 @@ $c$ whose type is indexed by the ghost value $\textsf{Node}\ l\ r$.
 \end{align*}
 \endgroup
 Given the signature of \textsf{nodeWorker} and the definition of
-the \textsf{treeP} protocol, it is not hard to see that the implementation of
+the \textsf{treeP} protocol, it is easy to see that the implementation of
 \textsf{nodeWorker} is constrained to function exactly as intended. For instance,
 in the case where \textsf{nodeWorker} receives a $\textsf{Map}\ f$ request from
 its parent, the type of $c$ becomes $\CH{\textsf{treeP}\ B\ (\textsf{map}\ f\ (\textsf{Node}\ l\ r))}$
@@ -231,7 +230,7 @@ $\textsf{Map}\ f$ request to both of its children to transform them into
 sub-trees of type $\HC{\textsf{treeP}\ B\ (\textsf{map}\ f\ l)}$ and
 $\HC{\textsf{treeP}\ B\ (\textsf{map}\ f\ r)}$.
 
-\subsection{A Certified Interface for Map-Reduce}
+\subsection{A Verified Interface for Map-Reduce}
 Now that we have defined both leaf and internal node workers, we can wrap them
 up into a more convenient interface as presented below.
 
