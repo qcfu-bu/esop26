@@ -9,11 +9,39 @@ and optimization phases of the compiler.
 To reduce code duplication and type annotation burden, we implement two forms of inference: 
 (1) automatic instantiation of \emph{sort-polymorphic schemes} similarly to the TLL compiler and 
 (2) elaboration of inferred arguments.
-
 Consider the identity function below:
 \begin{align*}
   \Def\ \textsf{id}\flq{s}\frq\ \%\!\{ A : \textsf{Type}\flq{s}\frq\}\ (x : A) : A := x
 \end{align*}
+This function is a sort-polymorphic scheme as it is parameterized over sort variable $s$.
+Depending on the universe of $A$, sort $s$ can be instantiated to either $\Ln$ for linear types
+or $\Un$ for unrestricted types. This eliminates the need to define two separate identity functions
+for linear and unrestricted types. The type $A$ here is marked by $\%$ to indicate that it is an
+inferred argument. Suppose $\textsf{id}$ is applied to a natural number $42$, the compiler creates
+two metavariables $\hat{s}$ and $\hat{\alpha}$ to represent the elided sort and type arguments respectively.
+Type inference produces the following constraints:
+\begin{align*}
+  \textsf{id}\ 42 
+  \ \ 
+  \xRightarrow{\text{desugar}} 
+  \ \ 
+  \appI{\textsf{id}\flq{\hat{s}}\frq}{\hat{\alpha}}\ 42
+  \ \ 
+  \xRightarrow{\text{infer}} 
+  \ \ 
+  \begin{cases}
+    \hat{s} = \Un \\
+    \hat{\alpha} = \textsf{Nat}
+  \end{cases}
+  \!\!
+  \xRightarrow{\text{mono}} 
+  \ \ 
+  \appI{\textsf{id}\flq{\Un}\frq}{\textsf{Nat}}\ 42
+\end{align*}
+Once the constraints are solved through unification~\cite{abel11}, the metavariables are
+replaced by their solutions. The monomorphized code is then passed to the next phase for
+linearity checking.
+
 
 \paragraph{\textbf{Linearity Checking}}
 \paragraph{\textbf{Optimization}}
