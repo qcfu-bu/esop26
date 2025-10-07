@@ -44,4 +44,28 @@ linearity checking.
 
 
 \paragraph{\textbf{Linearity Checking}}
+During the inference phase, the usage of linear variables is not tracked. The
+type checking algorithm essentially treats \TLLC{} as a fully structural type
+system. It is only after all sort-polymorphic schemes and inferred arguments are
+instantiated that the linearity checking begins. A substructural type checking
+algorithm is applied to determine if the elaborated program compiles with the actual
+typing rules of \TLLC{}. We adopt this two-phase approach to simplify the linearity
+checking algorithm. Although sort-polymorphism greatly reduces code duplication from
+the user's perspective, it also obfuscates the classification of types into linear
+and unrestricted ones. Thus, it is much easier to check linearity after monomorphization.
+
+To support dependent pattern matching, we implement a variation of 
+Cockx's algorithm~\cite{cockx18} to type check \Match{}-expressions and elaborate them
+into well-formed case trees. Cockx's algorithm forms the basis of Agda's~\cite{agda}
+pattern matching mechanism. Several extensions are made to the original algorithm to
+account for pattern matching on linear inductive types and ghost terms. Our modified
+algorithm is able to correctly track resource usage in subtle cases such as nested
+patterns involving linear inductive types. We plan to present the details of our
+algorithm in a future publication.
+
 \paragraph{\textbf{Optimization}}
+Once linearity checking is complete, ghost terms are erased in a type directed manner.
+The intermediate representation obtained from erasure carries metadata that mark the
+linearity of certain critical expressions. For example, metadata is attached to \Match{}-expressions
+to indicate whether the scrutinee is linear or unrestricted. This information is used to
+guide further optimizations for improving runtime efficiency.
