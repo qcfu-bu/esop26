@@ -25,3 +25,223 @@ in the logical context, we define the context validity judgment $\Gamma \vdash $
 Note that the context validity judgment is \emph{mutually inductively} defined with the typing judgment. 
 
 \paragraph{\textbf{Core Typing}}
+Here we present the core typing rules for the logical level.
+\begin{mathpar}\footnotesize
+  \inferrule[Sort]
+  { \Gamma \vdash }
+  { \Gamma \vdash s : \Un }
+
+  \inferrule[Var]
+  { \Gamma, x : A \vdash }
+  { \Gamma, x : A \vdash x : A }
+
+  \inferrule[Explicit-Fun]
+  { \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \PiR{t}{x : A}{B} : t }
+
+  \inferrule[Implicit-Fun]
+  { \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \PiI{t}{x : A}{B} : t }
+
+  \inferrule[Explicit-Lam]
+  { \Gamma, x : A \vdash m : B }
+  { \Gamma \vdash \lamR{t}{x : A}{m} : \PiR{t}{x : A}{B} }
+
+  \inferrule[Implicit-Lam]
+  { \Gamma, x : A \vdash m : B }
+  { \Gamma \vdash \lamI{t}{x : A}{m} : \PiI{t}{x : A}{B} }
+
+  \inferrule[Explicit-App]
+  { \Gamma \vdash m : \PiR{t}{x : A}{B} \\
+    \Gamma \vdash n : A }
+  { \Gamma \vdash \appR{m}{n} : B[n/x] }
+
+  \inferrule[Implicit-App]
+  { \Gamma \vdash m : \PiI{t}{x : A}{B} \\
+    \Gamma \vdash n : A }
+  { \Gamma \vdash \appI{m}{n} : B[n/x] }
+
+  \inferrule[Explicit-Sum]
+  { s \sqsubseteq t \\ r \sqsubseteq t \\
+    \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \SigR{t}{x : A}{B} : t }
+
+  \inferrule[Implicit-Sum]
+  { r \sqsubseteq t \\
+    \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \SigI{t}{x : A}{B} : t }
+
+  \inferrule[Explicit-Pair]
+  { \Gamma \vdash \SigR{t}{x : A}{B} : t \\
+    \Gamma \vdash m : A \\
+    \Gamma \vdash n : B[m/x] }
+  { \Gamma \vdash \pairR{m}{n}{t} : \SigR{t}{x : A}{B} }
+
+  \inferrule[Implicit-Pair]
+  { \Gamma \vdash \SigI{t}{x : A}{B} : t \\
+    \Gamma \vdash m : A \\
+    \Gamma \vdash n : B[m/x] }
+  { \Gamma \vdash \pairI{m}{n}{t} : \SigI{t}{x : A}{B} }
+
+  \inferrule[Explicit-SumElim]
+  { \Gamma, z : \SigR{t}{x : A}{B} \vdash C : s \\
+    \Gamma \vdash m : \SigR{t}{x : A}{B} \\
+    \Gamma, x : A, y : B \vdash n : C[\pairR{x}{y}{t}/z] }
+  { \Gamma \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
+
+  \inferrule[Implicit-SumElim]
+  { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
+    \Gamma \vdash m : \SigI{t}{x : A}{B} \\
+    \Gamma, x : A, y : B \vdash n : C[\pairI{x}{y}{t}/z] }
+  { \Gamma \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
+
+  \inferrule[Conversion]
+  { \Gamma \vdash B : s \\
+    \Gamma \vdash m : A \\
+    A \simeq B }
+  { \Gamma \vdash m : B }
+\end{mathpar}
+
+\paragraph{\textbf{Data Typing}}
+The data typing rules govern the typing of base types such as the unit type and
+the boolean type. The rules are presented below.
+\begin{mathpar}\small
+  \inferrule[Unit]
+  { \Gamma \vdash }
+  { \Gamma \vdash \unit : \Un }
+
+  \inferrule[UnitVal]
+  { \Gamma \vdash }
+  { \Gamma \vdash \ii : \unit }
+
+  \inferrule[Bool]
+  { \Gamma \vdash }
+  { \Gamma \vdash \Bool : \Un }
+
+  \inferrule[True]
+  { \Gamma \vdash }
+  { \Gamma \vdash \bTrue : \Bool }
+
+  \inferrule[False]
+  { \Gamma \vdash }
+  { \Gamma \vdash \bFalse : \Bool }\\
+
+  \inferrule[BoolElim]
+  { \Gamma, z : \Bool \vdash A : s \\
+    \Gamma \vdash m : \Bool \\
+    \Gamma \vdash n_1 : A[\bTrue/z] \\
+    \Gamma \vdash n_2 : A[\bFalse/z] }
+  { \Gamma \vdash \boolElim{[z]A}{m}{n_1}{n_2} : A[m/z] }\\
+\end{mathpar}
+
+\paragraph{\textbf{Monadic Typing}}
+The monadic typing rules govern the composition of monadic computations.
+The standard rules for monadic return and bind are presented below.
+\begin{mathpar}\small
+  \inferrule[$\C$Type]
+  { \Gamma \vdash A : s }
+  { \Gamma \vdash \CM{A} : \Ln }
+
+  \inferrule[Return]
+  { \Gamma \vdash m : A }
+  { \Gamma \vdash \return{m} : \CM{A} }
+
+  \inferrule[Bind]
+  { \Gamma \vdash B : s \\
+    \Gamma \vdash m : \CM{A} \\
+    \Gamma, x : A \vdash n : \CM{B} }
+  { \Gamma \vdash \letin{x}{m}{n} : \CM{B} }\\
+\end{mathpar}
+
+\paragraph{\textbf{Session Typing}}
+The session typing rules govern the typing of protocol, channels and communication
+primitives. The rules are presented below.
+\begin{mathpar}\footnotesize
+  \inferrule[Proto]
+  { \Gamma \vdash }
+  { \Gamma \vdash \Proto : \Un }
+
+  \inferrule[End]
+  { \Gamma \vdash }
+  { \Gamma \vdash \End : \Proto }
+
+  \inferrule[Explicit-Action]
+  { \Gamma, x : A \vdash B : \Proto }
+  { \Gamma \vdash \ActR{\rho}{x : A}{B} : \Proto }
+
+  \inferrule[Implicit-Action]
+  { \Gamma, x : A \vdash B : \Proto }
+  { \Gamma \vdash \ActI{\rho}{x : A}{B} : \Proto }
+
+  \inferrule[RecProto]
+  { \Gamma, x : A \vdash m : A \\
+    A~\arity{\Proto} \\ 
+    m~\guard{x} }
+  { \Gamma \vdash \fix{x : A}{m} : A }
+
+  \inferrule[ChType]
+  { \Gamma \vdash A : \Proto }
+  { \Gamma \vdash \CH{A} : \Ln }
+
+  \inferrule[HcType]
+  { \Gamma \vdash A : \Proto }
+  { \Gamma \vdash \HC{A} : \Ln }
+
+  \inferrule[Channel-CH]
+  { \Gamma \vdash \\
+    \epsilon \vdash A : \Proto }
+  { \Gamma \vdash c : \CH{A} }
+
+  \inferrule[Channel-HC]
+  { \Gamma \vdash \\
+    \epsilon \vdash A : \Proto }
+  { \Gamma \vdash c : \HC{A} }
+
+  \inferrule[Fork]
+  { \Gamma, x : \CH{A} \vdash m : \CM{\unit} }
+  { \Gamma \vdash \fork{x : \CH{A}}{m} : \CM{\HC{A}} }
+
+  \inferrule[Explicit-Send-CH]
+  { \Gamma \vdash m : \CH{\ActR{!}{x : A}{B}} }
+  { \Gamma \vdash \sendR{m} : \PiR{\Ln}{x : A}{\CM{\CH{B}}} }
+
+  \inferrule[Explicit-Send-HC]
+  { \Gamma \vdash m : \HC{\ActR{?}{x : A}{B}} }
+  { \Gamma \vdash \sendR{m} : \PiR{\Ln}{x : A}{\CM{\HC{B}}} }
+
+  \inferrule[Implicit-Send-CH]
+  { \Gamma \vdash m : \CH{\ActI{!}{x : A}{B}} }
+  { \Gamma \vdash \sendI{m} : \PiI{\Ln}{x : A}{\CM{\CH{B}}} }
+
+  \inferrule[Implicit-Send-HC]
+  { \Gamma \vdash m : \HC{\ActI{?}{x : A}{B}} }
+  { \Gamma \vdash \sendI{m} : \PiI{\Ln}{x : A}{\CM{\HC{B}}} }
+
+  \inferrule[Explicit-Recv-CH]
+  { \Gamma \vdash m : \CH{\ActR{?}{x : A}{B}} }
+  { \Gamma \vdash \recvR{m} : \CM{\SigR{\Ln}{x : A}{\CH{B}}} }
+
+  \inferrule[Explicit-Recv-HC]
+  { \Gamma \vdash m : \HC{\ActR{!}{x : A}{B}} }
+  { \Gamma \vdash \recvR{m} : \CM{\SigR{\Ln}{x : A}{\HC{B}}} }
+
+  \inferrule[Implicit-Recv-CH]
+  { \Gamma \vdash m : \CH{\ActI{?}{x : A}{B}} }
+  { \Gamma \vdash \recvI{m} : \CM{\SigI{\Ln}{x : A}{\CH{B}}} }
+
+  \inferrule[Implicit-Recv-HC]
+  { \Gamma \vdash m : \HC{\ActI{!}{x : A}{B}} }
+  { \Gamma \vdash \recvI{m} : \CM{\SigI{\Ln}{x : A}{\HC{B}}} }
+
+  \inferrule[Close$_{L}$]
+  { \Gamma \vdash m : \CH{\End} }
+  { \Gamma \vdash \close{m} : \CM{\unit} }
+
+  \inferrule[Wait$_{L}$]
+  { \Gamma \vdash m : \HC{\End} }
+  { \Gamma \vdash \wait{m} : \CM{\unit} }
+\end{mathpar}
