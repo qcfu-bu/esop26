@@ -26,6 +26,9 @@ Note that the context validity judgment is \emph{mutually inductively} defined w
 
 \paragraph{\textbf{Core Typing}}
 The core typing rules is responsible for the functional fragment of \TLLC{}.
+The convertibility relation $A \simeq B$ is used in the conversion rule to
+allow type equivalence up to $\beta$-reduction. We will present the definition
+of the convertibility relation in \Cref{appendix:semantics}. 
 \begin{mathpar}\footnotesize
   \inferrule[Sort]
   { \Gamma \vdash }
@@ -34,6 +37,12 @@ The core typing rules is responsible for the functional fragment of \TLLC{}.
   \inferrule[Var]
   { \Gamma, x : A \vdash }
   { \Gamma, x : A \vdash x : A }
+
+  \inferrule[Conversion]
+  { \Gamma \vdash B : s \\
+    \Gamma \vdash m : A \\
+    A \simeq B }
+  { \Gamma \vdash m : B }
 
   \inferrule[Explicit-Fun]
   { \Gamma \vdash A : s \\
@@ -98,12 +107,6 @@ The core typing rules is responsible for the functional fragment of \TLLC{}.
     \Gamma \vdash m : \SigI{t}{x : A}{B} \\
     \Gamma, x : A, y : B \vdash n : C[\pairI{x}{y}{t}/z] }
   { \Gamma \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
-
-  \inferrule[Conversion]
-  { \Gamma \vdash B : s \\
-    \Gamma \vdash m : A \\
-    A \simeq B }
-  { \Gamma \vdash m : B }
 \end{mathpar}
 
 \paragraph{\textbf{Data Typing}}
@@ -248,9 +251,10 @@ primitives. The rules are presented below.
 \clearpage
 
 \subsection{Program Level}
-The typing judgment for the program level has the form $\Gamma ; \Delta \vdash m : A$.
-This judgment states that under the logical context $\Gamma$ and the
-\emph{program context} $\Delta$, term $m$ has type $A$.
+The typing judgment for the program level has the form $\Theta ; \Gamma ; \Delta \vdash m : A$.
+This judgment states that under the channel context $\Theta$, logical context $\Gamma$ and the
+\emph{program context} $\Delta$, term $m$ has type $A$. The program level is \emph{substructural}
+as the usage of variables in the program context is tracked.
 
 \paragraph{\textbf{Program Context}}
 The program context $\Delta$ is a sequence of variable bindings of the form
@@ -318,13 +322,13 @@ The core typing rules is responsible for the functional fragment of \TLLC{}.
   { \Theta ; \Gamma ; \Delta \vdash \appI{m}{n} : B[n/x] }
 
   \inferrule[Explicit-Pair]
-  { \Gamma \vdash \SigR{t}{x : A}{B} : t \\
+  { \Gamma \vdash \SigR{t}{x : A}{B} : t \\\\
     \Theta_1 ; \Gamma ; \Delta_1 \vdash m : A \\
     \Theta_2 ; \Gamma ; \Delta_2 \vdash n : B[m/x] }
   { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \pairR{m}{n}{t} : \SigR{t}{x : A}{B} }
 
   \inferrule[Implicit-Pair]
-  { \Gamma \vdash \SigI{t}{x : A}{B} : t \\
+  { \Gamma \vdash \SigI{t}{x : A}{B} : t \\\\
     \Gamma \vdash m : A \\
     \Theta ; \Gamma ; \Delta \vdash n : B[m/x] }
   { \Theta ; \Gamma ; \Delta \vdash \pairI{m}{n}{t} : \SigI{t}{x : A}{B} }
@@ -442,3 +446,24 @@ primitives. The rules are presented below.
   { \Theta ; \Gamma ; \Delta \vdash m : \HC{\End} }
   { \Theta ; \Gamma ; \Delta \vdash \wait{m} : \CM{\unit} }
 \end{mathpar}
+
+\subsection{Process Level}
+The typing judgment for the process level has the form $\Theta \Vdash P$. 
+This judgment states that under the channel context $\Theta$, process $P$ is well-typed.
+Unlike the logical and program levels which can type term that contain free variables, 
+the process level only types processes whose terms are closed. Hence, there are no logical
+or program contexts in the process typing judgment.
+\begin{mathpar}\small
+  \inferrule[Expr]
+  { \Theta ; \epsilon ; \epsilon \vdash m : \CM{\unit} }
+  { \Theta \Vdash \proc{m} }
+
+  \inferrule[Par]
+  { \Theta_1 \vdash P \\ \Theta_2 \vdash Q }
+  { \Theta_1 \dotcup \Theta_2 \Vdash P \mid Q }
+
+  \inferrule[Scope]
+  { \Theta, c \tL \CH{A}, d \tL \HC{A} \vdash P }
+  { \Theta \Vdash \scope{cd}{P} }
+\end{mathpar}
+\clearpage
