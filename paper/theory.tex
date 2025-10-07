@@ -197,7 +197,7 @@ entity has access to a channel at any point in time, thus preventing race condit
 \paragraph{\textbf{Recursive Protocols}}
 Recursive protocols can be formed using the $\fix{x : A}{m}$ construct:
 \begin{mathpar}
-  \inferrule[Fixpoint]
+  \inferrule[RecProto]
   { \Gamma, x : A \vdash m : A \\ 
     A\ \text{is an \emph{arity} ending on } \Proto \\
     x\ \text{is \emph{guarded} by protocol action in}\ m }

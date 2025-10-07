@@ -1,37 +1,9 @@
 \section{Syntax}
-The full syntax of \TLLC{} is presented below.
+\input{appendix/syntax}
 
-\begin{figure}[H]
-  \begin{tabular}{r l c l}
-    variables & $x, y, z$   &     &                 \\
-    channels  & $c, d$      &     &                 \\
-    sorts     & $s, r, t$   & ::= & $\Un$ | $\Ln$   \\
-    actions   & $\rho$      & ::= & $!$ | $?$       \\
-    terms     & $m,n,A,B,C$ & ::= & $x$ | $c$ | $s$ \\
-              &             & \;| & $\PiR{t}{x : A}{B}$ | $\PiI{t}{x : A}{B}$
-                                    | $\SigR{t}{x : A}{B}$ | $\SigI{t}{x : A}{B}$ \\
-              &             & \;| & $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$
-                                    | $\pairR{m}{n}{t}$ | $\pairI{m}{n}{t}$ \\
-              &             & \;| & $\appR{m}{n}$ | $\appI{m}{n}$ | $\SigElim{[z]A}{m}{[x,y]n}$ | $\fix{x : A}{B}$ \\
-              &             & \;| & $\unit$ | $\ii$ | $\Bool$ | $\bTrue$ | $\bFalse$
-                                    | $\boolElim{[z]A}{m}{n_{1}}{n_{2}}$ \\
-              &             & \;| & $\CM{A}$ | $\return{m}$ | $\letin{x}{m}{n}$ \\
-              &             & \;| & $\Proto$ | $\End$
-                                    | $\ActR{\rho}{x : A}{B}$ | $\ActI{\rho}{x : A}{B}$ | $\CH{A}$ | $\HC{A}$ \\
-              &             & \;| & $\fork{x : A}{m}$ | $\recvR{m}$ | $\recvI{m}$
-                                    | $\sendR{m}$ | $\sendI{m}$ \\
-              &             & \;| & $\close{m}$ | $\wait{m}$ \\
-    values    & $u, v$      & ::= & $x$ | $c$ | $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$
-                                    | $\pairR{u}{v}{t}$ | $\pairI{v}{m}{t}$ \\
-              &             & \;| & $\ii$ | $\bTrue$ | $\bFalse$ | $\return{v}$ | $\letin{x}{v}{m}$ \\
-              &             & \;| & $\fork{x : A}{m}$ | $\recvR{v}$ | $\recvI{v}$ | $\sendR{v}$ | $\sendI{v}$ \\
-              &             & \;| & $\appR{\sendR{v}}{u}$ | $\appI{\sendI{v}}{m}$ | $\close{v}$ | $\wait{v}$ \\
-    process   & $O, P, Q$   & \;| & $\langle m \rangle$ | ($P \mid Q$) | $\scope{cd}{P}$
-  \end{tabular}
-\end{figure}
+\section{Auxiliary Operators/Judgments}
+\input{appendix/operators}
 
-\section{Auxiliary Operators}
-\paragraph{\textbf{Sort Ordering}}
-\paragraph{\textbf{Context Merge}}
-\paragraph{\textbf{Context Restriction}}
+\section{Typing Rules of \TLLC{}}
+\input{appendix/typing}
 

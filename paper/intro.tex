@@ -211,12 +211,14 @@ across the channel. We study the meta-theory of \TLLC{} and prove that it is
 indeed sound at both the level of terms and at the level of process
 configurations.
 
-All lemmas and theorems reported in the this paper are formalized in
-Rocq~\cite{coq}. All examples can be compiled into C programs using our prototype
-compiler where concurrent processes are implemented using POSIX threads.  The
-compiler implements advanced language features such dependent pattern matching
-and functional in-place programming~\cite{lorenzen23} for linear types. Proofs,
-source code, and examples are available in our git repository\footnote{\TODO}.
+We implement a prototype compiler for compiling \TLLC{} programs into safe C
+code. The compiler implements advanced language features such as dependent
+pattern matching and type inference. The unique ownership property of linear types
+also facilitates optimizations such as in-place programming~\cite{lorenzen23}.
+All examples presented in this paper can be compiled using our
+prototype compiler where concurrent processes are implemented as POSIX
+threads. The compiler source code, and example \TLLC{} programs are available
+in our git repository\footnote{\TODO}.
 
 In summary, we make the following contributions:
 \begin{itemize}
@@ -231,9 +233,9 @@ In summary, we make the following contributions:
   \item We study the meta-theoretical properties of \TLLC{}. We show that
         \TLLC{}, as a term calculus, possesses desirable properties such as confluence and
         subject reduction and, as a process calculus, guarantees communication safety.
-  \item The entire calculus, with its meta-theorems, is formalized in Rocq.
   \item We implement a prototype compiler which compiles \TLLC{} into safe and
-        efficient C code.
+        efficient C code. The compiler implements additional features such as
+        dependent pattern matching, type inference and in-place programming for linear types.
 \end{itemize}
 
 

@@ -1,0 +1,27 @@
+In this section, we present the full typing rules of \TLLC{}.
+We organize the typing rules into logical rules and program rules.
+
+\subsection{Logical Level}
+The typing judgment for the logical level has the form $\Gamma \vdash m : A$.
+This judgment states that under the \emph{logical context} $\Gamma$, term $m$
+has type $A$. 
+
+\paragraph{\textbf{Logical Context}}
+The logical context $\Gamma$ is a sequence of variable bindings of the form 
+$x_0 : A_0, x_1 : A_1, \dots, x_n : A_n$. Each variable $x_i$ is bound to a type $A_i$.
+Variables in the logical context are unrestricted and can be used arbitrarily many
+times. The empty context is denoted by $\epsilon$. To ensure the validity of types
+in the logical context, we define the context validity judgment $\Gamma \vdash $.
+\begin{mathpar}
+  \inferrule[Ctx-Empty]
+  { }
+  { \epsilon \vdash }
+
+  \inferrule[Ctx-Var]
+  { \Gamma \vdash \quad \Gamma \vdash A : s \\
+    x \notin \Gamma }
+  { \Gamma, x : A \vdash }
+\end{mathpar}
+Note that the context validity judgment is \emph{mutually inductively} defined with the typing judgment. 
+
+\paragraph{\textbf{Core Typing}}

@@ -1,0 +1,252 @@
+In this section, we define several auxiliary operators/judgments used in the
+formalization of \TLLC{}.
+
+\paragraph{\textbf{Sort Ordering}}
+The sort ordering relation $\sqsubseteq$ is defined as follows:
+\begin{align*}
+  (\textsc{Ord-$\Un$})\quad \Un \sqsubseteq s
+  \qquad\qquad\qquad
+  (\textsc{Ord-$\Ln$})\quad \Ln \sqsubseteq \Ln
+\end{align*}
+This relation is useful when defining the typing rules of dependent pairs by
+ensuring that pairs only contain values of a lower or equal sort.
+
+\paragraph{\textbf{Context Merge}}
+The context merge operator $\dotcup$ is a partial function that combines two
+contexts into one by selective applying the contraction rule on unrestricted
+variables. The operator is undefined if both two contexts contain 
+overlapping linear variables.
+\begin{mathpar}
+  \inferrule[Merge-Empty]
+  { }
+  { \epsilon \dotcup \epsilon = \epsilon }
+
+  \inferrule[Merge-$\Un$]
+  { \Delta_1 \dotcup \Delta_2 = \Delta \\
+    x \notin \Delta }
+  { (\Delta_1, x \tU A) \dotcup (\Delta_2, x \tU A) = (\Delta, x \tU A) }
+  \\
+
+  \inferrule[Merge-$\Ln$-Left]
+  { \Delta_1 \dotcup \Delta_2 = \Delta \\
+    x \notin \Delta }
+  { (\Delta_1, x \tL A) \dotcup \Delta_2 = (\Delta, x \tL A) }
+
+  \inferrule[Merge-$\Ln$-Right]
+  { \Delta_1 \dotcup \Delta_2 = \Delta \\
+    x \notin \Delta }
+  { \Delta_1 \dotcup (\Delta_2, x \tL A) = (\Delta, x \tL A) }
+\end{mathpar}
+
+
+\paragraph{\textbf{Context Restriction}}
+The context restriction operator $\triangleright$ is a predicate that is
+useful for defining the typing rules of $\lambda$-expressions. In particular,
+it prevents unrestricted functions from capturing linear variables in their closures.
+\begin{mathpar}
+  \inferrule[ReEmpty]
+  { }
+  { \epsilon \triangleright s }
+
+  \inferrule[Re-$\Un$]
+  { \Delta \triangleright \Un }
+  { \Delta, x \tU A \triangleright \Un }
+
+  \inferrule[Re-$\Ln$]
+  { \Delta \triangleright \Ln }
+  { \Delta, x \ty{s} A \triangleright \Ln }
+\end{mathpar}
+
+\paragraph{\textbf{Arity}}
+For types $A$ and $X$, we say that $A$ is an \emph{arity} ending on $X$ if it
+is either $X$ itself or a $\Pi$-type whose codomain is an arity ending on $X$.
+Formally, we define the judgment $A~\arity{X}$ as follows:
+\begin{mathpar}
+  \inferrule[Arity-Base]
+  { }
+  { X~\arity{X} }
+
+  \inferrule[Arity-Implicit]
+  { B~\arity{X} }
+  { \PiI{t}{x : A}{B}~\arity{X} }
+
+  \inferrule[Arity-Explicit]
+  { B~\arity{X} }
+  { \PiR{t}{x : A}{B}~\arity{X} }
+\end{mathpar}
+This judgment is used for defining the typing rule of (parameterized) recursive protocols.
+
+\paragraph{\textbf{Guarded}}
+For variable $x$ and term $m$, we say that $x$ is \emph{guarded} in $m$ if
+the judgment $m~\guard{x}$ is derivable. Intuitively, this means that every 
+occurrence of $x$ in $m$ appears under a protocol action. This is important 
+for ensuring that recursive protocols do not unfold indefinitely without
+performing any actions. The judgment is defined as follows:
+\begin{mathpar}\footnotesize
+  \inferrule[Guard-Var]
+  { x \neq y }
+  { y~\guard{x} }
+
+  \inferrule[Guard-Sort]
+  { }
+  { s~\guard{x} }
+
+  \inferrule[Guard-Implicit-Fun]
+  { A~\guard{x} \\ 
+    B~\guard{x} }
+  { \PiI{t}{x' : A}{B}~\guard{x} }
+
+  \inferrule[Guard-Explicit-Fun]
+  { A~\guard{x} \\ 
+    B~\guard{x} }
+  { \PiR{t}{x' : A}{B}~\guard{x} }
+
+  \inferrule[Guard-Implicit-Lam]
+  { A~\guard{x} \\ 
+    m~\guard{x} }
+  { \lamI{t}{x' : A}{m}~\guard{x} }
+
+  \inferrule[Guard-Explicit-Lam]
+  { A~\guard{x} \\ 
+    m~\guard{x} }
+  { \lamR{t}{x' : A}{m}~\guard{x} }
+
+  \inferrule[Guard-Implicit-App]
+  { m~\guard{x} \\ 
+    n~\guard{x} }
+  { \appI{m}{n}~\guard{x} }
+
+  \inferrule[Guard-Explicit-App]
+  { m~\guard{x} \\ 
+    n~\guard{x} }
+  { \appR{m}{n}~\guard{x} }
+
+  \inferrule[Guard-Implicit-Sum]
+  { A~\guard{x} \\ 
+    B~\guard{x} }
+  { \SigI{t}{x' : A}{B}~\guard{x} }
+
+  \inferrule[Guard-Explicit-Sum]
+  { A~\guard{x} \\ 
+    B~\guard{x} }
+  { \SigR{t}{x' : A}{B}~\guard{x} }
+
+  \inferrule[Guard-Implicit-Pair]
+  { m~\guard{x} \\ 
+    n~\guard{x} }
+  { \pairI{m}{n}{t}~\guard{x} }
+
+  \inferrule[Guard-Explicit-Pair]
+  { m~\guard{x} \\ 
+    n~\guard{x} }
+  { \pairR{m}{n}~\guard{x} }
+
+  \inferrule[Guard-Explicit-SumElim]
+  { A~\guard{x} \\ 
+    m~\guard{x} \\
+    n~\guard{x} }
+  { \SigElim{[z]A}{m}{[x',y']n} }
+
+  \inferrule[Guard-RecType]
+  { A~\guard{x} \\ 
+    m~\guard{x} }
+  { \fix{x' : A}{m}~\guard{x} }
+
+  \inferrule[Guard-Unit]
+  { }
+  { \unit~\guard{x} }
+
+  \inferrule[Guard-UnitVal]
+  { }
+  { \ii~\guard{x} }
+
+  \inferrule[Guard-Bool]
+  { }
+  { \Bool~\guard{x} }
+
+  \inferrule[Guard-True]
+  { }
+  { \bTrue~\guard{x} }
+
+  \inferrule[Guard-False]
+  { }
+  { \bFalse~\guard{x} }
+
+  \inferrule[Guard-BoolElim]
+  { A~\guard{x} \\
+    m~\guard{x} \\ 
+    n_1~\guard{x} \\
+    n_2~\guard{x} }
+  { \boolElim{[z]A}{m}{n_{1}}{n_{2}}~\guard{x} }
+
+  \inferrule[Guard-$\C$Type]
+  { A~\guard{x} }
+  { \CM{A}~\guard{x} }
+
+  \inferrule[Guard-Return]
+  { m~\guard{x} }
+  { \return{m}~\guard{x} }
+
+  \inferrule[Guard-Bind]
+  { m~\guard{x} \\ 
+    n~\guard{x} }
+  { \letin{x'}{m}{n}~\guard{x} }
+
+  \inferrule[Guard-Proto]
+  { }
+  { \Proto~\guard{x} }
+
+  \inferrule[Guard-End]
+  { }
+  { \End~\guard{x} }
+
+  \inferrule[Guard-Implicit-Action]
+  { A~\guard{x} }
+  { \ActI{\rho}{x' : A}{B}~\guard{x} }
+
+  \inferrule[Guard-Explicit-Action]
+  { A~\guard{x} }
+  { \ActR{\rho}{x' : A}{B}~\guard{x} }
+
+  \inferrule[Guard-CH]
+  { A~\guard{x} }
+  { \CH{A}~\guard{x} }
+
+  \inferrule[Guard-HC]
+  { A~\guard{x} }
+  { \HC{A}~\guard{x} }
+
+  \inferrule[Guard-Channel]
+  { }
+  { c~\guard{x} }
+
+  \inferrule[Guard-Fork]
+  { A~\guard{x} \\ 
+    m~\guard{x} }
+  { \fork{x': A}{m}~\guard{x} }
+
+  \inferrule[Guard-Implicit-Recv]
+  { m~\guard{x} }
+  { \recvI{m}~\guard{x} }
+
+  \inferrule[Guard-Explicit-Recv]
+  { m~\guard{x} }
+  { \recvR{m}~\guard{x} }
+
+  \inferrule[Guard-Implicit-Send]
+  { m~\guard{x} }
+  { \sendI{m}~\guard{x} }
+
+  \inferrule[Guard-Explicit-Send]
+  { m~\guard{x} }
+  { \sendR{m}~\guard{x} }
+
+  \inferrule[Guard-Wait]
+  { m~\guard{x} }
+  { \wait{m}~\guard{x} }
+
+  \inferrule[Guard-Close]
+  { m~\guard{x} }
+  { \close{m}~\guard{x} }
+\end{mathpar}
+\clearpage
