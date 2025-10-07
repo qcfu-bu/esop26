@@ -25,7 +25,7 @@ in the logical context, we define the context validity judgment $\Gamma \vdash $
 Note that the context validity judgment is \emph{mutually inductively} defined with the typing judgment. 
 
 \paragraph{\textbf{Core Typing}}
-Here we present the core typing rules for the logical level.
+The core typing rules is responsible for the functional fragment of \TLLC{}.
 \begin{mathpar}\footnotesize
   \inferrule[Sort]
   { \Gamma \vdash }
@@ -201,10 +201,6 @@ primitives. The rules are presented below.
     \epsilon \vdash A : \Proto }
   { \Gamma \vdash c : \HC{A} }
 
-  \inferrule[Fork]
-  { \Gamma, x : \CH{A} \vdash m : \CM{\unit} }
-  { \Gamma \vdash \fork{x : \CH{A}}{m} : \CM{\HC{A}} }
-
   \inferrule[Explicit-Send-CH]
   { \Gamma \vdash m : \CH{\ActR{!}{x : A}{B}} }
   { \Gamma \vdash \sendR{m} : \PiR{\Ln}{x : A}{\CM{\CH{B}}} }
@@ -237,6 +233,10 @@ primitives. The rules are presented below.
   { \Gamma \vdash m : \HC{\ActI{!}{x : A}{B}} }
   { \Gamma \vdash \recvI{m} : \CM{\SigI{\Ln}{x : A}{\HC{B}}} }
 
+  \inferrule[Fork]
+  { \Gamma, x : \CH{A} \vdash m : \CM{\unit} }
+  { \Gamma \vdash \fork{x : \CH{A}}{m} : \CM{\HC{A}} }
+
   \inferrule[Close]
   { \Gamma \vdash m : \CH{\End} }
   { \Gamma \vdash \close{m} : \CM{\unit} }
@@ -260,7 +260,7 @@ The variables in the program context are allowed to appear in computationally
 relevant positions inside $m$. To ensure that all types appear in the program
 context are well-formed, we define the program context validity judgment
 $\Gamma ; \Delta \vdash $. The rules for this judgment are presented below.
-\begin{mathpar}
+\begin{mathpar}\small
   \inferrule[Ctx-Empty]
   { }
   { \epsilon ; \epsilon \vdash }
@@ -280,3 +280,165 @@ $\Gamma ; \Delta \vdash $. The rules for this judgment are presented below.
 From these rules we can see that $\text{dom}(\Delta)$ is a subset of
 $\text{dom}(\Gamma)$. Additionally, the sort annotation $s$ in each program
 context binding $x \ty{s} A$ is the sort of the associated $A$ type.
+
+\paragraph{\textbf{Core Typing}}
+The core typing rules is responsible for the functional fragment of \TLLC{}.
+\begin{mathpar}\footnotesize
+  \inferrule[Var]
+  { \epsilon ; \Gamma, x : A ; \Delta, x \ty{s} A \vdash \\
+    \Delta \triangleright \Un }
+  { \epsilon ; \Gamma, x : A ; \Delta, x \ty{s} A \vdash x : A }
+
+  \inferrule[Conversion]
+  { \Gamma \vdash B : s \\
+    \Theta ; \Gamma ; \Delta \vdash m : A \\
+    A \simeq B }
+  { \Theta ; \Gamma ; \Delta \vdash m : B }
+
+  \inferrule[Explicit-Lam]
+  { \Theta ; \Gamma, x : A; \Delta, x \ty{s} A \vdash m : B \\
+    \Theta \triangleright t \\
+    \Delta \triangleright t }
+  { \Theta ; \Gamma ; \Delta \vdash \lamR{t}{x : A}{m} : \PiR{t}{x : A}{B} }
+
+  \inferrule[Implicit-Lam]
+  { \Theta ; \Gamma, x : A; \Delta \vdash m : B \\
+    \Theta \triangleright t \\
+    \Delta \triangleright t }
+  { \Theta ; \Gamma ; \Delta \vdash \lamI{t}{x : A}{m} : \PiI{t}{x : A}{B} }
+
+  \inferrule[Explicit-App]
+  { \Theta_1 ; \Gamma ; \Delta_1 \vdash m : \PiR{t}{x : A}{B} \\
+    \Theta_2 ; \Gamma ; \Delta_2 \vdash n : A }
+  { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \appR{m}{n} : B[n/x] }
+
+  \inferrule[Implicit-App]
+  { \Theta ; \Gamma ; \Delta \vdash m : \PiI{t}{x : A}{B} \\
+    \Gamma \vdash n : A }
+  { \Theta ; \Gamma ; \Delta \vdash \appI{m}{n} : B[n/x] }
+
+  \inferrule[Explicit-Pair]
+  { \Gamma \vdash \SigR{t}{x : A}{B} : t \\
+    \Theta_1 ; \Gamma ; \Delta_1 \vdash m : A \\
+    \Theta_2 ; \Gamma ; \Delta_2 \vdash n : B[m/x] }
+  { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \pairR{m}{n}{t} : \SigR{t}{x : A}{B} }
+
+  \inferrule[Implicit-Pair]
+  { \Gamma \vdash \SigI{t}{x : A}{B} : t \\
+    \Gamma \vdash m : A \\
+    \Theta ; \Gamma ; \Delta \vdash n : B[m/x] }
+  { \Theta ; \Gamma ; \Delta \vdash \pairI{m}{n}{t} : \SigI{t}{x : A}{B} }
+
+  \inferrule[Explicit-SumElim]
+  { \Gamma, z : \SigR{t}{x : A}{B} \vdash C : s \\
+    \Theta_1 ; \Gamma ; \Delta_1 \vdash m : \SigR{t}{x : A}{B} \\\\
+    \Theta_2 ; \Gamma, x : A, y : B; \Delta_2, x \ty{r1} A, y \ty{r2} B \vdash n : C[\pairR{x}{y}{t}/z] }
+  { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
+
+  \inferrule[Implicit-SumElim]
+  { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
+    \Theta_1 ; \Gamma ; \Delta_1 \vdash m : \SigI{t}{x : A}{B} \\\\
+    \Theta_2 ; \Gamma, x : A, y : B; \Delta_2, y \ty{r} B \vdash n : C[\pairI{x}{y}{t}/z] }
+  { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }\\
+\end{mathpar}
+
+\paragraph{\textbf{Data Typing}}
+The data typing rules govern the typing of base types such as the unit type and
+the boolean type. The rules are presented below.
+\begin{mathpar}\footnotesize
+  \inferrule[UnitVal]
+  { \Gamma ; \Delta \vdash \\ \Delta \triangleright \Un }
+  { \epsilon ; \Gamma ; \Delta \vdash \ii : \unit }
+
+  \inferrule[True]
+  { \Gamma ; \Delta \vdash \\ \Delta \triangleright \Un }
+  { \epsilon ; \Gamma ; \Delta \vdash \bTrue : \Bool }
+
+  \inferrule[False]
+  { \Gamma ; \Delta \vdash \\ \Delta \triangleright \Un }
+  { \epsilon ; \Gamma ; \Delta \vdash \bFalse : \Bool }
+
+  \inferrule[BoolElim]
+  { \Gamma, z : \Bool \vdash A : s \\
+    \Theta_1 ; \Gamma ; \Delta_1 \vdash m : \Bool \\
+    \Theta_2 ; \Gamma ; \Delta_2 \vdash n_1 : A[\bTrue/z] \\
+    \Theta_2 ; \Gamma ; \Delta_2 \vdash n_2 : A[\bFalse/z] }
+  { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash 
+    \boolElim{[z]A}{m}{n_1}{n_2} : A[m/z] }
+\end{mathpar}
+
+\paragraph{\textbf{Monadic Typing}}
+The monadic typing rules govern the composition of monadic computations.
+The standard rules for monadic return and bind are presented below.
+\begin{mathpar}\small
+  \inferrule[Return]
+  { \Theta ; \Gamma ; \Delta \vdash m : A }
+  { \Theta ; \Gamma ; \Delta \vdash \return{m} : \CM{A} }
+
+  \inferrule[Bind]
+  { \Gamma \vdash B : s \\
+    \Theta_1 ; \Gamma ; \Delta_1 \vdash m : \CM{A} \\
+    \Theta_2 ; \Gamma, x : A ; \Delta_2, x \ty{r} A \vdash n : \CM{B} }
+  { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \letin{x}{m}{n} : \CM{B} }
+\end{mathpar}
+
+\paragraph{\textbf{Session Typing}}
+The session typing rules govern the typing of channels and communication
+primitives. The rules are presented below.
+\begin{mathpar}\footnotesize
+  \inferrule[Channel-CH]
+  { \Gamma ; \Delta \vdash \\
+    \epsilon \vdash A : \Proto \\
+    \Delta \triangleright \Un }
+  { c \tL \CH{A} ; \Gamma ; \Delta \vdash c : \CH{A} }
+
+  \inferrule[Channel-HC]
+  { \Gamma ; \Delta \vdash \\
+    \epsilon \vdash A : \Proto \\
+    \Delta \triangleright \Un }
+  { c \tL \HC{A} ; \Gamma ; \Delta \vdash c : \HC{A} }
+
+  \inferrule[Explicit-Send-CH]
+  { \Theta ; \Gamma ; \Delta \vdash m : \CH{\ActR{!}{x : A}{B}} }
+  { \Theta ; \Gamma ; \Delta \vdash \sendR{m} : \PiR{\Ln}{x : A}{\CM{\CH{B}}} }
+
+  \inferrule[Explicit-Send-HC]
+  { \Theta ; \Gamma ; \Delta \vdash m : \HC{\ActR{?}{x : A}{B}} }
+  { \Theta ; \Gamma ; \Delta \vdash \sendR{m} : \PiR{\Ln}{x : A}{\CM{\HC{B}}} }
+
+  \inferrule[Implicit-Send-CH]
+  { \Theta ; \Gamma ; \Delta \vdash m : \CH{\ActI{!}{x : A}{B}} }
+  { \Theta ; \Gamma ; \Delta \vdash \sendI{m} : \PiI{\Ln}{x : A}{\CM{\CH{B}}} }
+
+  \inferrule[Implicit-Send-HC]
+  { \Theta ; \Gamma ; \Delta \vdash m : \HC{\ActI{?}{x : A}{B}} }
+  { \Theta ; \Gamma ; \Delta \vdash \sendI{m} : \PiI{\Ln}{x : A}{\CM{\HC{B}}} }
+
+  \inferrule[Explicit-Recv-CH]
+  { \Theta ; \Gamma ; \Delta \vdash m : \CH{\ActR{?}{x : A}{B}} }
+  { \Theta ; \Gamma ; \Delta \vdash \recvR{m} : \CM{\SigR{\Ln}{x : A}{\CH{B}}} }
+
+  \inferrule[Explicit-Recv-HC]
+  { \Theta ; \Gamma ; \Delta \vdash m : \HC{\ActR{!}{x : A}{B}} }
+  { \Theta ; \Gamma ; \Delta \vdash \recvR{m} : \CM{\SigR{\Ln}{x : A}{\HC{B}}} }
+
+  \inferrule[Implicit-Recv-CH]
+  { \Theta ; \Gamma ; \Delta \vdash m : \CH{\ActI{?}{x : A}{B}} }
+  { \Theta ; \Gamma ; \Delta \vdash \recvI{m} : \CM{\SigI{\Ln}{x : A}{\CH{B}}} }
+
+  \inferrule[Implicit-Recv-HC]
+  { \Theta ; \Gamma ; \Delta \vdash m : \HC{\ActI{!}{x : A}{B}} }
+  { \Theta ; \Gamma ; \Delta \vdash \recvI{m} : \CM{\SigI{\Ln}{x : A}{\HC{B}}} }
+
+  \inferrule[Fork]
+  { \Theta ; \Gamma, x : \CH{A} ; \Delta, x \tL \CH{A} \vdash m : \CM{\unit} }
+  { \Theta ; \Gamma ; \Delta \vdash \fork{x : \CH{A}}{m} : \CM{\HC{A}} }
+
+  \inferrule[Close]
+  { \Theta ; \Gamma ; \Delta \vdash m : \CH{\End} }
+  { \Theta ; \Gamma ; \Delta \vdash \close{m} : \CM{\unit} }
+
+  \inferrule[Wait]
+  { \Theta ; \Gamma ; \Delta \vdash m : \HC{\End} }
+  { \Theta ; \Gamma ; \Delta \vdash \wait{m} : \CM{\unit} }
+\end{mathpar}
