@@ -1,0 +1,17 @@
+\TLLC{} is a linear dependently typed programming language which extends the TLL
+type theory with dependent session types. Through examples, we demonstrate how
+dependent session types can be effectively applied to verify concurrent
+programs. The expressive power of Martin-L\"{o}f style dependency allows \TLLC{}
+session types to capture the expected semantics of concurrent programs. This
+results in greater verification precision and flexibility when compared to other
+type systems with more restricted forms of dependency. We study the meta-theory
+of \TLLC{} and show that it is sound as both a term calculus and also as a
+process calculus. A prototype compiler is implemented which compiles \TLLC{}
+programs into safe concurrent C code.
+
+A direction of research we intend to explore is the integration of dependency
+with multi-party session types~\cite{honda16}. Protocols expressed through such
+a session type system will be able to coordinate interactions between processes
+from a global viewpoint. We predict dependency will again play a key role in
+verifying the correctness of multi-party concurrent computation.
+

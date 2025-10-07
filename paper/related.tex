@@ -1,0 +1,65 @@
+Session types are a class of type systems pioneered by Honda~\cite{honda93} for
+structuring dyadic communication in the $\pi$-calculus. Abramsky notices deep
+connections between the Linear Logic~\cite{girard} of Girard and concurrency,
+predicting that Linear Logic will play a foundation role in future theories of
+concurrent computation~\cite{abramsky93,abramsky94}. Caires and Pfenning show an
+elegant correspondence between session types and Linear Logic~\cite{caires10}.
+Gay and Vasconcelos integrate session types with $\lambda$-calculus~\cite{gay10}
+which allows one to express concurrent processes using standard functional
+programming. Wadler further refines the calculus of Gay and Vasconcelos to be
+deadlock free by construction~\cite{wadler12}.
+
+Toninho together with Caires and Pfenning develops the first dependent session
+type systems~\cite{toninho11,pfenning11}. These works extend the existing logic
+of Caires and Pfenning~\cite{caires10} with universal and existential
+quantifiers to precisely specify properties of communicated messages.
+
+Toninho and Yoshida present an interesting language~\cite{toninho18} that
+integrates both $\pi$-calculus style processes and $\lambda$-calculus style
+terms using a contextual monad. Additionally, full $\lambda$-calculi are
+embedded in both functional types and session types to enable large elimination.
+
+Wu and Xi~\cite{wu17} implement session types in the ATS programming
+language~\cite{ats} which supports DML style dependent types~\cite{dml}. This
+allows them to specify the properties of concurrent programs and verify them
+using proof automation. While DML style dependency is well suited for automatic
+reasoning, certain properties can be difficult to encode due to restrictions on
+the type level language.
+
+Thiemann and Vasconcelos~\cite{ldst} introduce the LDST calculus which utilizes
+label dependent session types to elegantly describe communication patterns.
+Communication protocols written in non-dependent session type systems can
+essentially be simulated through label dependency. On the other hand, LDST's
+minimalist design limits its capabilities for general verification as label
+dependency by itself is too weak to express many interesting program properties.
+
+Das and Pfenning develop a refinement session type system~\cite{das20} where the
+types of concurrent programs can be refined with logical predicates. Similarly
+to DML style dependent types, the expressiveness of refinement session types is
+intentionally limited to facilitate proof automation. The Martin-L\"{o}f style
+dependent session types of \TLLC{} allow users to express and verify more
+complex program properties at the cost of decidable proof automation.
+
+Atkey proposes QTT~\cite{qtt} based on initial ideas of McBride~\cite{nothing}.
+QTT is a dependent type theory which tracks resource usage through semi-ring
+annotations on binders. By instantiating the semi-ring and its ordering relation
+correctly, QTT can simulate linear types. The Idris 2 programming
+language~\cite{idris2} (based on QTT) implements a session typed
+DSL~\cite{brady21} around its raw communication primitives. The authors do not
+formalize these session types or study its meta-theory. Unlike \TLLC{} where
+a library provider could specify a type (such as channels) as linear and
+automatically enforce its usage in client code through type checking, the
+obligation of resource tracking is pushed to the client in QTT where binders
+must be correctly annotated a priori. User mistakes in the annotations could
+lead to resources being improperly tracked in a program despite passing type
+checking. 
+
+Hinrichsen et al. develop Actris~\cite{actris} which extends the
+Iris~\cite{iris} separation logic framework with dependent separation protocols.
+Compared to our work, Actris reasons about concurrent programs at a lower level
+of abstraction. This gives it greater precision and flexibility when dealing
+with imperative and unsafe programming features. However, the low level nature
+of Actris reduces its effectiveness at providing guidance for writing programs.
+In this regard, the interactivity of type systems is more beneficial to helping
+users construct correct programs in the first place.
+
