@@ -125,3 +125,51 @@ i.e. variables whose types inhabit $\Un$.
   For more details, see file \textsf{dyn\_weak.v} of our Rocq development
   which uses a De Bruijn indices representation for variables.
 \end{proof}
+
+\paragraph{\textbf{Substitution}}
+The substitution lemma at the logical level is standard as the logical type system is
+completely structural. The substitution lemma at the program level is more involved
+as it needs to track linear variables in the program context.
+
+\begin{lemma}[Substitution Arity]
+  Given substitution $\sigma$, if there is $A~\arity{\Proto}$, then there is $A[\sigma]~\arity{\Proto}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $A$.
+\end{proof}
+
+\begin{lemma}[Substitution Guarded]
+  Given substitution $\sigma$ and variables $x, y$ and term $A$,
+  if there is $\forall z, x \neq z \implies (\sigma\ z)~\guard{y}$
+  and $A~\guard{x}$, then $A[\sigma]~\guard{y}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $A$.
+\end{proof}
+
+\begin{lemma}[Logical Substitution]
+  If $\Gamma, x : B \vdash m : A$ and $\Gamma \vdash n : B$, then $\Gamma \vdash m[n/x] : A[n/x]$.
+\end{lemma}
+\begin{proof}
+  This lemma is proved through a more general lemma involving simultaneous substitutions. 
+  For more details, see file \textsf{sta\_subst.v} of our Rocq development.
+\end{proof}
+
+\begin{lemma}[Program Substitution (Explicit)]
+  If ${\Theta_1 ; \Gamma, x : B ; \Delta_1, x :_s B \vdash m : A}$ and
+  ${\Theta_2 ; \Gamma ; \Delta_2 \vdash n : B}$, then
+  ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash m[n/x] : A[n/x]}$.
+\end{lemma}
+\begin{proof}
+  This lemma is proved through a more general lemma involving simultaneous substitutions. 
+  For more details, see file \textsf{dyn\_subst.v} of our Rocq development.
+\end{proof}
+
+\begin{lemma}[Program Substitution (Implicit)]
+  If ${\Theta ; \Gamma, x : B ; \Delta \vdash m : A}$ and
+  ${\Gamma \vdash n : B}$, then ${\Theta ; \Gamma ; \Delta \vdash m[n/x] : A[n/x]}$.
+\end{lemma}
+\begin{proof}
+  This lemma is proved through a more general lemma involving simultaneous substitutions. 
+  For more details, see file \textsf{dyn\_subst.v} of our Rocq development.
+\end{proof}
