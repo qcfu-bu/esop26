@@ -656,3 +656,15 @@ under logical and program reductions respectively.
   By \Cref{lemma:logical-subst} we have $\Gamma \vdash m'[\fix{x : A'}{m'}/x] : A'$.
   By \textsc{Conversion} we have $\Gamma \vdash m'[\fix{x : A'}{m'}/x] : A$ which concludes this sub-case.
 \end{proof}
+
+The proof of the program subject reduction theorem is more involved as it needs to
+reason about the distributing of resources in the program context during reduction.
+We will prove some lemmas for reasoning about the program context.
+
+
+
+
+
+\begin{theorem}[Program Subject Reduction]\label[theorem]{theorem:program-subject-reduction}
+  If ${\Theta ; \epsilon ; \epsilon \vdash m : A}$ and ${m \Leadsto m'}$, then ${\Theta ; \epsilon ; \epsilon \vdash m' : A}$.
+\end{theorem}
