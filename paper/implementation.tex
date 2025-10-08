@@ -31,12 +31,12 @@ Type inference produces the following constraints:
   \ \ 
   \begin{cases}
     \hat{s} = \Un \\
-    \hat{\alpha} = \textsf{Nat}
+    \hat{\alpha} = \textsf{nat}
   \end{cases}
   \!\!
   \xRightarrow{\text{mono}} 
   \ \ 
-  \appI{\textsf{id}\flq{\Un}\frq}{\textsf{Nat}}\ 42
+  \appI{\textsf{id}\flq{\Un}\frq}{\textsf{nat}}\ 42
 \end{align*}
 Once the constraints are solved through unification~\cite{abel11}, the metavariables are
 replaced by their solutions. The monomorphized code is then passed to the next phase for
