@@ -211,5 +211,300 @@ relation as follows:
 
   \inferrule
   { \HeadSim{B_1}{B_2} }
-  { \HeadSim{\PiR{r}{B_1}{C_1}}{\PiR{r}{B_2}{C_2}} }
+  { \HeadSim{\PiR{s}{x : A_1}{B_1}}{\PiR{s}{x : A_2}{B_2}} }
+
+  \inferrule
+  { \HeadSim{B_1}{B_2} }
+  { \HeadSim{\PiI{s}{x : A_1}{B_1}}{\PiI{s}{x : A_2}{B_2}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\lamR{s}{x : A}{m}}{\lamR{s}{x : A}{m}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\lamI{s}{x : A}{m}}{\lamI{s}{x : A}{m}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\appR{m}{n}}{\appR{m}{n}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\appI{m}{n}}{\appI{m}{n}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\SigR{s}{x : A_1}{B_1}}{\SigR{s}{x : A_2}{B_2}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\SigI{s}{x : A_1}{B_1}}{\SigI{s}{x : A_2}{B_2}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\pairR{m}{n}{s}}{\pairR{m}{n}{s}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\pairI{m}{n}{s}}{\pairI{m}{n}{s}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\SigElim{[z]A}{m}{[x,y]n}}{\SigElim{[z]A}{m}{[x,y]n}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\fix{x : A}{m}}{\fix{x : A}{m}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\unit}{\unit} }
+
+  \inferrule
+  { }
+  { \HeadSim{\ii}{\ii} }
+
+  \inferrule
+  { }
+  { \HeadSim{\Bool}{\Bool} }
+
+  \inferrule
+  { }
+  { \HeadSim{\bTrue}{\bTrue} }
+
+  \inferrule
+  { }
+  { \HeadSim{\bFalse}{\bFalse} }
+
+  \inferrule
+  { }
+  { \HeadSim{\boolElim{[z]A}{m}{n_1}{n_2}}{\boolElim{[z]A}{m}{n_1}{n_2}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\CM{A}}{\CM{B}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\return{m}}{\return{m}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\letin{m}{x}{n}}{\letin{m}{x}{n}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\Proto}{\Proto} }
+
+  \inferrule
+  { }
+  { \HeadSim{\End}{\End} }
+
+  \inferrule
+  { }
+  { \HeadSim{\ActR{\rho}{x : A}{B}}{\ActR{\rho}{x : A}{B}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\ActI{\rho}{x : A}{B}}{\ActI{\rho}{x : A}{B}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\CH{A}}{\CH{B}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\HC{A}}{\HC{B}} }
+
+  \inferrule
+  { }
+  { \HeadSim{c}{c} }
+
+  \inferrule
+  { }
+  { \HeadSim{\fork{x : A}{m}}{\fork{x : A}{m}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\recvR{m}}{\recvR{m}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\recvI{m}}{\recvI{m}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\sendR{m}}{\sendR{m}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\sendI{m}}{\sendI{m}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\close{m}}{\close{m}} }
+
+  \inferrule
+  { }
+  { \HeadSim{\wait{m}}{\wait{m}} }
 \end{mathpar}
+
+We then define the \emph{type similarity} relation as follows:
+\begin{align*}
+  \Sim{A}{B} \triangleq \exists A', B', A \simeq A' \land B \simeq B' \land \HeadSim{A'}{B'}
+\end{align*}
+
+The similarity relation is naturally extended to typing contexts as follows:
+\begin{mathpar}
+  \inferrule 
+  { }
+  { \Sim{\epsilon}{\epsilon} }
+
+  \inferrule 
+  { \Sim{A}{B} \\ 
+    \Sim{\Gamma_1}{\Gamma_2} }
+  { \Sim{(\Gamma_1, x : A)}{(\Gamma_2, x : B)} }
+\end{mathpar}
+
+The (head) similarity relation enjoys the following properties.
+\begin{lemma}[HeadSim Reflexive]\label[lemma]{lemma:headsim-reflexive}
+  For any term $A$, there is $\HeadSim{A}{A}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $A$.
+\end{proof}
+
+\begin{lemma}[HeadSim Symmetric]\label[lemma]{lemma:headsim-symmetric}
+  For any $\HeadSim{A}{B}$, there is $\HeadSim{B}{A}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\HeadSim{A}{B}$.
+\end{proof}
+
+\begin{lemma}[HeadSim Substitution]\label[lemma]{lemma:headsim-substitution}
+  Given substitution $\sigma$, if there is $\HeadSim{A}{B}$, then there is $\HeadSim{A[\sigma]}{B[\sigma]}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\HeadSim{A}{B}$.
+\end{proof}
+
+\begin{lemma}[Sim Reflexive]\label[lemma]{lemma:sim-reflexive}
+  For any term $A$, there is $\Sim{A}{A}$.
+\end{lemma}
+\begin{proof}
+  By the reflexivity of $\simeq$ and \Cref{lemma:headsim-reflexive}.
+\end{proof}
+
+\begin{lemma}[Sim Transitive Left]
+  For any $\Sim{A}{B}$ and $B \simeq C$, there is $\Sim{A}{C}$.
+\end{lemma}
+\begin{proof}
+  By the transitivity of $\simeq$.
+\end{proof}
+
+\begin{lemma}[Sim Transitive Right]
+  For any $\Sim{A}{B}$ and $A \simeq C$, there is $\Sim{C}{B}$.
+\end{lemma}
+\begin{proof}
+  By the transitivity of $\simeq$.
+\end{proof}
+
+\begin{lemma}[Sim Symmetric]
+  For any $\Sim{A}{B}$, there is $\Sim{B}{A}$.
+\end{lemma}
+\begin{proof}
+  By the symmetry of $\simeq$ and \Cref{lemma:headsim-symmetric}.
+\end{proof}
+
+\begin{lemma}[Sim Substitution]
+  Given substitution $\sigma$, if there is $\Sim{A}{B}$, then there is $\Sim{A[\sigma]}{B[\sigma]}$.
+\end{lemma}
+\begin{proof}
+  By the substitutivity of $\simeq$ and \Cref{lemma:headsim-substitution}.
+\end{proof}
+
+\begin{lemma}[Sim Sort Injective]\label[lemma]{lemma:sim-sort-injective}
+  If $\Sim{s_1}{s_2}$, then $s_1 = s_2$.
+\end{lemma}
+\begin{proof}
+  By the definition of similarity and \Cref{corollary:inj-sort}.
+\end{proof}
+
+\begin{lemma}[Type Similarity]\label[lemma]{lemma:type-similarity}
+  Given $\Gamma_1 \vdash m : A$ and $\Gamma_2 \vdash m : B$ and $\Sim{\Gamma_1}{\Gamma_2}$,
+  then $\Sim{A}{B}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma_1 \vdash m : A$.
+\end{proof}
+
+\begin{theorem}[Sort Uniqueness]\label[theorem]{theorem:sort-uniqueness}
+  Given $\Gamma \vdash m : s$ and $\Gamma \vdash m : t$, then $s = t$.
+\end{theorem}
+\begin{proof}
+  From \Cref{lemma:headsim-reflexive} we have $\Sim{\Gamma}{\Gamma}$.
+  Then from \Cref{lemma:type-similarity} we have $\Sim{s}{t}$.
+  Finally from \Cref{lemma:sim-sort-injective} we have $s = t$.
+\end{proof}
+
+\paragraph{\textbf{Inversion}}
+Due to the presence of type conversion, inversion lemmas are necessary to reason about
+typing derivations.
+
+\begin{lemma}\label[lemma]{lemma:logical-inversion-explicit-fun}
+  If $\Gamma \vdash \PiR{s}{x : A}{B} : C$, then there exists $t$
+  such that $\Gamma, x : A \vdash B : t$ and $C \simeq s$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash \PiI{s}{x : A}{B} : C$.
+\end{proof}
+
+\begin{lemma}\label[lemma]{lemma:logical-inversion-implicit-fun}
+  If $\Gamma \vdash \PiI{s}{x : A}{B} : C$, then there exists $t$
+  such that $\Gamma, x : A \vdash B : t$ and $C \simeq s$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash \PiI{s}{x : A}{B} : C$.
+\end{proof}
+
+\begin{lemma}\label[lemma]{lemma:logical-inversion-explicit-sig}
+  If $\Gamma \vdash \SigR{t}{x : A}{B} : C$, then there exists $s, r$ such that
+  $s \sqsubseteq t$ and $r \sqsubseteq t$ and
+  $\Gamma \vdash A : s$ and $\Gamma, x : A \vdash B : r$ and $C \simeq t$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash \SigR{t}{x : A}{B} : C$.
+\end{proof}
+
+\begin{lemma}\label[lemma]{lemma:logical-inversion-implicit-sig}
+  If $\Gamma \vdash \SigI{t}{x : A}{B} : C$, then there exists $s, r$ such that
+  $r \sqsubseteq t$ and
+  $\Gamma \vdash A : s$ and $\Gamma, x : A \vdash B : r$ and $C \simeq t$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash \SigI{t}{x : A}{B} : C$.
+\end{proof}
+
+\paragraph{\textbf{Type Validity}}
+We show that all types appearing in typing judgments are valid, i.e. they are well-sorted
+at the logical level.
+
+\begin{theorem}[Logical Type Validity]\label[theorem]{theorem:logical-type-validity}
+  If $\Gamma \vdash m : A$, then there exists $s$ such that $\Gamma \vdash A : s$.
+\end{theorem}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash m : A$. We will show some representative cases.
+
+\textbf{Case} (\textsc{Var}): 
+  From the premise we have $\Gamma, x : A \vdash$ which implies $\Gamma \vdash A : s$ for some $s$.
+
+\textbf{Case} (\textsc{Explicit-Lam}):
+  From the induction hypothesis we have $\Gamma, x : A \vdash B : r$ for some $r$.
+  The validity of context $\Gamma, x : A \vdash$ implies $\Gamma \vdash A : s$ for some $s$.
+  Then from \textsc{Explicit-Fun} we have $\Gamma \vdash \PiR{s}{x : A}{B} : s$ which concludes this case.
+
+\textbf{Case} (\textsc{Explicit-App}):
+  From the induction hypothesis we have $\Gamma \vdash \PiR{s}{x : A}{B} : r$ for some $r$.
+  From \Cref{lemma:logical-inversion-explicit-fun} we have $\Gamma, x : A \vdash B : t$ for some $t$ and $r \simeq s$.
+\end{proof}
