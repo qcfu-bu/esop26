@@ -73,3 +73,55 @@ the convertibility relation for types.
 \begin{corollary}\label[corollary]{corollary:inj-hc}
   $\HC{A} \simeq \HC{B}$ implies $A \simeq B$.
 \end{corollary}
+
+\paragraph{\textbf{Weakening}}
+Weakening allows for the addition of unused variables to a typing context. 
+The logical level type system allows weakening as it is a fully structural type system.
+On the other hand, the program level type system only allows weakening of unrestricted variables, 
+i.e. variables whose types inhabit $\Un$.
+
+\begin{lemma}[Renaming Arity]
+  Given renaming $\xi$, if there is $A~\arity{\Proto}$, then there is $A[\xi]~\arity{\Proto}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $A$.
+\end{proof}
+
+\begin{lemma}[Renaming Guarded]
+  Given renaming $\xi$, 
+  if there is $\forall x, y, \xi(x) = \xi(y) \implies x = y$, 
+  then given variable $x$ and $A~\guard{x}$, there is $A[\xi]~\guard{\xi(x)}$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of $A$.
+\end{proof}
+
+\begin{lemma}[Logical Weakening]
+  If $\Gamma \vdash m : A$ and $\Gamma \vdash B : s$, 
+  then $\Gamma, x : B \vdash m : A$ where $x \not\in \Gamma$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash m : A$.
+  For more details, see file \textsf{sta\_weak.v} of our Rocq development
+  which uses a De Bruijn indices representation for variables.
+\end{proof}
+
+\begin{lemma}[Program Weakening (Explicit)]
+  If $\Theta ; \Gamma ; \Delta \vdash m : A$ and $\Gamma \vdash B : \Un$,
+  then $\Theta ; \Gamma, x : B ; \Delta, x :_\Un B \vdash m : A$ where $x \not\in \Gamma$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Theta ; \Gamma ; \Delta \vdash m : A$.
+  For more details, see file \textsf{dyn\_weak.v} of our Rocq development
+  which uses a De Bruijn indices representation for variables.
+\end{proof}
+
+\begin{lemma}[Program Weakening (Implicit)]
+  If $\Theta ; \Gamma ; \Delta \vdash m : A$ and $\Delta \vdash B : \Ln$,
+  then $\Theta ; \Gamma, x : B ; \Delta \vdash m : A$ where $x \not\in \Delta$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Theta ; \Gamma ; \Delta \vdash m : A$.
+  For more details, see file \textsf{dyn\_weak.v} of our Rocq development
+  which uses a De Bruijn indices representation for variables.
+\end{proof}
