@@ -1,0 +1,75 @@
+To show that the \TLLC{} extensions made are compatible with the theory of TLL,
+we prove the \TLLC{} terms enjoy the same properties as TLL ones. 
+
+\paragraph{\textbf{Confluence}}
+We show that the logical reduction relation is confluent. 
+This property is important as it ensures that type convertibility can be checked
+regardless of the order in which reductions are applied. 
+Confluence is easy to prove here as the parallel reduction satisfies the diamond property.
+
+\begin{lemma}[Diamond Property]\label[lemma]{lemma:diamond}
+  If $m \Rightarrow m_1$ and $m \Rightarrow m_2$, then there exists $m'$ such that
+  $m_1 \Rightarrow m'$ and $m_2 \Rightarrow m'$.
+\end{lemma}
+\begin{proof}
+  By induction on the structure of the parallel reduction.
+\end{proof}
+
+\begin{lemma}\label[lemma]{lemma:strip}
+  If $m \Rightarrow m_1$ and $m \Rightarrow^* m_2$, then there exists $m'$ such that
+  $m_1 \Rightarrow^* m'$ and $m_2 \Rightarrow m'$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $m \Rightarrow^* m_2$ and \Cref{lemma:diamond}.
+\end{proof}
+
+\begin{theorem}[Confluence]
+  If $m \Rightarrow^* m_1$ and $m \Rightarrow^* m_2$, then there exists $m'$ such that
+  $m_1 \Rightarrow^* m'$ and $m_2 \Rightarrow^* m'$.
+\end{theorem}
+\begin{proof}
+  By induction on the derivation of $m \Rightarrow^* m_2$ and \Cref{lemma:strip}.
+\end{proof}
+
+The validity of the confluence property allows us to prove the injectivity of
+the convertibility relation for types.
+
+\begin{corollary}\label[corollary]{corollary:inj-sort}
+  $s_1 \simeq s_2$ implies $s_1 = s_2$.
+\end{corollary}
+
+\begin{corollary}\label[corollary]{corollary:inj-implicit-fun}
+  $\PiI{s}{x : A}{B} \simeq \PiI{s'}{x : A'}{B'}$ implies $s = s'$, $A \simeq A'$, and $B \simeq B'$.
+\end{corollary}
+
+\begin{corollary}\label[corollary]{corollary:inj-explicit-fun}
+  $\PiR{s}{x : A}{B} \simeq \PiR{s'}{x : A'}{B'}$ implies $s = s'$, $A \simeq A'$, and $B \simeq B'$.
+\end{corollary}
+
+\begin{corollary}\label[corollary]{corollary:inj-implicit-sig}
+  $\SigI{s}{x : A}{B} \simeq \SigI{s'}{x : A'}{B'}$ implies $s = s'$, $A \simeq A'$, and $B \simeq B'$.
+\end{corollary}
+
+\begin{corollary}\label[corollary]{corollary:inj-explicit-sig}
+  $\SigR{s}{x : A}{B} \simeq \SigR{s'}{x : A'}{B'}$ implies $s = s'$, $A \simeq A'$, and $B \simeq B'$.
+\end{corollary}
+
+\begin{corollary}\label[corollary]{corollary:inj-monad}
+  $\CM{A} \simeq \CM{B}$ implies $A \simeq B$.
+\end{corollary}
+
+\begin{corollary}\label[corollary]{corollary:inj-implicit-action}
+  $\ActI{\rho}{x : A}{B} \simeq \ActI{\rho'}{x : A'}{B'}$ implies $\rho = \rho'$, $A \simeq A'$, and $B \simeq B'$.
+\end{corollary}
+
+\begin{corollary}\label[corollary]{corollary:inj-explicit-action}
+  $\ActR{\rho}{x : A}{B} \simeq \ActR{\rho'}{x : A'}{B'}$ implies $\rho = \rho'$, $A \simeq A'$, and $B \simeq B'$.
+\end{corollary}
+
+\begin{corollary}\label[corollary]{corollary:inj-ch}
+  $\CH{A} \simeq \CH{B}$ implies $A \simeq B$. 
+\end{corollary}
+
+\begin{corollary}\label[corollary]{corollary:inj-hc}
+  $\HC{A} \simeq \HC{B}$ implies $A \simeq B$.
+\end{corollary}
