@@ -147,7 +147,7 @@ as it needs to track linear variables in the program context.
   By induction on the structure of $A$.
 \end{proof}
 
-\begin{lemma}[Logical Substitution]
+\begin{lemma}[Logical Substitution]\label[lemma]{lemma:logical-subst}
   If $\Gamma, x : B \vdash m : A$ and $\Gamma \vdash n : B$, then $\Gamma \vdash m[n/x] : A[n/x]$.
 \end{lemma}
 \begin{proof}
@@ -159,7 +159,7 @@ as it needs to track linear variables in the program context.
   If $\Gamma, x : A \vdash m : C$ and $A \simeq B$, then $\Gamma, x : B \vdash m : C$.
 \end{corollary}
 
-\begin{lemma}[Program Substitution (Explicit)]
+\begin{lemma}[Program Substitution (Explicit)]\label[lemma]{lemma:program-subst-explicit}
   If ${\Theta_1 ; \Gamma, x : B ; \Delta_1, x :_s B \vdash m : A}$ and
   ${\Theta_2 ; \Gamma ; \Delta_2 \vdash n : B}$, then
   ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash m[n/x] : A[n/x]}$.
@@ -174,7 +174,7 @@ as it needs to track linear variables in the program context.
   $A \simeq B$, then $\Theta ; \Gamma, x : B ; \Delta \vdash m : C$.
 \end{corollary}
 
-\begin{lemma}[Program Substitution (Implicit)]
+\begin{lemma}[Program Substitution (Implicit)]\label[lemma]{lemma:program-subst-implicit}
   If ${\Theta ; \Gamma, x : B ; \Delta \vdash m : A}$ and
   ${\Gamma \vdash n : B}$, then ${\Theta ; \Gamma ; \Delta \vdash m[n/x] : A[n/x]}$.
 \end{lemma}
@@ -486,6 +486,41 @@ typing derivations.
   By induction on the derivation of $\Gamma \vdash \SigI{t}{x : A}{B} : C$.
 \end{proof}
 
+\begin{lemma}\label[lemma]{lemma:logical-inversion-monad}
+  If $\Gamma \vdash \CM{A} : B$, then there exists $s$ such that $\Gamma \vdash A : s$ and $B \simeq \Ln$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash \CM{A} : B$.
+\end{proof}
+
+\begin{lemma}\label[lemma]{lemma:logical-inversion-ch}
+  If $\Gamma \vdash \CH{A} : B$, then $\Gamma \vdash A : \Proto$ and $B \simeq \Ln$. 
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash \CH{A} : B$.
+\end{proof}
+
+\begin{lemma}\label[lemma]{lemma:logical-inversion-hc}
+  If $\Gamma \vdash \HC{A} : B$, then $\Gamma \vdash A : \Proto$ and $B \simeq \Ln$. 
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash \HC{A} : B$.
+\end{proof}
+
+\begin{lemma}\label[lemma]{lemma:logical-inversion-explicit-action}
+  If $\Gamma \vdash \ActR{\rho}{x : A}{B} : C$, then $\Gamma, x : A \vdash B : \Proto$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash \ActR{\rho}{x : A}{B} : C$.
+\end{proof}
+
+\begin{lemma}\label[lemma]{lemma:logical-inversion-implicit-action}
+  If $\Gamma \vdash \ActI{\rho}{x : A}{B} : C$, then $\Gamma, x : A \vdash B : \Proto$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash \ActI{\rho}{x : A}{B} : C$.
+\end{proof}
+
 \paragraph{\textbf{Type Validity}}
 We show that all types appearing in typing judgments are valid, i.e. they are well-sorted
 at the logical level.
@@ -506,5 +541,15 @@ at the logical level.
 
 \textbf{Case} (\textsc{Explicit-App}):
   From the induction hypothesis we have $\Gamma \vdash \PiR{s}{x : A}{B} : r$ for some $r$.
-  From \Cref{lemma:logical-inversion-explicit-fun} we have $\Gamma, x : A \vdash B : t$ for some $t$ and $r \simeq s$.
+  From \Cref{lemma:logical-inversion-explicit-fun} we have $\Gamma, x : A \vdash B : t$ for some $t$.
+  By \Cref{lemma:logical-subst} we have $\Gamma \vdash B[n/x] : t$ which concludes this case.
+
+\textbf{Case} (\textsc{Explicit-Recv-CH}):
+  From the induction hypothesis we have $\Gamma \vdash \CH{\ActR{?}{x : A}{B}} : s$ for some $s$.
+  By \Cref{lemma:logical-inversion-ch} we have $\Gamma \vdash \ActR{?}{x : A}{B} : \Proto$.
+  By \Cref{lemma:logical-inversion-explicit-action} we have $\Gamma, x : A \vdash B : \Proto$.
+  From the validity of context $\Gamma, x : A \vdash$ we have $\Gamma \vdash A : t$ for some $t$.
+  Applying \textsc{ChType}, we have $\Gamma, x : A \vdash \CH{B} : \Ln$.
+  Applying \textsc{Explicit-Sum}, we have $\Gamma \vdash \SigR{\Ln}{x : A}{\CH{B}} : \Ln$.
+  Applying \textsc{$\mcC$Type}, we have $\Gamma \vdash \CM{\SigR{\Ln}{x : A}{\CH{B}}} : \Ln$ which concludes this case.
 \end{proof}
