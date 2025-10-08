@@ -27,12 +27,12 @@ overlapping linear variables.
   { (\Delta_1, x \tU A) \dotcup (\Delta_2, x \tU A) = (\Delta, x \tU A) }
   \\
 
-  \inferrule[Merge-$\Ln$-Left]
+  \inferrule[Merge-$\Ln_1$]
   { \Delta_1 \dotcup \Delta_2 = \Delta \\
     x \notin \Delta }
   { (\Delta_1, x \tL A) \dotcup \Delta_2 = (\Delta, x \tL A) }
 
-  \inferrule[Merge-$\Ln$-Right]
+  \inferrule[Merge-$\Ln_2$]
   { \Delta_1 \dotcup \Delta_2 = \Delta \\
     x \notin \Delta }
   { \Delta_1 \dotcup (\Delta_2, x \tL A) = (\Delta, x \tL A) }
