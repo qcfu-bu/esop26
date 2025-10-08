@@ -410,7 +410,7 @@ reducing the splitting tree of a list is equivalent to performing mergesort on t
   &\quad\forall (xs : \textsf{list}\ \textsf{int}).\ \textsf{reduce}\ (\lambda(x). x)\ \textsf{merge}\ (\textsf{splittingTree}\ xs) = \textsf{msort}\ xs
 \end{align*}
 \endgroup
-Using this theorem, we can rewrite the singleton value returned by \textsf{cReduce} to
+Using this theorem, we can rewrite the singleton type returned by \textsf{cReduce} to
 $\textsf{sing}\ (\textsf{msort}\ xs)$. In other words, the result of our concurrent
 mergesort implementation is guaranteed to be exactly the same as that of the sequential
 mergesort algorithm, thus completing our verification.
