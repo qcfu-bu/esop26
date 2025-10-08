@@ -244,9 +244,9 @@ up into a more convenient interface as presented below.
   &\Def\ \textsf{cLeaf}\ \{A : \Un\}\ (x : A) : \textsf{cTree}\ A\ (\textsf{Leaf}\ x) := \\
   &\quad\Fork(c : \CH{\textsf{treeP}\ A\ (\textsf{Leaf}\ x)})\ \With\ \textsf{leafWorker}\ x\ c
   \\[0.5em]
-  &\Def\ \textsf{cNode}\ \{A : \Un\} \{l\ r : \textsf{tree}\ A\}\ (c_l : \textsf{cTree}\ A\ l)\ (c_r : \textsf{cTree}\ A\ r) : \textsf{cTree}\ (\textsf{Node}\ l\ r) := \\
-  &\quad\Let\ c_l \Leftarrow c_l\ \In \\
-  &\quad\Let\ c_r \Leftarrow c_r\ \In \\
+  &\Def\ \textsf{cNode}\ \{A : \Un\}\ \{l\ r : \textsf{tree}\ A\}\ (t_l : \textsf{cTree}\ A\ l)\ (t_r : \textsf{cTree}\ A\ r) : \textsf{cTree}\ (\textsf{Node}\ l\ r) := \\
+  &\quad\Let\ c_l \Leftarrow t_l\ \In \\
+  &\quad\Let\ c_r \Leftarrow t_r\ \In \\
   &\quad\Fork(c : \CH{\textsf{treeP}\ A\ (\textsf{Node}\ l\ r)})\ \With\ \textsf{nodeWorker}\ c_l\ c_r\ c
 \end{align*}
 \endgroup
