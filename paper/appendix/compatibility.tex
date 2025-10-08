@@ -131,14 +131,14 @@ The substitution lemma at the logical level is standard as the logical type syst
 completely structural. The substitution lemma at the program level is more involved
 as it needs to track linear variables in the program context.
 
-\begin{lemma}[Substitution Arity]
+\begin{lemma}[Substitution Arity]\label[lemma]{lemma:subst-arity}
   Given substitution $\sigma$, if there is $A~\arity{\Proto}$, then there is $A[\sigma]~\arity{\Proto}$.
 \end{lemma}
 \begin{proof}
   By induction on the structure of $A$.
 \end{proof}
 
-\begin{lemma}[Substitution Guarded]
+\begin{lemma}[Substitution Guarded]\label[lemma]{lemma:subst-guard}
   Given substitution $\sigma$ and variables $x, y$ and term $A$,
   if there is $\forall z, x \neq z \implies (\sigma\ z)~\guard{y}$
   and $A~\guard{x}$, then $A[\sigma]~\guard{y}$.
@@ -155,7 +155,7 @@ as it needs to track linear variables in the program context.
   For more details, see file \textsf{sta\_subst.v} of our Rocq development.
 \end{proof}
 
-\begin{corollary}
+\begin{corollary}\label[corollary]{corollary:logical-context-conv}
   If $\Gamma, x : A \vdash m : C$ and $A \simeq B$, then $\Gamma, x : B \vdash m : C$.
 \end{corollary}
 
@@ -169,7 +169,7 @@ as it needs to track linear variables in the program context.
   For more details, see file \textsf{dyn\_subst.v} of our Rocq development.
 \end{proof}
 
-\begin{corollary}
+\begin{corollary}\label[corollary]{corollary:program-context-conv-explicit}
   If $\Theta ; \Gamma, x : A ; \Delta \vdash m : C$ and 
   $A \simeq B$, then $\Theta ; \Gamma, x : B ; \Delta \vdash m : C$.
 \end{corollary}
@@ -183,7 +183,7 @@ as it needs to track linear variables in the program context.
   For more details, see file \textsf{dyn\_subst.v} of our Rocq development.
 \end{proof}
 
-\begin{corollary}
+\begin{corollary}\label[corollary]{corollary:program-context-conv-implicit}
   If ${\Theta ; \Gamma, x : A ; \Delta, x :_s A \vdash m : C}$ and
   $A \simeq B$, then ${\Theta ; \Gamma, x : B ; \Delta, x :_s B \vdash m : C}$.
 \end{corollary}
@@ -456,70 +456,51 @@ typing derivations.
   If $\Gamma \vdash \PiR{s}{x : A}{B} : C$, then there exists $t$
   such that $\Gamma, x : A \vdash B : t$ and $C \simeq s$.
 \end{lemma}
-\begin{proof}
-  By induction on the derivation of $\Gamma \vdash \PiI{s}{x : A}{B} : C$.
-\end{proof}
 
 \begin{lemma}\label[lemma]{lemma:logical-inversion-implicit-fun}
   If $\Gamma \vdash \PiI{s}{x : A}{B} : C$, then there exists $t$
   such that $\Gamma, x : A \vdash B : t$ and $C \simeq s$.
 \end{lemma}
-\begin{proof}
-  By induction on the derivation of $\Gamma \vdash \PiI{s}{x : A}{B} : C$.
-\end{proof}
+
+\begin{lemma}\label[lemma]{lemma:logical-inversion-explicit-lam}
+  If $\Gamma \vdash \lamR{s_1}{x : A_1}{m} : \PiR{s_2}{x : A_2}{B}$, then $\Gamma, x : A_1 \vdash m : B$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:logical-inversion-implicit-lam}
+  If $\Gamma \vdash \lamI{s_1}{x : A_1}{m} : \PiI{s_2}{x : A_2}{B}$, then $\Gamma, x : A_1 \vdash m : B$.
+\end{lemma}
 
 \begin{lemma}\label[lemma]{lemma:logical-inversion-explicit-sig}
   If $\Gamma \vdash \SigR{t}{x : A}{B} : C$, then there exists $s, r$ such that
   $s \sqsubseteq t$ and $r \sqsubseteq t$ and
   $\Gamma \vdash A : s$ and $\Gamma, x : A \vdash B : r$ and $C \simeq t$.
 \end{lemma}
-\begin{proof}
-  By induction on the derivation of $\Gamma \vdash \SigR{t}{x : A}{B} : C$.
-\end{proof}
 
 \begin{lemma}\label[lemma]{lemma:logical-inversion-implicit-sig}
   If $\Gamma \vdash \SigI{t}{x : A}{B} : C$, then there exists $s, r$ such that
   $r \sqsubseteq t$ and
   $\Gamma \vdash A : s$ and $\Gamma, x : A \vdash B : r$ and $C \simeq t$.
 \end{lemma}
-\begin{proof}
-  By induction on the derivation of $\Gamma \vdash \SigI{t}{x : A}{B} : C$.
-\end{proof}
 
 \begin{lemma}\label[lemma]{lemma:logical-inversion-monad}
   If $\Gamma \vdash \CM{A} : B$, then there exists $s$ such that $\Gamma \vdash A : s$ and $B \simeq \Ln$.
 \end{lemma}
-\begin{proof}
-  By induction on the derivation of $\Gamma \vdash \CM{A} : B$.
-\end{proof}
 
 \begin{lemma}\label[lemma]{lemma:logical-inversion-ch}
   If $\Gamma \vdash \CH{A} : B$, then $\Gamma \vdash A : \Proto$ and $B \simeq \Ln$. 
 \end{lemma}
-\begin{proof}
-  By induction on the derivation of $\Gamma \vdash \CH{A} : B$.
-\end{proof}
 
 \begin{lemma}\label[lemma]{lemma:logical-inversion-hc}
   If $\Gamma \vdash \HC{A} : B$, then $\Gamma \vdash A : \Proto$ and $B \simeq \Ln$. 
 \end{lemma}
-\begin{proof}
-  By induction on the derivation of $\Gamma \vdash \HC{A} : B$.
-\end{proof}
 
 \begin{lemma}\label[lemma]{lemma:logical-inversion-explicit-action}
   If $\Gamma \vdash \ActR{\rho}{x : A}{B} : C$, then $\Gamma, x : A \vdash B : \Proto$.
 \end{lemma}
-\begin{proof}
-  By induction on the derivation of $\Gamma \vdash \ActR{\rho}{x : A}{B} : C$.
-\end{proof}
 
 \begin{lemma}\label[lemma]{lemma:logical-inversion-implicit-action}
   If $\Gamma \vdash \ActI{\rho}{x : A}{B} : C$, then $\Gamma, x : A \vdash B : \Proto$.
 \end{lemma}
-\begin{proof}
-  By induction on the derivation of $\Gamma \vdash \ActI{\rho}{x : A}{B} : C$.
-\end{proof}
 
 \paragraph{\textbf{Type Validity}}
 We show that all types appearing in typing judgments are valid, i.e. they are well-sorted
@@ -552,4 +533,126 @@ at the logical level.
   Applying \textsc{ChType}, we have $\Gamma, x : A \vdash \CH{B} : \Ln$.
   Applying \textsc{Explicit-Sum}, we have $\Gamma \vdash \SigR{\Ln}{x : A}{\CH{B}} : \Ln$.
   Applying \textsc{$\mcC$Type}, we have $\Gamma \vdash \CM{\SigR{\Ln}{x : A}{\CH{B}}} : \Ln$ which concludes this case.
+\end{proof}
+
+To show that the types appearing in program level typing judgments are valid, 
+we first prove the lifting theorem which allows us to lift programs to the logical level.
+
+\begin{theorem}[Lifting]\label[theorem]{theorem:lifting}
+  If $\Theta ; \Gamma ; \Delta \vdash m : A$, then $\Gamma \vdash m : A$.
+\end{theorem}
+\begin{proof}
+  By induction on the derivation of $\Theta ; \Gamma ; \Delta \vdash m : A$.
+\end{proof}
+
+\begin{theorem}[Program Type Validity]\label[theorem]{theorem:program-type-validity}
+  If $\Theta ; \Gamma ; \Delta \vdash m : A$, then there exists $s$ such that $\Gamma \vdash A : s$.
+\end{theorem}
+\begin{proof}
+  Immediate from \Cref{theorem:lifting} and \Cref{theorem:logical-type-validity}.
+\end{proof}
+
+\paragraph{\textbf{Subject Reduction}}
+We show that both the logical and program level type systems enjoy subject reduction
+under logical and program reductions respectively.
+
+\begin{lemma}[Arity Preservation]\label[lemma]{lemma:arity-preservation}
+  If $A \Rightarrow A'$ and $A~\arity{\Proto}$, then $A'~\arity{\Proto}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $A \Rightarrow A'$.
+\end{proof}
+
+\begin{lemma}[Guard Preservation]\label[lemma]{lemma:guard-preservation}
+  If $A \Rightarrow A'$ and $A~\guard{x}$, then $A'~\guard{x}$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $A \Rightarrow A'$ and appealing to  
+  \Cref{lemma:subst-guard}.
+\end{proof}
+
+\begin{theorem}[Logical Subject Reduction]\label[theorem]{theorem:logical-subject-reduction}
+  If $\Gamma \vdash m : A$ and $m \Rightarrow m'$, then $\Gamma \vdash m' : A$.
+\end{theorem}
+\begin{proof}
+  By induction on the derivation of $\Gamma \vdash m : A$ and case analysis on the reduction $m \Rightarrow m'$.
+  We will show some representative cases.
+
+\textbf{Case} (\textsc{Explicit-Lam}):
+  From case analysis on the reduction, we have $A \Rightarrow A'$ and $m \Rightarrow m'$.
+  From the induction hypothesis we have $\Gamma, x : A \vdash m' : B$ and $\Gamma \vdash A' : s$ for some $s$.
+  By definition of convertibility, we have $A \simeq A'$.
+  By \Cref{corollary:logical-context-conv} we have $\Gamma, x : A' \vdash m' : B$.
+  By \textsc{Explicit-Lam} we have $\Gamma \vdash \lamR{s}{x : A'}{m'} : \PiR{s}{x : A'}{B}$.
+  By \textsc{Conversion} we have $\Gamma \vdash \lamR{s}{x : A'}{m'} : \PiR{s}{x : A}{B}$ which concludes this case.
+
+\textbf{Case} (\textsc{Explicit-App}):
+  From case analysis on the reduction we have two sub-cases:
+  (1) \textsc{PStep-Explicit-App} and (2) \textsc{PStep-Explicit-$\beta$}.
+
+  In sub-case (1) \textsc{PStep-Explicit-App}, we have $m \Rightarrow m'$ and $n \Rightarrow n'$.
+  From the induction hypothesis we have $\Gamma \vdash m' : \PiR{s}{x : A}{B}$ and $\Gamma \vdash n' : A$.
+  By \textsc{Explicit-App} we have $\Gamma \vdash \appR{m'}{n'} : B[n'/x]$.
+  By definition of convertibility, we have $B[n/x] \simeq B[n'/x]$.
+  By validity we have $\Gamma \vdash \PiR{s}{x : A}{B} : t$ for some $t$.
+  By \Cref{lemma:logical-inversion-explicit-fun} we have $\Gamma, x : A \vdash B : r$ for some $r$.
+  By \Cref{lemma:logical-subst} we have $\Gamma \vdash B[n/x] : r$.
+  By \textsc{Conversion} we have $\Gamma \vdash \appR{m'}{n'} : B[n/x]$ which concludes this sub-case.
+
+  In sub-case (2) \textsc{PStep-Explicit-$\beta$}, we have $m = \lamR{s}{x : A}{m_0}$ for some $m_0$
+  and $m_0 \Rightarrow m_0'$ and $n \Rightarrow n'$.
+  By \Cref{lemma:logical-inversion-explicit-lam} we have $\Gamma, x : A \vdash m_0 : B$.
+  By the induction hypothesis we have $\Gamma, x : A \vdash m_0' : B$ and $\Gamma \vdash n' : A$.
+  By \Cref{lemma:logical-subst} we have $\Gamma \vdash m_0'[n'/x] : B[n'/x]$.
+  By definition of convertibility, we have $B[n/x] \simeq B[n'/x]$
+  By validity we have $\Gamma \vdash \PiR{s}{x : A}{B} : t$ for some $t$.
+  By \Cref{lemma:logical-inversion-explicit-fun} we have $\Gamma, x : A \vdash B : r$ for some $r$.
+  By \Cref{lemma:logical-subst} we have $\Gamma \vdash B[n/x] : r$.
+  By \textsc{Conversion} we have $\Gamma \vdash m_0'[n'/x] : B[n/x]$ which concludes this sub-case.
+
+\textbf{Case} (\textsc{BoolElim})
+  From case analysis on the reduction we have three sub-cases:
+  (1) \textsc{PStep-BoolElim}, (2) \textsc{PStep-TrueElim}, and (3) \textsc{PStep-FalseElim}.
+
+  In sub-case (1) \textsc{PStep-BoolElim}, we have 
+  $A \Rightarrow A'$, $m \Rightarrow m'$, $n_1 \Rightarrow n_1'$, and $n_2 \Rightarrow n_2'$.
+  By the induction hypothesis we have
+  $\Gamma, z : \Bool \vdash A' : s$, 
+  $\Gamma \vdash m' : \Bool$, 
+  $\Gamma \vdash n_1' : A[\bTrue/z]$, and 
+  $\Gamma \vdash n_2' : A[\bFalse/z]$.
+  By definition of convertibility, we have $A \simeq A'$.
+  By \Cref{lemma:logical-subst} we have $\Gamma \vdash A'[\bTrue/z] : s$ and $\Gamma \vdash A'[\bFalse/z] : s$.
+  By \textsc{Conversion} we have $\Gamma \vdash n_1' : A'[\bTrue/z]$ and $\Gamma \vdash n_2' : A'[\bFalse/z]$.
+  By \textsc{BoolElim} we have $\Gamma \vdash \boolElim{[z]A'}{m'}{n_1'}{n_2'} : A'[m'/z]$.
+  By definition of convertibility, we have $A[m/z] \simeq A'[m'/z]$.
+  By \Cref{lemma:logical-subst} we have $\Gamma \vdash A[m/z] : s$.
+  By \textsc{Conversion} we have $\Gamma \vdash \boolElim{[z]A'}{m'}{n_1'}{n_2'} : A[m/z]$ which concludes this sub-case.
+
+\textbf{Case} (\textsc{RecProto}):
+  From case analysis on the reduction we have two sub-cases:
+  (1) \textsc{PStep-RecProto} and (2) \textsc{PStep-RecUnfold}.
+
+  In sub-case (1) \textsc{PStep-RecProto}, we have $A \Rightarrow A'$ and $m \Rightarrow m'$.
+  By validity of context $\Gamma, x : A \vdash$ we have $\Gamma \vdash A : s$ for some $s$.
+  By the induction hypothesis we have ${\Gamma, x : A \vdash m' : A}$ and ${\Gamma \vdash A' : s}$.
+  By definition of convertibility, we have $A \simeq A'$.
+  By \Cref{corollary:logical-context-conv} we have $\Gamma, x : A' \vdash m' : A$.
+  By \textsc{Conversion} we have $\Gamma, x : A' \vdash m' : A'$.
+  By \Cref{lemma:arity-preservation} we have $A'~\arity{\Proto}$.
+  By \Cref{lemma:guard-preservation} we have $m'~\guard{x}$.
+  By \textsc{RecProto} we have $\Gamma \vdash \fix{x : A'}{m'} : A'$.
+  By \textsc{Conversion} we have $\Gamma \vdash \fix{x : A'}{m'} : A$ which concludes this sub-case.
+
+  In sub-case (2) \textsc{PStep-RecUnfold}, we have $A \Rightarrow A'$ and $m \Rightarrow m'$.
+  By validity of context $\Gamma, x : A \vdash$ we have $\Gamma \vdash A : s$ for some $s$.
+  By the induction hypothesis we have ${\Gamma, x : A \vdash m' : A}$ and ${\Gamma \vdash A' : s}$.
+  By definition of convertibility, we have $A \simeq A'$.
+  By \Cref{corollary:logical-context-conv} we have $\Gamma, x : A' \vdash m' : A$.
+  By \textsc{Conversion} we have $\Gamma, x : A' \vdash m' : A'$.
+  By \Cref{lemma:arity-preservation} we have $A'~\arity{\Proto}$.
+  By \Cref{lemma:guard-preservation} we have $m'~\guard{x}$.
+  By \textsc{RecProto} we have $\Gamma \vdash \fix{x : A'}{m'} : A'$.
+  By \Cref{lemma:logical-subst} we have $\Gamma \vdash m'[\fix{x : A'}{m'}/x] : A'$.
+  By \textsc{Conversion} we have $\Gamma \vdash m'[\fix{x : A'}{m'}/x] : A$ which concludes this sub-case.
 \end{proof}
