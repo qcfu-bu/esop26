@@ -187,3 +187,29 @@ as it needs to track linear variables in the program context.
   If ${\Theta ; \Gamma, x : A ; \Delta, x :_s A \vdash m : C}$ and
   $A \simeq B$, then ${\Theta ; \Gamma, x : B ; \Delta, x :_s B \vdash m : C}$.
 \end{corollary}
+
+\paragraph{\textbf{Sort Uniqueness}}
+Due to the fact that \TLLC{} utilizes the sort of types to determine
+(sub)structural properties of their inhabitants, it is important for types
+to have unique sorts. If a type could have multiple sorts, then it would be
+ambiguous whether its inhabitants are linear or unrestricted.
+
+One of the main challenges in proving sort uniqueness is that there is no
+uniqueness of types in general. In particular, dependent pairs like $\pairI{m}{n}{s}$
+do not have unique typing. For this reason, we prove a weaker property of
+\emph{type similarity} instead of type uniqueness. Then from type similarity
+we can derive sort uniqueness. We begin by defining the \emph{head similarity}
+relation as follows:
+\begin{mathpar}\footnotesize
+  \inferrule  
+  { }
+  { \HeadSim{x}{x} }
+
+  \inferrule
+  { }
+  { \HeadSim{s}{s} }
+
+  \inferrule
+  { \HeadSim{B_1}{B_2} }
+  { \HeadSim{\PiR{r}{B_1}{C_1}}{\PiR{r}{B_2}{C_2}} }
+\end{mathpar}
