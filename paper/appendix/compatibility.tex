@@ -155,6 +155,10 @@ as it needs to track linear variables in the program context.
   For more details, see file \textsf{sta\_subst.v} of our Rocq development.
 \end{proof}
 
+\begin{corollary}
+  If $\Gamma, x : A \vdash m : C$ and $A \simeq B$, then $\Gamma, x : B \vdash m : C$.
+\end{corollary}
+
 \begin{lemma}[Program Substitution (Explicit)]
   If ${\Theta_1 ; \Gamma, x : B ; \Delta_1, x :_s B \vdash m : A}$ and
   ${\Theta_2 ; \Gamma ; \Delta_2 \vdash n : B}$, then
@@ -165,6 +169,11 @@ as it needs to track linear variables in the program context.
   For more details, see file \textsf{dyn\_subst.v} of our Rocq development.
 \end{proof}
 
+\begin{corollary}
+  If $\Theta ; \Gamma, x : A ; \Delta \vdash m : C$ and 
+  $A \simeq B$, then $\Theta ; \Gamma, x : B ; \Delta \vdash m : C$.
+\end{corollary}
+
 \begin{lemma}[Program Substitution (Implicit)]
   If ${\Theta ; \Gamma, x : B ; \Delta \vdash m : A}$ and
   ${\Gamma \vdash n : B}$, then ${\Theta ; \Gamma ; \Delta \vdash m[n/x] : A[n/x]}$.
@@ -173,3 +182,8 @@ as it needs to track linear variables in the program context.
   This lemma is proved through a more general lemma involving simultaneous substitutions. 
   For more details, see file \textsf{dyn\_subst.v} of our Rocq development.
 \end{proof}
+
+\begin{corollary}
+  If ${\Theta ; \Gamma, x : A ; \Delta, x :_s A \vdash m : C}$ and
+  $A \simeq B$, then ${\Theta ; \Gamma, x : B ; \Delta, x :_s B \vdash m : C}$.
+\end{corollary}
