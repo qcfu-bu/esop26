@@ -407,7 +407,7 @@ reducing the splitting tree of a list is equivalent to performing mergesort on t
 \addtolength{\jot}{-0.2em}
 \begin{align*}
   &\Theorem\ \textsf{reduceSplittingTree} : \\
-  &\quad\forall (xs : \textsf{list}\ \textsf{int}).\ \textsf{reduce}\ (\lambda(x). x)\ \textsf{merge}\ (\textsf{splittingTree}\ xs) = \textsf{msort}\ xs
+  &\quad\forall (xs : \textsf{list}\ \textsf{int}) \rightarrow \textsf{reduce}\ (\lambda(x). x)\ \textsf{merge}\ (\textsf{splittingTree}\ xs) = \textsf{msort}\ xs
 \end{align*}
 \endgroup
 Using this theorem, we can rewrite the singleton type returned by \textsf{cReduce} to
