@@ -161,7 +161,7 @@ as it needs to track linear variables in the program context.
 
 \begin{lemma}[Program Substitution (Explicit)]\label[lemma]{lemma:program-subst-explicit}
   If ${\Theta_1 ; \Gamma, x : B ; \Delta_1, x :_s B \vdash m : A}$ and
-  ${\Theta_2 ; \Gamma ; \Delta_2 \vdash n : B}$, then
+  ${\Theta_2 ; \Gamma ; \Delta_2 \vdash n : B}$ and $\Theta_2 \triangleright s$ and $\Delta_2 \triangleright s$, then
   ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash m[n/x] : A[n/x]}$.
 \end{lemma}
 \begin{proof}
@@ -657,13 +657,58 @@ under logical and program reductions respectively.
   By \textsc{Conversion} we have $\Gamma \vdash m'[\fix{x : A'}{m'}/x] : A$ which concludes this sub-case.
 \end{proof}
 
-The proof of the program subject reduction theorem is more involved as it needs to
-reason about the distributing of resources in the program context during reduction.
-We will prove some lemmas for reasoning about the program context.
+In order to show subject reduction at the program level, we need to show that reduction of
+redexes in dependent positions preserves typing. To do so, we prove the following lemma which
+lifts program reductions into convertibility at the logical level.
+\begin{lemma}[Program Step Convertible]\label[lemma]{lemma:program-step-convertible}
+  If ${\Theta ; \epsilon ; \epsilon \vdash m : A}$ and $m \Leadsto n$, then $m \simeq n$.
+\end{lemma}
 
+The program level substitution lemma (\Cref{lemma:program-subst-explicit})
+requires context restrictions $\Theta_2 \triangleright s$ and $\Delta_2 \triangleright s$ for the
+substituted term $n$. To ensure that these restrictions are satisfied for \emph{values}, we prove the
+following context bound lemma.
+\begin{lemma}[Program Context Bound]\label[lemma]{lemma:program-context-bound}
+  Given ${\Theta ; \Gamma ; \Delta \vdash v : A}$ and $\Gamma \vdash A : s$, then 
+  $\Theta \triangleright s$ and $\Delta \triangleright s$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of ${\Theta ; \Gamma ; \Delta \vdash v : A}$ where $v$ is a value.
+  We present the following representative cases.
 
+\textbf{Case} (\textsc{Explicit-Lam}):
+  From the premise we have $\Theta \triangleright t$ and $\Delta \triangleright t$.
+  By \Cref{lemma:logical-inversion-explicit-fun} we have $t \simeq s$.
+  By injectivity of sorts (\Cref{corollary:inj-sort}) we have $t = s$ which concludes this case.
 
+\textbf{Case} (\textsc{Explicit-Pair}):
+  From the assumption that the pair is a value, we have $v = \pairR{v_1}{v_2}{t}$ for some $t$.
+  Additionally, we have $\Theta_1 ; \Gamma ; \Delta_1 \vdash v_1 : A$ and 
+  $\Theta_2 ; \Gamma ; \Delta_2 \vdash v_2 : B[v_1/x]$ and $\Gamma \vdash \SigR{t}{x : A}{B} : t$.
+  By \Cref{theorem:sort-uniqueness} we have $s = t$.
+  By \Cref{lemma:logical-inversion-explicit-sig} we have 
+  $\Gamma \vdash A : s$ and $\Gamma, x : A \vdash B : r$ and $s \sqsubseteq t$ and $r \sqsubseteq t$.
+  By the induction hypothesis we have $\Theta_1 \triangleright s$ and $\Delta_1 \triangleright s$
+  and $\Theta_2 \triangleright r$ and $\Delta_2 \triangleright r$.
+  These context restrictions can then be weakened to $\Theta_1 \triangleright t$ and $\Delta_1 \triangleright t$ 
+  and $\Theta_2 \triangleright t$ and $\Delta_2 \triangleright t$.
+  The merged contexts now satisfy $\Theta_1 \dotcup \Theta_2 \triangleright t$ and 
+  $\Delta_1 \dotcup \Delta_2 \triangleright t$ which concludes this case.
 
+\textbf{Case} (\textsc{Return}):
+  From the premise we have $\Theta ; \Gamma ; \Delta \vdash m : A$ and $\Gamma \vdash \CM{A} : s$.
+  By \Cref{theorem:sort-uniqueness} we have $s = \Ln$. 
+  The context restrictions $\Theta \triangleright \Ln$ and $\Delta \triangleright \Ln$ hold trivially which concludes this case.
+
+\textbf{Case} (\textsc{Channel-CH})
+  From the premise we have $\Theta \triangleright \Un$. From \textsc{Ord-$\Un$} we have $\Un \sqsubseteq s$
+  which allows us to weaken the restriction into $\Theta \triangleright s$ and concluding this case.
+
+\textbf{Case} (\textsc{Explicit-Send-CH}):
+  From the premise we have $\Gamma \vdash \PiR{\Ln}{x : A}{\CM{\CH{B}}} : s$. 
+  By \Cref{theorem:sort-uniqueness} we have $s = \Ln$.
+  The context restrictions $\Theta \triangleright \Ln$ and $\Delta \triangleright \Ln$ hold trivially.
+\end{proof}
 
 \begin{theorem}[Program Subject Reduction]\label[theorem]{theorem:program-subject-reduction}
   If ${\Theta ; \epsilon ; \epsilon \vdash m : A}$ and ${m \Leadsto m'}$, then ${\Theta ; \epsilon ; \epsilon \vdash m' : A}$.
