@@ -312,7 +312,7 @@ The small-step reduction for monadic terms is defined as follows:
   { \letin{x}{m}{n} \Leadsto \letin{x}{m'}{n} }
 
   \inferrule[Step-ReturnBind]
-  { v~\val }
+  { }
   { \letin{x}{\return{v}}{n} \Leadsto n[v/x] }
 \end{mathpar}
 

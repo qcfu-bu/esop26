@@ -502,6 +502,35 @@ typing derivations.
   If $\Gamma \vdash \ActI{\rho}{x : A}{B} : C$, then $\Gamma, x : A \vdash B : \Proto$.
 \end{lemma}
 
+\begin{lemma}\label[lemma]{lemma:program-inversion-explicit-lam}
+  If ${\Theta ; \Gamma ; \Delta \vdash \lamR{s}{x : A_2}{m} : \PiR{t}{x : A_1}{B}}$, then
+  ${\Theta ; \Gamma, x : A_1 ; \Delta, x :_r A_1 \vdash m : B}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-explicit-pair}
+  If ${\Theta ; \Gamma ; \Delta \vdash \pairR{m}{n}{s} : \SigR{t}{x : A}{B}}$, then
+  there exists $\Theta_1, \Theta_2, \Delta_1, \Delta_2$ such that
+  ${\Theta_1 ; \Gamma ; \Delta_1 \vdash m : A}$ and
+  ${\Theta_2 ; \Gamma ; \Delta_2 \vdash n : B[m/x]}$ and
+  $\Theta = \Theta_1 \dotcup \Theta_2$ and $\Delta = \Delta_1 \dotcup \Delta_2$ and
+  $s = t$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-true}
+  If ${\Theta ; \Gamma ; \Delta \vdash \bTrue : \Bool}$, then
+  $\Theta = \epsilon$ and $\Delta \triangleright \Un$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-false}
+  If ${\Theta ; \Gamma ; \Delta \vdash \bFalse : \Bool}$, then
+  $\Theta = \epsilon$ and $\Delta \triangleright \Un$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-return}
+  If ${\Theta ; \Gamma ; \Delta \vdash \return{m} : \CM{A}}$, then
+  ${\Theta ; \Gamma ; \Delta \vdash m : A}$.
+\end{lemma}
+
 \paragraph{\textbf{Type Validity}}
 We show that all types appearing in typing judgments are valid, i.e. they are well-sorted
 at the logical level.
@@ -576,7 +605,7 @@ under logical and program reductions respectively.
 \end{theorem}
 \begin{proof}
   By induction on the derivation of $\Gamma \vdash m : A$ and case analysis on the reduction $m \Rightarrow m'$.
-  We will show some representative cases.
+  We present the following representative cases.
 
 \textbf{Case} (\textsc{Explicit-Lam}):
   From case analysis on the reduction, we have $A \Rightarrow A'$ and $m \Rightarrow m'$.
@@ -713,3 +742,117 @@ following context bound lemma.
 \begin{theorem}[Program Subject Reduction]\label[theorem]{theorem:program-subject-reduction}
   If ${\Theta ; \epsilon ; \epsilon \vdash m : A}$ and ${m \Leadsto m'}$, then ${\Theta ; \epsilon ; \epsilon \vdash m' : A}$.
 \end{theorem}
+\begin{proof}
+  By induction on the derivation of ${\Theta ; \epsilon ; \epsilon \vdash m : A}$ and case 
+  analysis on the reduction $m \Leadsto m'$. We present the following representative cases.
+
+\textbf{Case} (\textsc{Explicit-App}):
+  From case analysis on the reduction we have three sub-cases:
+  (1) \textsc{Step-Explicit-App$_1$}, (2) \textsc{Step-Explicit-App$_2$}, and (3) \textsc{Step-Explicit-$\beta$}.
+
+  In sub-case (1) \textsc{Step-Explicit-App$_1$}, we have $m \Leadsto m'$.
+  By the induction hypothesis we have ${\Theta_1 ; \Gamma ; \Delta_1 \vdash m' : \PiR{t}{x : A}{B}}$.
+  By \textsc{Explicit-App} we have ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \appR{m'}{n} : B[n/x]}$
+  which concludes this sub-case.
+
+  In sub-case (2) \textsc{Step-Explicit-App$_2$}, we have $n \Leadsto n'$.
+  By the induction hypothesis we have ${\Theta_2 ; \Gamma ; \Delta_2 \vdash n' : A}$.
+  By \textsc{Explicit-App} we have ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \appR{m}{n'} : B[n'/x]}$.
+  By \Cref{lemma:program-step-convertible} we have $n \simeq n'$ and $B[n/x] \simeq B[n'/x]$.
+  By \Cref{theorem:lifting} we have $\Gamma \vdash n : A$.
+  Applying \Cref{theorem:program-type-validity} on $\Theta_1; \Gamma ; \Delta_1 \vdash m : \PiR{t}{x : A}{B}$ we have
+  $\Gamma \vdash \PiR{t}{x : A}{B} : s$ for some $s$.
+  By \Cref{lemma:logical-inversion-explicit-fun} we have $\Gamma, x : A \vdash B : r$ for some $r$.
+  By \Cref{lemma:logical-subst} we have $\Gamma \vdash B[n/x] : r$.
+  By \textsc{Conversion} we have ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \appR{m}{n'} : B[n/x]}$
+  which concludes this sub-case.
+
+  In sub-case (3) \textsc{Step-Explicit-$\beta$}, we have $m = \lamR{t}{x : A_0}{m_0}$ for some $A_0$ and $m_0$.
+  By \Cref{lemma:program-inversion-explicit-lam} we have ${\Theta_1 ; \Gamma, x : A ; \Delta_1, x :_r A \vdash m_0 : B}$.
+  From the validity of context ${\Theta_1 ; \Gamma, x : A ; \Delta_1, x :_r A \vdash}$ we have $\Gamma \vdash A : r$.
+  By \Cref{lemma:program-context-bound} and ${\Theta_2 ; \Gamma ; \Delta_2 \vdash v : A}$ and $\Gamma \vdash A : r$
+  we have $\Theta_2 \triangleright r$.
+  By \Cref{lemma:program-subst-explicit} we have 
+  ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash m_0[v/x] : B[v/x]}$ 
+  which concludes this sub-case.
+
+\textbf{Case} (\textsc{Explicit-SumElim}):
+  From case analysis on the reduction we have two sub-cases:
+  (1) \textsc{Step-SumElim$_1$} and (2) \textsc{Step-Explicit-PairElim}.
+
+  In sub-case (1) \textsc{Step-SumElim$_1$}, we have $m \Leadsto m'$.
+  By the induction hypothesis we have ${\Theta_1 ; \Gamma ; \Delta_1 \vdash m' : \SigR{t}{x : A}{B}}$
+  By \textsc{Explicit-SumElim} we have
+  ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \SigElim{[z]C}{m'}{[x,y]n} : C[m'/z]}$.
+  By \Cref{lemma:program-step-convertible} we have $m \simeq m'$ and $C[m/z] \simeq C[m'/z]$.
+  By \Cref{theorem:lifting} we have $\Gamma \vdash m : \SigR{t}{x : A}{B}$.
+  Applying \Cref{lemma:logical-subst} on assumption $\Gamma, z : \SigR{t}{x : A}{B} \vdash C : s$ and
+  $\Gamma \vdash m : \SigR{t}{x : A}{B}$ we have $\Gamma \vdash C[m/z] : s$. By \textsc{Conversion} we have 
+  ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \SigElim{[z]C}{m'}{[x,y]n} : C[m/z]}$
+  which concludes this sub-case.
+
+  In sub-case (2) \textsc{Step-Explicit-PairElim}, we have $m = \pairR{u}{v}{t}$ for some $u, v$ and $t$.
+  By \Cref{lemma:program-inversion-explicit-pair} we have
+  ${\Theta_{11} ; \Gamma ; \Delta_{11} \vdash u : A}$ and
+  ${\Theta_{12} ; \Gamma ; \Delta_{12} \vdash v : B[u/x]}$ and
+  $\Theta_1 = \Theta_{11} \dotcup \Theta_{12}$ and $\Delta_1 = \Delta_{11} \dotcup \Delta_{12}$ and $s = t$.
+  From the validity of context $\Theta_2 ; \Gamma, x : A, y : B ; \Delta_2, x :_{r_1} A, y :_{r_2} B \vdash$
+  we have $\Gamma \vdash A : r_1$ and $\Gamma, x : A \vdash B : r_2$.
+  Applying \Cref{theorem:lifting} to ${\Theta_{11} ; \Gamma ; \Delta_{11} \vdash u : A}$ we have
+  $\Gamma \vdash u : A$. Applying \Cref{lemma:logical-subst} we have $\Gamma \vdash B[u/x] : r_2$.
+  By \Cref{lemma:program-context-bound} and ${\Theta_{11} ; \Gamma ; \Delta_{11} \vdash u : A}$ and $\Gamma \vdash A : r_1$
+  we have $\Theta_{11} \triangleright r_1$.
+  By \Cref{lemma:program-context-bound} and ${\Theta_{12} ; \Gamma ; \Delta_{12} \vdash v : B[u/x]}$ and $\Gamma \vdash B[u/x] : r_2$
+  we have $\Theta_{12} \triangleright r_2$.
+  By \Cref{lemma:program-subst-explicit} we have
+  ${\Theta_{11} \dotcup \Theta_{12} \dotcup \Theta_2 ; \Gamma ; \Delta_{11} \dotcup \Delta_{12} \dotcup \Delta_2 \vdash n[u/x, v/y] : C[\pairR{u}{v}{t}/z]}$
+  which concludes this sub-case.
+
+\textbf{Case} (\textsc{BoolElim}):
+  By case analysis on the reduction we have three sub-cases:
+  (1) \textsc{Step-BoolElim$_1$}, (2) \textsc{Step-TrueElim}, and (3) \textsc{Step-FalseElim}.
+
+  In sub-case (1) \textsc{Step-BoolElim$_1$}, we have $m \Leadsto m'$.
+  By the induction hypothesis we have ${\Theta_1 ; \Gamma ; \Delta_1 \vdash m' : \Bool}$.
+  By \textsc{BoolElim} we have
+  ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \boolElim{[z]C}{m'}{n_1}{n_2} : C[m'/z]}$.
+  By \Cref{lemma:program-step-convertible} we have $m \simeq m'$ and $C[m/z] \simeq C[m'/z]$.
+  By \Cref{theorem:lifting} we have $\Gamma \vdash m : \Bool$.
+  Applying \Cref{lemma:logical-subst} on ${\Gamma, z : \Bool \vdash C : s}$ and
+  ${\Gamma \vdash m : \Bool}$ we have ${\Gamma \vdash C[m/z] : s}$.
+  By \textsc{Conversion} we have
+  ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \boolElim{[z]C}{m'}{n_1}{n_2} : C[m/z]}$
+  which concludes this sub-case.
+
+  In sub-case (2) \textsc{Step-TrueElim}, we have $m = \bTrue$.
+  By \Cref{lemma:program-inversion-true} we have $\Theta_1 = \epsilon$ and $\Delta_1 \triangleright \Un$.
+  Thus we have $\Theta_1 \dotcup \Theta_2 = \Theta_2$ and $\Delta_1 \dotcup \Delta_2 = \Delta_2$.
+  The assumption $\Theta_2 ; \Gamma ; \Delta_2 \vdash n_1 : C[\bTrue/z]$ gives us the desired result
+  which concludes this sub-case.
+
+  In sub-case (3) \textsc{Step-FalseElim}, we have $m = \bFalse$.
+  By \Cref{lemma:program-inversion-false} we have $\Theta_1 = \epsilon$ and $\Delta_1 \triangleright \Un$.
+  Thus we have $\Theta_1 \dotcup \Theta_2 = \Theta_2$ and $\Delta_1 \dotcup \Delta_2 = \Delta_2$.
+  The assumption $\Theta_2 ; \Gamma ; \Delta_2 \vdash n_2 : C[\bFalse/z]$ gives us the desired result
+  which concludes this sub-case.
+
+\textbf{Case} (\textsc{Bind}):
+  By case analysis on the reduction we have two sub-cases: 
+  (1) \textsc{Step-Bind} and (2) \textsc{Step-ReturnBind}.
+
+  In sub-case (1) \textsc{Step-Bind}, we have $m \Leadsto m'$.
+  By the induction hypothesis we have ${\Theta_1 ; \Gamma ; \Delta_1 \vdash m' : \CM{A}}$.
+  By \textsc{Bind} we have ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \letin{x}{m'}{n} : C}$ 
+  which concludes this sub-case.
+
+  In sub-case (2) \textsc{Step-ReturnBind}, we have $m = \return{v}$ for some value $v$.
+  By \Cref{lemma:program-inversion-return} we have ${\Theta_1 ; \Gamma ; \Delta_1 \vdash v : A}$.
+  From the validity of context ${\Theta_2 ; \Gamma, x : A ; \Delta_2, x :_r A \vdash}$ we have $\Gamma \vdash A : r$.
+  By \Cref{lemma:program-context-bound} and ${\Theta_1 ; \Gamma ; \Delta_1 \vdash v : A}$ and $\Gamma \vdash A : r$
+  we have $\Theta_1 \triangleright r$.
+  By \Cref{lemma:program-subst-explicit} we have
+  ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash n[v/x] : \CM{B[v/x]}}$.
+  From assumption $\Gamma \vdash B : s$ we know that $x \notin \FV{B}$, thus $B[v/x] = B$
+  and ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash n[v/x] : \CM{B}}$.
+  which concludes this sub-case.
+\end{proof}
