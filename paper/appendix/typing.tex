@@ -460,11 +460,11 @@ or program contexts in the process typing judgment.
   { \Theta \Vdash \proc{m} }
 
   \inferrule[Par]
-  { \Theta_1 \vdash P \\ \Theta_2 \vdash Q }
+  { \Theta_1 \Vdash P \\ \Theta_2 \Vdash Q }
   { \Theta_1 \dotcup \Theta_2 \Vdash P \mid Q }
 
   \inferrule[Scope]
-  { \Theta, c \tL \CH{A}, d \tL \HC{A} \vdash P }
+  { \Theta, c \tL \CH{A}, d \tL \HC{A} \Vdash P }
   { \Theta \Vdash \scope{cd}{P} }
 \end{mathpar}
 \clearpage

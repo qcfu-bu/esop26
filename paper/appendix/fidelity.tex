@@ -1,0 +1,85 @@
+The session fidelity property ensures that well-typed processes 
+will adhere to the protocols specified by their session types during execution.
+To prove this property, we first must prove that structural congruence preserves typing.
+
+\begin{lemma}[Congruence]\label{lemma:congruence}
+  Given $\Theta \Vdash P$ and $P \equiv Q$, then $\Theta \Vdash Q$.  
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $\Theta \Vdash P$ and case analysis on the congruence relation.
+
+\textbf{Case} (\textsc{Expr}): Trivial.
+
+\textbf{Case} (\textsc{Par}):
+  \begin{mathpar}
+    \inferrule[Par]
+    { \Theta_1 \Vdash P \\ \Theta_2 \Vdash Q }
+    { \Theta_1 \dotcup \Theta_2 \Vdash P \mid Q }
+  \end{mathpar}
+  By case analysis on the congruence relation we have the following sub-cases:
+  \begin{enumerate}
+    \item $P \mid Q \equiv Q \mid P$
+    \item $P \mid (Q_1 \mid Q_2) \equiv (P \mid Q_1) \mid Q_2$
+    \item $P \mid \proc{\return{\ii}} \equiv P$
+    \item $\scope{cd}{P} \mid Q \equiv \scope{cd}{(P \mid Q)}$
+  \end{enumerate}
+
+  In sub-case (1), by \textsc{Par} we have $\Theta_2 \dotcup \Theta_1 \Vdash Q \mid P$.
+  By the commutativity of $\dotcup$, we have $\Theta_1 \dotcup \Theta_2 \Vdash Q \mid P$ which
+  concludes this sub-case.
+
+  In sub-case (2), we have $\Theta_2 \Vdash Q_1 \mid Q_2$. By inversion on its typing derivation, we have
+  $\Theta_{21} \Vdash Q_1$ and $\Theta_{22} \Vdash Q_2$ such that $\Theta_2 = \Theta_{21} \dotcup \Theta_{22}$.
+  By \textsc{Par} we have $\Theta_1 \dotcup \Theta_{21}  \Vdash P \mid Q_1$.
+  By \textsc{Par} again we have $(\Theta_1 \dotcup \Theta_{21}) \dotcup \Theta_{22} \Vdash (P \mid Q_1) \mid Q_2$.
+  By the associativity of $\dotcup$, we have $\Theta_1 \dotcup (\Theta_{21} \dotcup \Theta_{22}) \Vdash (P \mid Q_1) \mid Q_2$.
+  By substituting $\Theta_2$, we have $\Theta_1 \dotcup \Theta_2 \Vdash (P \mid Q_1) \mid Q_2$ which concludes this sub-case.
+
+  In sub-case (3), we have $Q = \proc{\return{\ii}}$.
+  By assumption we have $\Theta_2 \Vdash \proc{\return{\ii}}$.
+  By inversion on its typing derivation, we have $\Theta_2 ; \epsilon ; \epsilon \vdash \return{\ii} : \CM{\unit}$.
+  By \Cref{lemma:program-inversion-return} we have $\Theta_2 ; \epsilon ; \epsilon \vdash \ii : \unit$.
+  By \Cref{lemma:program-inversion-unit} we have $\Theta_2 = \epsilon$ and $\epsilon \triangleright \Un$.
+  Thus we have $\Theta_1 \dotcup \Theta_2 \Vdash P$.
+
+  In sub-case (4), we have $\Theta_1 \Vdash \scope{cd}{P}$ and $\Theta_2 \Vdash Q$ by assumption.
+  By inversion on the typing derivation of $\Theta_1 \Vdash \scope{cd}{P}$, we have
+  $\Theta_1, c \tL \CH{A}, d \tL \HC{A} \Vdash P$ for some protocol $A$.
+  By \textsc{Par} we have $\Theta_1, c \tL \CH{A}, d \tL \HC{A} \dotcup \Theta_2 \Vdash P \mid Q$.
+  Since $c$ and $d$ are not in $\Theta_2$, we have $(\Theta_1 \dotcup \Theta_2), c \tL \CH{A}, d \tL \HC{A} \Vdash P \mid Q$.
+  By \textsc{Scope} we have $\Theta_1 \dotcup \Theta_2 \Vdash \scope{cd}{(P \mid Q)}$ which concludes this sub-case.
+
+\textbf{Case} (\textsc{Scope}):
+  \begin{mathpar}
+    \inferrule[Scope]
+    { \Theta, c \tL \CH{A}, d \tL \HC{A} \Vdash P }
+    { \Theta \Vdash \scope{cd}{P} }
+  \end{mathpar}
+
+  By case analysis on the congruence relation we have the following sub-cases:
+  \begin{enumerate}
+    \item $\scope{cd}{(P \mid Q)} \equiv \scope{cd}{P} \mid Q$
+    \item $\scope{cd}{P} \equiv \scope{dc}{P}$
+    \item $\scope{cd}{\scope{c'd'}{P}} \equiv \scope{c'd'}{\scope{cd}{P}}$
+  \end{enumerate}
+  
+  In sub-case (1), we have $\Theta, c \tL \CH{A}, d \tL \HC{A} \Vdash P \mid Q$ by assumption.
+  By inversion on its typing derivation, there exists $\Theta_1$ and $\Theta_2$ such that
+  $\Theta = \Theta_1 \dotcup \Theta_2$ and $\Theta_1, c \tL \CH{A}, d \tL \HC{A} \Vdash P$ and $\Theta_2 \Vdash Q$.
+  Channels $c$ and $d$ must be distributed the typing judgment $P$ as
+  they are linear and do not appear in $Q$. Applying \textsc{Scope} to $\Theta_1, c \tL \CH{A}, d \tL \HC{A} \Vdash P$ we have
+  $\Theta_1 \Vdash \scope{cd}{P}$. By \textsc{Par} we have $\Theta_1 \dotcup \Theta_2 \Vdash \scope{cd}{P} \mid Q$
+  which concludes this sub-case.
+
+  In sub-case (2), we have $\Theta, c \tL \CH{A}, d \tL \HC{A} \Vdash P$ by assumption.
+  By exchange, we have $\Theta, d \tL \HC{A}, c \tL \CH{A} \Vdash P$.
+  By \textsc{Scope} we have $\Theta \Vdash \scope{dc}{P}$ which concludes this sub-case.
+
+  In sub-case (3), we have $\Theta, c \tL \CH{A}, d \tL \HC{A}, c' \tL \CH{A'}, d' \tL \HC{A'} \Vdash P$ by assumption.
+  By exchange, we have $\Theta, c' \tL \CH{A'}, d' \tL \HC{A'}, c \tL \CH{A}, d \tL \HC{A} \Vdash P$.
+  Applying \textsc{Scope} twice we have $\Theta \Vdash \scope{c'd'}{\scope{cd}{P}}$ which concludes this sub-case.
+\end{proof}
+
+\begin{theorem}[Session Fidelity]\label{theorem:fidelity}
+  If $\Theta \Vdash P$ and $P \Rrightarrow Q$, then $\Theta \Vdash Q$.
+\end{theorem}

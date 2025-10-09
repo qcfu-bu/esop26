@@ -516,6 +516,11 @@ typing derivations.
   $s = t$.
 \end{lemma}
 
+\begin{lemma}\label[lemma]{lemma:program-inversion-unit}
+  If ${\Theta ; \Gamma ; \Delta \vdash \ii : \unit}$, then
+  $\Theta = \epsilon$ and $\Delta \triangleright \Un$.
+\end{lemma}
+
 \begin{lemma}\label[lemma]{lemma:program-inversion-true}
   If ${\Theta ; \Gamma ; \Delta \vdash \bTrue : \Bool}$, then
   $\Theta = \epsilon$ and $\Delta \triangleright \Un$.
