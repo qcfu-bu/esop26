@@ -427,7 +427,7 @@ The full pipeline of concurrent mergesort is given in the following \textsf{cMSo
   &\quad\Let\ \langle{\textit{ctree}, c}\rangle \Leftarrow \Recv\ c\ \In\ \Wait\ c; \\
   &\quad\Let\ \langle{v, \textit{ctree}}\rangle \Leftarrow \textsf{cReduce}\ (\lambda(x). x)\ \textsf{merge}\ \textit{ctree}\ \In \\
   &\quad\Let\ \textit{ctree} \Leftarrow \Send\ \textit{ctree}\ \textsf{Free}\ \In\ \Wait\ \textit{ctree}; \\
-  &\quad\Return\ (\Rewrite[\textsf{reduceSplittingTree}]\ v)
+  &\quad\Return\ (\Rewrite[\textsf{reduceSplittingTree}\ xs]\ v)
 \end{align*}
 \endgroup
 
