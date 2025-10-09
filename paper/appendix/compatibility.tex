@@ -856,3 +856,100 @@ following context bound lemma.
   and ${\Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash n[v/x] : \CM{B}}$.
   which concludes this sub-case.
 \end{proof}
+
+\paragraph{\textbf{Progress}}
+Due to the presence of concurrency primitives, the values that the program level
+terms can reduce to are not necessarily canonical forms. They can also be thunked monadic computations.
+These thunked computations will eventually be reduced by the semantics of the process level.
+
+The following canonical forms lemmas are used to prove program progress (\Cref{theorem:program-progress}). 
+They are proved by induction on the typing derivation of the value.
+\begin{lemma}\label[lemma]{lemma:program-explicit-fun-canonical}
+  If ${\Theta ; \epsilon ; \epsilon \vdash v : \PiR{s}{x : A}{B}}$ then
+  $v = \lamR{s}{x : A}{m}$ or $v = \sendR{u}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-implicit-fun-canonical}
+  If ${\Theta ; \epsilon ; \epsilon \vdash v : \PiI{s}{x : A}{B}}$ then
+  $v = \lamI{s}{x : A}{m}$ or $v = \sendI{u}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-sig-canonical}
+  If ${\Theta ; \epsilon ; \epsilon \vdash v : \SigR{s}{x : A}{B}}$ then
+  $v = \pairR{v_1}{v_2}{s}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-implicit-sig-canonical}
+  If ${\Theta ; \epsilon ; \epsilon \vdash v : \SigI{s}{x : A}{B}}$ then
+  $v = \pairI{m}{v_2}{s}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-bool-canonical}
+  If ${\Theta ; \epsilon ; \epsilon \vdash v : \Bool}$ then
+  $v = \bTrue$ or $v = \bFalse$.
+\end{lemma}
+
+\begin{theorem}[Program Progress]\label[theorem]{theorem:program-progress}
+  If ${\Theta ; \epsilon ; \epsilon \vdash m : A}$, then $m$ is a value or there exists $m'$ such that $m \Leadsto m'$.
+\end{theorem}
+\begin{proof}
+  By induction on the derivation of ${\Theta ; \epsilon ; \epsilon \vdash m : A}$.
+  We present the following cases.
+
+\textbf{Case} (\textsc{Var}): Impossible since the context is empty.
+
+\textbf{Case} (\textsc{Explicit-Lam}): Trivial since $\lamR{t}{x : A}{m_0}$ is a value.
+
+\textbf{Case} (\textsc{Explicit-App}):
+  By the induction hypothesis we have that either $m$ is a value or there exists $m'$ such that $m \Leadsto m'$.
+  If $m \Leadsto m'$, then we are done by \textsc{Step-Explicit-App$_1$}.
+  If $m$ is a value, by \Cref{lemma:program-explicit-fun-canonical} we have two sub-cases:
+  (1) $m = \lamR{t}{x : A}{m_0}$ and (2) $m = \sendR{u}$.
+
+  In sub-case (1) $m = \lamR{t}{x : A}{m_0}$, by the induction hypothesis on $n$ we have
+  that either $n$ is a value or there exists $n'$ such that $n \Leadsto n'$.
+  If $n \Leadsto n'$, then we are done by \textsc{Step-Explicit-App$_2$}.
+  If $n$ is a value, then we are done by \textsc{Step-Explicit-$\beta$}.
+
+  In sub-case (2) $m = \sendR{u}$, by the induction hypothesis on $n$ we have
+  that either $n$ is a value or there exists $n'$ such that $n \Leadsto n'$.
+  If $n \Leadsto n'$, then we are done by \textsc{Step-Explicit-App$_2$}.
+  If $n$ is a value $v$, then we are done as $\sendR{u}\ v$ is a value.
+
+\textbf{Case} (\textsc{Explicit-Pair}):
+  By assumption we have 
+  ${\Theta_1 ; \Gamma ; \Delta_1 \vdash m_1 : A}$ and 
+  ${\Theta_2 ; \Gamma ; \Delta_2 \vdash m_2 : B[m_1/x]}$.
+  From the induction hypothesis we have that either $m_1$ is a value or there exists $m_1'$ such that $m_1 \Leadsto m_1'$.
+  If $m_1 \Leadsto m_1'$, then we are done by \textsc{Step-Explicit-Pair$_1$}.
+  If $m_1$ is a value $u$, then by the induction hypothesis on $m_2$ we have
+  that either $m_2$ is a value or there exists $m_2'$ such that $m_2 \Leadsto m_2'$.
+  If $m_2 \Leadsto m_2'$, then we are done by \textsc{Step-Explicit-Pair$_2$}.
+  If $m_2$ is a value $v$, then we are done since $\pairR{u}{v}{t}$ is a value.
+
+\textbf{Case} (\textsc{Explicit-SumElim}):
+  By the induction hypothesis we have that either $m$ is a value or there exists $m'$ such that $m \Leadsto m'$.
+  If $m \Leadsto m'$, then we are done by \textsc{Step-SumElim$_1$}.
+  If $m$ is a value, by \Cref{lemma:program-sig-canonical} we have $m = \pairR{u}{v}{t}$ for some $u, v$ and $t$.
+  We are done by \textsc{Step-Explicit-PairElim}.
+
+\textbf{Case} (\textsc{BoolElim}):
+  By the induction hypothesis we have that either $m$ is a value or there exists $m'$ such that $m \Leadsto m'$.
+  If $m \Leadsto m'$, then we are done by \textsc{Step-BoolElim$_1$}.
+  If $m$ is a value, by \Cref{lemma:program-bool-canonical} we have two sub-cases:
+  (1) $m = \bTrue$ and (2) $m = \bFalse$.
+  In sub-case (1) $m = \bTrue$, we are done by \textsc{Step-TrueElim}.
+  In sub-case (2) $m = \bFalse$, we are done by \textsc{Step-FalseElim}.
+
+\textbf{Case} (\textsc{Return}):
+  By the induction hypothesis we have that either $m$ is a value or there exists $m'$ such that $m \Leadsto m'$.
+  If $m \Leadsto m'$, then we are done by \textsc{Step-Return}.
+  If $m$ is a value, then $\return{m}$ is a value.
+
+\textbf{Case} (\textsc{Bind}):
+  By the induction hypothesis we have that either $m$ is a value or there exists $m'$ such that $m \Leadsto m'$.
+  If $m \Leadsto m'$, then we are done by \textsc{Step-Bind}.
+  If $m$ is a value, then $\letin{x}{m}{n}$ is a value.
+
+For the session typing rules, the term $m$ is a thunked computation and thus a value.
+\end{proof}
