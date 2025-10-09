@@ -2,7 +2,7 @@ The session fidelity property ensures that well-typed processes
 will adhere to the protocols specified by their session types during execution.
 To prove this property, we first must prove that structural congruence preserves typing.
 
-\begin{lemma}[Congruence]\label{lemma:congruence}
+\begin{lemma}[Congruence]\label[lemma]{lemma:congruence}
   Given $\Theta \Vdash P$ and $P \equiv Q$, then $\Theta \Vdash Q$.  
 \end{lemma}
 \begin{proof}
@@ -83,3 +83,165 @@ To prove this property, we first must prove that structural congruence preserves
 \begin{theorem}[Session Fidelity]\label{theorem:fidelity}
   If $\Theta \Vdash P$ and $P \Rrightarrow Q$, then $\Theta \Vdash Q$.
 \end{theorem}
+\begin{proof}
+  By induction on the derivation of $P \Rrightarrow Q$ and case analysis on the typing judgment.
+
+\noindent
+\textbf{Case} (\textsc{Proc-Fork}):
+  \begin{align*}
+    \proc{\letin{x}{\fork{y : A}{m}}{n}}
+    \Rrightarrow
+    \scope{cd}{(\proc{n[c/x]} \mid \proc{m[d/y]})} 
+  \end{align*}
+  By inversion on $\Theta \Vdash \proc{\letin{x}{\fork{y : A}{m}}{n}}$ we have
+  $$\Theta ; \epsilon ; \epsilon \vdash \letin{x}{\fork{y : A}{m}}{n} : \CM{\unit}$$
+  By \Cref{lemma:program-inversion-bind} we have
+  $\Theta_1 ; x : B ; x :_r B \vdash n : \CM{\unit}$ and
+  $\Theta_2 ; \epsilon ; \epsilon \vdash \fork{y : A}{m_0} : \CM{B}$ and $\Theta = \Theta_1 \dotcup \Theta_2$.
+  Applying \Cref{lemma:program-inversion-fork} to the later we have
+  $${\Theta_2 ; y : \CH{A'} ; y :_t \CH{A'} \vdash m_0 : \CM{\unit}}$$
+  and $A = \CH{A'}$ and $\CM{B} \simeq \CM{\HC{A'}}$.
+  By the validity of context ${\Theta_2 ; y : \CH{A'} ; y :_t \CH{A'} \vdash}$ we have
+  $\epsilon \vdash \CH{A'} : t$. By \textsc{ChType} and \Cref{theorem:sort-uniqueness} we have $t = \Ln$.
+  Applying \Cref{corollary:inj-monad} to $\CM{B} \simeq \CM{\HC{A'}}$ we have $B \simeq \HC{A'}$.
+  Applying \Cref{corollary:program-context-conv-explicit} to 
+  ${\Theta_1 ; x : B ; x :_r B \vdash n : \CM{\unit}}$ using $B \simeq \HC{A'}$ we have
+  $${\Theta_1 ; x : \HC{A'} ; x :_r \HC{A'} \vdash n : \CM{\unit}}$$
+  By the validity of context ${\Theta_1 ; x : \HC{A'} ; x :_r \HC{A'} \vdash}$ we have
+  $\epsilon \vdash \HC{A'} : r$. By \textsc{HcType} and \Cref{theorem:sort-uniqueness} we have $r = \Ln$.
+
+  \noindent
+  By \textsc{Channel-HC}, for some fresh channel $c$ we have
+  $c \tL \HC{A'} ; \epsilon ; \epsilon \vdash c : \HC{A'}$.
+
+  \noindent
+  By \textsc{Channel-HC}, for some fresh channel $d$ we have
+  $d \tL \CH{A'} ; \epsilon ; \epsilon \vdash d : \CH{A'}$.
+
+  \noindent
+  By \Cref{lemma:program-subst-explicit} we have ${\Theta_1, c \tL \HC{A'} ; \epsilon ; \epsilon  \vdash n[c/x] : \CM{\unit}}$.
+
+  \noindent
+  By \Cref{lemma:program-subst-explicit} we have ${\Theta_2, d \tL \CH{A'} ; \epsilon ; \epsilon  \vdash m_0[d/y] : \CM{\unit}}$.
+
+  \noindent
+  By \textsc{Expr} we have $\Theta_1, c \tL \HC{A'} \Vdash \proc{n[c/x]}$ and
+  $\Theta_2, d \tL \CH{A'} \Vdash \proc{m_0[d/y]}$.
+
+  \noindent
+  By \textsc{Par} we have
+  ${\Theta_1, c \tL \HC{A'} \dotcup \Theta_2, d \tL \CH{A'} \Vdash \proc{n[c/x]} \mid \proc{m_0[d/y]}}$.
+
+  \noindent
+  Since $c$ and $d$ are fresh, we have
+  ${(\Theta_1 \dotcup \Theta_2), c \tL \HC{A'}, d \tL \CH{A'} \Vdash \proc{n[c/x]} \mid \proc{m_0[d/y]}}$.
+
+  \noindent
+  By \textsc{Scope} we have
+  ${\Theta_1 \dotcup \Theta_2 \Vdash \scope{cd}{(\proc{n[c/x]} \mid \proc{m_0[d/y]})}}$
+  which concludes this case.
+
+\noindent
+\textbf{Case} (\textsc{Proc-End}):
+  \begin{align*}
+    &\scope{cd}{(\proc{\letin{x}{\close{c}}{m}} \mid \proc{\letin{y}{\wait{d}}{n}})} \\
+    &\quad\Rrightarrow 
+     \proc{\letin{x}{\return{\ii}}{m}} \mid \proc{\letin{y}{\return{\ii}}{n}} 
+  \end{align*}
+  By inversion on $\Theta \Vdash \scope{cd}{(\proc{\letin{x}{\close{c}}{m}} \mid \proc{\letin{y}{\wait{d}}{n}})}$ we have either
+  \begin{enumerate}
+    \item $\Theta, c \tL \CH{A}, d \tL \HC{A} \Vdash \proc{\letin{x}{\close{c}}{m}} \mid \proc{\letin{y}{\wait{d}}{n}}$
+    \item $\Theta, c \tL \HC{A}, d \tL \CH{A} \Vdash \proc{\letin{x}{\close{c}}{m}} \mid \proc{\letin{y}{\wait{d}}{n}}$
+  \end{enumerate}
+
+  In sub-case (2), by inversion on its typing derivation we have
+  ${\Theta_1, c \tL \HC{A} \Vdash \proc{\letin{x}{\close{c}}{m}}}$ and
+  ${\Theta_2, d \tL \CH{A} \Vdash \proc{\letin{y}{\wait{d}}{n}}}$ such that ${\Theta = \Theta_1 \dotcup \Theta_2}$.
+
+  \noindent
+  By inversion on $\Theta_1, c \tL \HC{A} \Vdash \proc{\letin{x}{\close{c}}{m}}$ we have
+  $$\Theta_1, c \tL \HC{A} ; \epsilon ; \epsilon \vdash \letin{x}{\close{c}}{m} : \CM{\unit}$$
+
+  \noindent
+  By \Cref{lemma:program-inversion-bind} we have
+  $\Theta_{11}, c \tL \HC{A} ; \epsilon ; \epsilon \vdash \close{c} : \CM{B}$.
+
+  \noindent
+  By \Cref{lemma:program-inversion-close} we have $\Theta_{11}, c \tL \HC{A} ; \epsilon ; \epsilon \vdash c : \CH{\End}$
+  which is a contradiction since $c$ cannot be $\CH{\End}$ in this context. Thus this sub-case is impossible.
+
+  In sub-case (1), by inversion on its typing derivation we have
+  ${\Theta_1, c \tL \CH{A} \Vdash \proc{\letin{x}{\close{c}}{m}}}$ and
+  ${\Theta_2, d \tL \HC{A} \Vdash \proc{\letin{y}{\wait{d}}{n}}}$ such that ${\Theta = \Theta_1 \dotcup \Theta_2}$.
+
+  \noindent
+  By inversion on $\Theta_1, c \tL \CH{A} \Vdash \proc{\letin{x}{\close{c}}{m}}$ we have
+  $$\Theta_1, c \tL \CH{A} ; \epsilon ; \epsilon \vdash \letin{x}{\close{c}}{m} : \CM{\unit}$$
+
+  \noindent
+  By inversion on $\Theta_2, d \tL \HC{A} \Vdash \proc{\letin{y}{\wait{d}}{n}}$ we have
+  $$\Theta_2, d \tL \HC{A} ; \epsilon ; \epsilon \vdash \letin{y}{\wait{d}}{n} : \CM{\unit}$$
+
+  \noindent
+  By \Cref{lemma:program-inversion-bind} we have
+  $$
+    \Theta_{11}, c \tL \CH{A} ; \epsilon ; \epsilon \vdash \close{c} : \CM{B_1}
+    \text{ and }
+    \Theta_{12} ; x : B_1 ; x :_s B_1 \vdash m : \CM{\unit}
+    \text{ and } {\Theta_1 = \Theta_{11} \dotcup \Theta_{12}}
+  $$
+  By \Cref{lemma:program-inversion-bind} we have
+  $$
+    \Theta_{21}, d \tL \HC{A} ; \epsilon ; \epsilon \vdash \wait{d} : \CM{B_2}
+    \text{ and }
+    \Theta_{22}  ; y : B_2 ; y :_t B_2 \vdash n : \CM{\unit}
+    \text{ and } {\Theta_2 = \Theta_{21} \dotcup \Theta_{22}}
+  $$
+
+  \noindent
+  Applying \Cref{lemma:program-inversion-close} on 
+  $\Theta_{11}, c \tL \CH{A} ; \epsilon ; \epsilon \vdash \close{c} : \CM{B_1}$ gives us
+  $$
+    \Theta_{11}, c \tL \CH{A} ; \epsilon ; \epsilon \vdash c : \CH{\End}
+    \quad\text{and}\quad
+    \CM{B_1} \simeq \CM{\unit}
+  $$
+  which implies $A \simeq \End$, $B_1 \simeq \unit$, and $\Theta_{11} = \epsilon$.
+
+  \noindent
+  Applying \Cref{lemma:program-inversion-wait} on
+  $\Theta_{21}, d \tL \HC{A} ; \epsilon ; \epsilon \vdash \wait{d} : \CM{B_2}$ gives us
+  $$
+    \Theta_{21}, d \tL \HC{A} ; \epsilon ; \epsilon \vdash d : \HC{\End}
+    \quad\text{and}\quad
+    \CM{B_2} \simeq \CM{\unit}
+  $$
+  which implies $A \simeq \End$, $B_2 \simeq \unit$ and $\Theta_{21} = \epsilon$.
+
+  \noindent
+  By \Cref{corollary:program-context-conv-explicit} we have
+  $$
+    \Theta_{12} ; x : \unit ; x :_\Un \unit \vdash m : \CM{\unit}
+    \quad\text{and}\quad
+    \Theta_{22}  ; y : \unit ; y :_\Un \unit \vdash n : \CM{\unit}
+  $$
+
+  \noindent
+  Since $\Theta_{11} = \epsilon$ and $\Theta_{21} = \epsilon$, we have
+  $$
+    \Theta_{11} ; \epsilon ; \epsilon \vdash \return{\ii} : \CM{\unit}
+    \quad\text{and}\quad
+    \Theta_{21} ; \epsilon ; \epsilon \vdash \return{\ii} : \CM{\unit}
+  $$
+
+  \noindent
+  Applying \textsc{Bind}, we have
+  $$\Theta_{11} \dotcup \Theta_{12} ; \epsilon ; \epsilon \vdash \letin{x}{\return{\ii}}{m} : \CM{\unit}$$
+  and 
+  $$\Theta_{21} \dotcup \Theta_{22} ; \epsilon ; \epsilon \vdash \letin{y}{\return{\ii}}{n} : \CM{\unit}$$
+
+  \noindent
+  Applying \textsc{Expr} and \textsc{Par}, we have
+  $$(\Theta_{11} \dotcup \Theta_{12}) \dotcup (\Theta_{21} \dotcup \Theta_{22}) \Vdash \proc{\letin{x}{\return{\ii}}{m}} \mid \proc{\letin{y}{\return{\ii}}{n}}$$
+  which concludes this case since $(\Theta_{11} \dotcup \Theta_{12}) \dotcup (\Theta_{21} \dotcup \Theta_{22}) = \Theta$.
+\end{proof}

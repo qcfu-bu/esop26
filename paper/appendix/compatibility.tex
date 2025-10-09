@@ -170,7 +170,7 @@ as it needs to track linear variables in the program context.
 \end{proof}
 
 \begin{corollary}\label[corollary]{corollary:program-context-conv-explicit}
-  If $\Theta ; \Gamma, x : A ; \Delta \vdash m : C$ and 
+  If $\Theta ; \Gamma, x : A ; \Delta \vdash m : C$ and $\Gamma \vdash B : s$ and 
   $A \simeq B$, then $\Theta ; \Gamma, x : B ; \Delta \vdash m : C$.
 \end{corollary}
 
@@ -534,6 +534,32 @@ typing derivations.
 \begin{lemma}\label[lemma]{lemma:program-inversion-return}
   If ${\Theta ; \Gamma ; \Delta \vdash \return{m} : \CM{A}}$, then
   ${\Theta ; \Gamma ; \Delta \vdash m : A}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-bind}
+  If ${\Theta ; \Gamma ; \Delta \vdash \letin{m}{x}{n} : \CM{B}}$, then
+  there exists $A, \Theta_1, \Theta_2, \Delta_1, \Delta_2$ such that
+  $\Theta_1 ; \Gamma ; \Delta_1 \vdash m : \CM{A}$ and
+  $\Theta_2 ; \Gamma, x : A ; \Delta_2, x :_s A \vdash n : \CM{B}$ and
+  $\Theta = \Theta_1 \dotcup \Theta_2$ and $\Delta = \Delta_1 \dotcup \Delta_2$. 
+  and $x \notin \FV{B}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-fork}
+  If ${\Theta ; \Gamma ; \Delta \vdash \fork{x : A}{m} : B}$, then
+  there exists $A'$ such that ${\Gamma \vdash A' : \Proto}$ and $A = \CH{A'}$ and
+  $B \simeq \CM{\HC{A'}}$ and
+  ${\Theta ; \Gamma, x : \CH{A'} ; \Delta, x :_\Ln \CH{A'} \vdash m : \CM{\unit}}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-close}
+  If ${\Theta ; \Gamma ; \Delta \vdash \close{m} : A}$, then
+  ${\Theta ; \Gamma ; \Delta \vdash m : \CH{\End}}$ and $A \simeq \CM{\unit}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-wait}
+  If ${\Theta ; \Gamma ; \Delta \vdash \wait{m} : A}$, then
+  ${\Theta ; \Gamma ; \Delta \vdash m : \HC{\End}}$ and $A \simeq \CM{\unit}$.
 \end{lemma}
 
 \paragraph{\textbf{Type Validity}}
