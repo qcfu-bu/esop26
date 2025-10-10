@@ -242,6 +242,226 @@ To prove this property, we first must prove that structural congruence preserves
 
   \noindent
   Applying \textsc{Expr} and \textsc{Par}, we have
-  $$(\Theta_{11} \dotcup \Theta_{12}) \dotcup (\Theta_{21} \dotcup \Theta_{22}) \Vdash \proc{\letin{x}{\return{\ii}}{m}} \mid \proc{\letin{y}{\return{\ii}}{n}}$$
+  $$
+    (\Theta_{11} \dotcup \Theta_{12}) \dotcup (\Theta_{21} \dotcup \Theta_{22}) \Vdash 
+    \proc{\letin{x}{\return{\ii}}{m}} \mid \proc{\letin{y}{\return{\ii}}{n}}
+  $$
   which concludes this case since $(\Theta_{11} \dotcup \Theta_{12}) \dotcup (\Theta_{21} \dotcup \Theta_{22}) = \Theta$.
+
+\noindent
+\textbf{Case} (\textsc{Proc-Com}):
+  \begin{align*}
+    &\scope{cd}{(\proc{\letin{x}{\appR{\sendR{c}}{v}}{m}} \mid \proc{\letin{y}{\recvR{d}}{n}})} \\
+    &\quad\Rrightarrow 
+     \scope{cd}{(\proc{\letin{x}{\return{c}}{m}} \mid \proc{\letin{y}{\return{\pairR{v}{d}{\Ln}}}{n}})}
+  \end{align*}
+
+  By inversion on $\Theta \Vdash \scope{cd}{(\proc{\letin{x}{\appR{\sendR{c}}{v}}{m}} \mid \proc{\letin{y}{\recvR{d}}{n}})}$ we have either
+  \begin{enumerate}
+    \item $\Theta, c \tL \CH{A}, d \tL \HC{A} \Vdash \proc{\letin{x}{\appR{\sendR{c}}{v}}{m}} \mid \proc{\letin{y}{\recvR{d}}{n}}$
+    \item $\Theta, c \tL \HC{A}, d \tL \CH{A} \Vdash \proc{\letin{x}{\appR{\sendR{c}}{v}}{m}} \mid \proc{\letin{y}{\recvR{d}}{n}}$
+  \end{enumerate}
+
+  In sub-case (1), by inversion on its typing derivation we have
+  ${\Theta_1, c \tL \CH{A} \Vdash \proc{\letin{x}{\appR{\sendR{c}}{v}}{m}}}$ and
+  ${\Theta_2, d \tL \HC{A} \Vdash \proc{\letin{y}{\recvR{d}}{n}}}$ such that ${\Theta = \Theta_1 \dotcup \Theta_2}$.
+
+  \noindent
+  By inversion on $\Theta_1, c \tL \CH{A} \Vdash \proc{\letin{x}{\appR{\sendR{c}}{v}}{m}}$ we have
+  $$\Theta_1, c \tL \CH{A} ; \epsilon ; \epsilon \vdash \letin{x}{\appR{\sendR{c}}{v}}{m} : \CM{\unit}$$
+
+  \noindent
+  By inversion on $\Theta_2, d \tL \HC{A} \Vdash \proc{\letin{y}{\recvR{d}}{n}}$ we have
+  $$\Theta_2, d \tL \HC{A} ; \epsilon ; \epsilon \vdash \letin{y}{\recvR{d}}{n} : \CM{\unit}$$
+
+  \noindent
+  Applying \Cref{lemma:program-inversion-bind} to 
+  $\Theta_1, c \tL \CH{A} ; \epsilon ; \epsilon \vdash \letin{x}{\appR{\sendR{c}}{v}}{m} : \CM{\unit}$
+  we have
+  $$
+    \Theta_{11}, c \tL \CH{A} ; \epsilon ; \epsilon \vdash \appR{\sendR{c}}{v} : \CM{B_1}
+    \text{ and }
+    \Theta_{12} ; x : B_1 ; x :_s B_1 \vdash m : \CM{\unit}
+    \text{ and } {\Theta_1 = \Theta_{11} \dotcup \Theta_{12}}
+  $$
+
+  \noindent
+  Applying \Cref{lemma:program-inversion-bind} to
+  $\Theta_2, d \tL \HC{A} ; \epsilon ; \epsilon \vdash \letin{y}{\recvR{d}}{n} : \CM{\unit}$
+  we have
+  $$
+    \Theta_{21}, d \tL \HC{A} ; \epsilon ; \epsilon \vdash \recvR{d} : \CM{B_2}
+    \text{ and }
+    \Theta_{22}  ; y : B_2 ; y :_t B_2 \vdash n : \CM{\unit}
+    \text{ and } {\Theta_2 = \Theta_{21} \dotcup \Theta_{22}}
+  $$
+
+  \noindent
+  Applying \Cref{lemma:program-inversion-explicit-app} on
+  $\Theta_{11}, c \tL \CH{A} ; \epsilon ; \epsilon \vdash \appR{\sendR{c}}{v} : \CM{B_1}$
+  then there exists $A', B_1'$ such that
+  \begin{align*}
+    & \Theta_{111}, c \tL \CH{A} ; \epsilon ; \epsilon \vdash \sendR{c} : \PiR{t}{x : A'}{B_1'} \\
+    & \Theta_{112} ; \epsilon ; \epsilon \vdash v : A' \\
+    & \CM{B_1} \simeq B_1'[v/x] \quad\text{and}\quad \Theta_{11} = \Theta_{111} \dotcup \Theta_{112}
+  \end{align*}
+
+  \noindent
+  Applying \Cref{lemma:program-inversion-explicit-send} on
+  $\Theta_{111}, c \tL \CH{A} ; \epsilon ; \epsilon \vdash \sendR{c} : \PiR{t}{x : A'}{B_1'}$
+  gives us either
+  \begin{enumerate}[(a)]
+    \item $\PiR{t}{x : A'}{B_1'} \simeq \PiR{\Ln}{A''}{\CM{\CH{B_1''}}}$ and
+          $\Theta_{111}, c \tL \CH{A} ; \epsilon ; \epsilon \vdash c : \CH{\ActR{!}{x : A''}{B_1''}}$.
+    \item $\PiR{t}{x : A'}{B_1'} \simeq \PiR{\Ln}{A''}{\CM{\HC{B_1''}}}$ and
+          $\Theta_{111}, c \tL \CH{A} ; \epsilon ; \epsilon \vdash c : \HC{\ActR{?}{x : A''}{B_1''}}$.
+  \end{enumerate}
+  In (b), we have a contradiction since $c$ cannot be $\HC{\ActR{?}{x : A''}{B_1''}}$ in this context.
+  Thus (b) is impossible. In (a), we have $A' \simeq A''$ and $B_1' \simeq \CM{\CH{B_1''}}$ by \Cref{corollary:inj-explicit-fun}.
+  Additionally, we have $A \simeq \ActR{!}{x : A''}{B_1''}$ and $B_1 \simeq \CH{B_1''[v/x]}$ and $\Theta_{111} = \epsilon$.
+
+  \noindent
+  Applying \Cref{lemma:program-inversion-explicit-recv} on
+  $\Theta_{21}, d \tL \HC{A} ; \epsilon ; \epsilon \vdash \recvR{d} : \CM{B_2}$
+  gives us either
+  \begin{enumerate}[(a)]
+    \item $\CM{B_2} \simeq \CM{\SigR{\Ln}{x : A'''}{\CH{B_2'}}}$ and
+          $\Theta_{21}, d \tL \HC{A} ; \epsilon ; \epsilon \vdash d : \CH{\ActR{?}{x : A'''}{B_2'}}$.
+    \item $\CM{B_2} \simeq \CM{\SigR{\Ln}{x : A'''}{\HC{B_2'}}}$ and
+          $\Theta_{21}, d \tL \HC{A} ; \epsilon ; \epsilon \vdash d : \HC{\ActR{!}{x : A'''}{B_2'}}$.
+  \end{enumerate}
+  In (a), we have a contradiction since $d$ cannot be $\CH{\ActR{?}{x : A'''}{\CH{B_2'}}}$ in this context.
+  Thus (a) is impossible. In (b), we have $B_2 \simeq \SigR{\Ln}{x : A'''}{\HC{B_2'}}$ by \Cref{corollary:inj-monad}.
+  Additionally, we have $A \simeq \ActR{!}{x : A'''}{B_2'}$ and $\Theta_{21} = \epsilon$.
+
+  \noindent
+  Since $A \simeq \ActR{!}{x : A''}{B_1''}$ and $A \simeq \ActR{!}{x : A'''}{B_2'}$, by
+  transitivity of $\simeq$ we have $$\ActR{!}{x : A''}{B_1''} \simeq \ActR{!}{x : A'''}{B_2'}$$
+  By \Cref{corollary:inj-implicit-action} we have $A' \simeq A'' \simeq A'''$ and $B_1'' \simeq B_2'$. 
+
+  \noindent
+  By \textsc{Channel-CH}, we have $c \tL \CH{B_1''[v/x]} ; \epsilon ; \epsilon \vdash c : \CH{B_1''[v/x]}$.
+
+  \noindent
+  By \textsc{Channel-HC}, we have $d \tL \HC{B_1''[v/x]} ; \epsilon ; \epsilon \vdash d : \HC{B_1''[v/x]}$.
+
+  \noindent
+  Applying \textsc{Return} to ${c \tL \CH{B_1''[v/x]} ; \epsilon ; \epsilon \vdash c : \CH{B_1''[v/x]}}$
+  we have $${c \tL \CH{B_1''[v/x]} ; \epsilon ; \epsilon \vdash \return{c} : \CM{\CH{B_1''[v/x]}}}$$
+
+  \noindent
+  Since there is $B_1 \simeq \CH{B_1''[v/x]}$, we can apply \textsc{Bind} to create
+  $$\Theta_{12}, c \tL \CH{B_1''[v/x]} ; \epsilon ; \epsilon \vdash \letin{x}{\return{c}}{m} : \CM{\unit}$$
+
+  \noindent
+  Pairing with $v$ with $d$ using \textsc{Explicit-Pair} we have
+  $$\Theta_{112}, d \tL \HC{B_1''[v/x]} ; \epsilon ; \epsilon \vdash \pairR{v}{d}{\Ln} : \SigR{\Ln}{x : A'}{\HC{B_1''}}$$
+
+  \noindent
+  Apply \textsc{Return} to 
+  $\Theta_{112}, d \tL \HC{B_1''[v/x]} ; \epsilon ; \epsilon \vdash \pairR{v}{d}{\Ln} : \SigR{\Ln}{x : A'}{\HC{B_1''}}$
+  we have
+  $$\Theta_{112}, d \tL \HC{B_1''[v/x]} ; \epsilon ; \epsilon \vdash \return{\pairR{v}{d}{\Ln}} : \CM{\SigR{\Ln}{x : A'}{\HC{B_1''}}}$$
+
+  \noindent
+  Since $B_2 \simeq \SigR{\Ln}{x : A'''}{\HC{B_2'}} \simeq \SigR{\Ln}{x : A'}{\HC{B_1''}}$, we have
+  $$\Theta_{112} \dotcup \Theta_{22}, d \tL \HC{B_1''[v/x]} ; \epsilon ; \epsilon \vdash \letin{y}{\return{\pairR{v}{d}{\Ln}}}{n} : \CM{\unit}$$
+
+  \noindent
+  By \textsc{Expr} we have
+  $$\Theta_{12}, c \tL \CH{B_1''[v/x]} \Vdash \proc{\letin{x}{\return{c}}{m}}$$
+  and
+  $$\Theta_{112} \dotcup \Theta_{22}, d \tL \HC{B_1''[v/x]} \Vdash \proc{\letin{y}{\return{\pairR{v}{d}{\Ln}}}{n}}$$
+
+  \noindent
+  By \textsc{Par} we have
+  \begin{align*}
+  &(\Theta_{112} \dotcup \Theta_{12} \dotcup \Theta_{22}), c \tL \CH{B_1''[v/x]}, d \tL \HC{B_1''[v/x]} \Vdash \\
+  &\qquad\quad\proc{\letin{x}{\return{c}}{m}} \mid \proc{\letin{y}{\return{\pairR{v}{d}{\Ln}}}{n}}
+  \end{align*}
+
+  \noindent
+  By \textsc{Scope} we have
+  $${\Theta_{112} \dotcup \Theta_{12} \dotcup \Theta_{22} \Vdash 
+    \scope{cd}{(\proc{\letin{x}{\return{c}}{m}} \mid \proc{\letin{y}{\return{\pairR{v}{d}{\Ln}}}{n}})}}$$
+  
+  \noindent
+  Since $\Theta_{111} = \epsilon$, $\Theta_{21} = \epsilon$,
+  we have 
+  $\Theta = ((\Theta_{111} \dotcup \Theta_{112}) \dotcup \Theta_{12}) \dotcup (\Theta_{21} \dotcup \Theta_{22})$ which means
+  $${\Theta \Vdash \scope{cd}{(\proc{\letin{x}{\return{c}}{m}} \mid \proc{\letin{y}{\return{\pairR{v}{d}{\Ln}}}{n}})}}$$
+  thus concluding this sub-case.
+
+  For sub-case (2), the proof is similar to sub-case (1). The only difference is that the $\CH{\cdot}$ and
+  $\HC{\cdot}$ types are swapped.
+
+\noindent
+\textbf{Case} (\textsc{Proc-\underline{Com}}):
+  \begin{align*}
+    &\scope{cd}{(\proc{\letin{x}{\appI{\sendI{c}}{o}}{m}} \mid \proc{\letin{y}{\recvI{d}}{n}})} \\
+    &\quad\Rrightarrow 
+     \scope{cd}{(\proc{\letin{x}{\return{c}}{m}} \mid \proc{\letin{y}{\return{\pairI{o}{d}{\Ln}}}{n}})}
+  \end{align*}
+  The proof is similar to the previous case (\textsc{Proc-Com}) with the only difference being
+  explicit applications are replaced with implicit applications.
+
+\noindent
+\textbf{Case} (\textsc{Proc-Expr}):
+\begin{mathpar}
+  \inferrule
+  { m \Leadsto m' }
+  { \proc{m} \Rrightarrow \proc{m'} }
+\end{mathpar}
+
+  By inversion on $\Theta \Vdash \proc{m}$ we have $\Theta ; \epsilon ; \epsilon \vdash m : \CM{\unit}$.
+  By \Cref{theorem:program-subject-reduction} we have $\Theta ; \epsilon ; \epsilon \vdash m' : \CM{\unit}$.
+  By \textsc{Expr} we have $\Theta \Vdash \proc{m'}$ which concludes this case.
+
+\noindent
+\textbf{Case} (\textsc{Proc-Par}):
+  \begin{mathpar}
+    \inferrule
+    { P \Rrightarrow Q }
+    { O \mid P \Rrightarrow O \mid Q }
+  \end{mathpar}
+  By inversion on $\Theta \Vdash O \mid P$ we have
+  $\Theta_1 \Vdash O$ and $\Theta_2 \Vdash P$ such that $\Theta = \Theta_1 \dotcup \Theta_2$.
+  By the induction hypothesis we have $\Theta_2 \Vdash Q$.
+  By \textsc{Par} we have $\Theta_1 \dotcup \Theta_2 \Vdash O \mid Q$ which concludes this case.
+
+\noindent
+\textbf{Case} (\textsc{Proc-Scope}):
+  \begin{mathpar}
+    \inferrule
+    { P \Rrightarrow Q }
+    { \scope{cd}{P} \Rrightarrow \scope{cd}{Q} }
+  \end{mathpar}
+  By inversion on $\Theta \Vdash \scope{cd}{P}$ we have either
+  \begin{enumerate}
+    \item $\Theta, c \tL \CH{A}, d \tL \HC{A} \Vdash P$
+    \item $\Theta, c \tL \HC{A}, d \tL \CH{A} \Vdash P$
+  \end{enumerate}
+
+  In case (1), by the induction hypothesis we have
+  $\Theta, c \tL \CH{A}, d \tL \HC{A} \Vdash Q$.
+
+  \noindent
+  By \textsc{Scope} we have $\Theta \Vdash \scope{cd}{Q}$ which concludes this sub-case.
+
+  In case (2), by the induction hypothesis we have
+  $\Theta, c \tL \HC{A}, d \tL \CH{A} \Vdash Q$.
+
+  \noindent
+  By \textsc{Scope} we have $\Theta \Vdash \scope{cd}{Q}$ which concludes this sub-case.
+
+\noindent
+\textbf{Case} (\textsc{Proc-Congr}):
+  \begin{mathpar}
+    \inferrule
+    { P \equiv P' \\ P' \Rrightarrow Q' \\ Q' \equiv Q }
+    { P \Rrightarrow Q }
+  \end{mathpar}
+  By \Cref{lemma:congruence} we have $\Theta \Vdash P'$.
+  By the induction hypothesis we have $\Theta \Vdash Q'$.
+  By \Cref{lemma:congruence} we have $\Theta \Vdash Q$ which concludes this case.
 \end{proof}

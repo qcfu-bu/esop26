@@ -507,6 +507,22 @@ typing derivations.
   ${\Theta ; \Gamma, x : A_1 ; \Delta, x :_r A_1 \vdash m : B}$.
 \end{lemma}
 
+\begin{lemma}\label[lemma]{lemma:program-inversion-explicit-app}
+  If ${\Theta ; \Gamma ; \Delta \vdash \appR{m}{n} : C}$, then
+  there exists $A, B, s, \Theta_1, \Theta_2, \Delta_1, \Delta_2$ such that
+  ${\Theta_1 ; \Gamma ; \Delta_1 \vdash m : \PiR{s}{x : A}{B}}$ and
+  ${\Theta_2 ; \Gamma ; \Delta_2 \vdash n : A}$ and
+  $\Theta = \Theta_1 \dotcup \Theta_2$ and $\Delta = \Delta_1 \dotcup \Delta_2$ and
+  $C \simeq B[n/x]$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-implicit-app}
+  If ${\Theta ; \Gamma ; \Delta \vdash \appI{m}{n} : C}$, then
+  there exists $A, B, s$ such that
+  ${\Theta ; \Gamma ; \Delta \vdash m : \PiI{s}{x : A}{B}}$ and
+  ${\Gamma \vdash n : A}$ and $C \simeq B[n/x]$.
+\end{lemma}
+
 \begin{lemma}\label[lemma]{lemma:program-inversion-explicit-pair}
   If ${\Theta ; \Gamma ; \Delta \vdash \pairR{m}{n}{s} : \SigR{t}{x : A}{B}}$, then
   there exists $\Theta_1, \Theta_2, \Delta_1, \Delta_2$ such that
@@ -550,6 +566,46 @@ typing derivations.
   there exists $A'$ such that ${\Gamma \vdash A' : \Proto}$ and $A = \CH{A'}$ and
   $B \simeq \CM{\HC{A'}}$ and
   ${\Theta ; \Gamma, x : \CH{A'} ; \Delta, x :_\Ln \CH{A'} \vdash m : \CM{\unit}}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-explicit-send}
+  If ${\Theta ; \Gamma ; \Delta \vdash \sendR{m} : C}$, then there exists $A, B$
+  such that either 
+  $C \simeq \PiR{\Ln}{x : A}{\CM{\CH{B}}}$ and 
+  ${\Theta ; \Gamma ; \Delta \vdash m : \CH{\ActR{!}{x : A}{B}}}$
+  or
+  $C \simeq \PiR{\Ln}{x : A}{\CM{\HC{B}}}$ and 
+  ${\Theta ; \Gamma ; \Delta \vdash m : \HC{\ActR{?}{x : A}{B}}}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-implicit-send}
+  If ${\Theta ; \Gamma ; \Delta \vdash \sendI{m} : C}$, then there exists $A, B$
+  such that either 
+  $C \simeq \PiI{\Ln}{x : A}{\CM{\CH{B}}}$ and 
+  ${\Theta ; \Gamma ; \Delta \vdash m : \CH{\ActI{!}{x : A}{B}}}$
+  or
+  $C \simeq \PiI{\Ln}{x : A}{\CM{\HC{B}}}$ and 
+  ${\Theta ; \Gamma ; \Delta \vdash m : \HC{\ActI{?}{x : A}{B}}}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-explicit-recv}
+  If ${\Theta ; \Gamma ; \Delta \vdash \recvR{m} : C}$, then there exists $A, B$
+  such that either 
+  $C \simeq \CM{\SigR{\Ln}{x : A}{\CH{B}}}$ and 
+  ${\Theta ; \Gamma ; \Delta \vdash m : \CH{\ActR{?}{x : A}{B}}}$
+  or
+  $C \simeq \CM{\SigR{\Ln}{x : A}{\HC{B}}}$ and 
+  ${\Theta ; \Gamma ; \Delta \vdash m : \HC{\ActR{!}{x : A}{B}}}$.
+\end{lemma}
+
+\begin{lemma}\label[lemma]{lemma:program-inversion-implicit-recv}
+  If ${\Theta ; \Gamma ; \Delta \vdash \recvI{m} : C}$, then there exists $A, B$
+  such that either 
+  $C \simeq \CM{\SigI{\Ln}{x : A}{\CH{B}}}$ and 
+  ${\Theta ; \Gamma ; \Delta \vdash m : \CH{\ActI{?}{x : A}{B}}}$
+  or
+  $C \simeq \CM{\SigI{\Ln}{x : A}{\HC{B}}}$ and 
+  ${\Theta ; \Gamma ; \Delta \vdash m : \HC{\ActI{!}{x : A}{B}}}$.
 \end{lemma}
 
 \begin{lemma}\label[lemma]{lemma:program-inversion-close}
