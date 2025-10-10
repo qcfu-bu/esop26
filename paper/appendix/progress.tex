@@ -549,3 +549,15 @@ We now define the spawning tree semantics through the following reduction rules:
     }
   }
 \end{mathpar}
+
+In the rules above, the \textsc{Root-Fork} and \textsc{Node-Fork} rules
+describe how a \Fork{}-operation spawns a new child process and adds it to the
+set of children processes. The new child process is represented as an internal node.
+The channel connecting the child to its parent is fresh.
+
+The \textsc{Root-End} and \textsc{Node-End} rules describe how a \Close{}/\Wait{}-operation
+detaches a child process from its parent. The detached child process is moved to the set of subtrees.
+
+The \textsc{Root-Comm}, \textsc{Node-Comm$_1$} and \textsc{Node-Comm$_2$},
+rules describe how a parent process communicates real messages with
+one of its children processes. 
