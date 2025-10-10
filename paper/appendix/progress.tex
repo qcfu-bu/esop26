@@ -256,7 +256,7 @@ We now define the spawning tree semantics through the following reduction rules:
     }
   }
   
-  \inferrule[Root-Comm]
+  \inferrule[Root-Send]
   { k \in \mcI \\ 
     \mcP_k = \Node{d_k}{
       \letin{y}{\recvR{d_k}}{n}
@@ -290,7 +290,43 @@ We now define the spawning tree semantics through the following reduction rules:
     }
   }
 
-  \inferrule[Root-\underline{Comm}]
+  \inferrule[Root-Recv]
+  { k \in \mcI \\
+    \mcP_k = \Node{d_k}{
+      \letin{y}{\appR{\sendR{d_k}}{v}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcI' = \{ i \in \mcI_k | c_i \in \FC{v} \} \\
+    \mcP_k' = \Node{d_k}{
+      \letin{y}{\return{d_k}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k \setminus \mcI'},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  {
+    \Root{
+      \letin{x}{\recvR{c_k}}{m}
+    } 
+    {
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \Rrightarrow
+    \Root{
+      \letin{x}{\return{\pairR{v}{c_k}{\Ln}}}{m}
+    }{
+      \{ (c_i, \mcP_i) \}_{i \in (\mcI \setminus \{ k \}) \cup \mcI'} \cup \{ (c_k, \mcP_k') \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+\end{mathpar}
+\clearpage
+
+\begin{mathpar}\footnotesize
+  \inferrule[Root-\underline{Send}]
   { k \in \mcI \\ 
     \mcP_k = \Node{d_k}{
       \letin{y}{\recvI{d_k}}{n}
@@ -323,7 +359,40 @@ We now define the spawning tree semantics through the following reduction rules:
     }
   }
 
-  \inferrule[Node-Comm$_1$]
+  \inferrule[Root-\underline{Recv}]
+  { k \in \mcI \\
+    \mcP_k = \Node{d_k}{
+      \letin{y}{\appI{\sendI{d_k}}{o}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcP_k' = \Node{d_k}{
+      \letin{y}{\return{d_k}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  {
+    \Root{
+      \letin{x}{\recvI{c_k}}{m}
+    } 
+    {
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \Rrightarrow
+    \Root{
+      \letin{x}{\return{\pairI{o}{c_k}{\Ln}}}{m}
+    }{
+      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus \{ k \}} \cup \{ (c_k, \mcP_k') \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+
+
+  \inferrule[Node-Send]
   { k \in \mcI \\ 
     \mcP_k = \Node{d_k}{
       \letin{y}{\recvR{d_k}}{n}
@@ -357,44 +426,73 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ \mcQ_j \}_{j \in \mcJ}
     }
   }
-\end{mathpar}
-\clearpage
 
-\begin{mathpar}\footnotesize
-  \inferrule[Node-Comm$_2$]
-  { k \in \mcI \\ 
+  \inferrule[Node-Recv]
+  { k \in \mcI \\
     \mcP_k = \Node{d_k}{
-      \letin{y}{\recvR{d_k}}{n}
+      \letin{y}{\appR{\sendR{d_k}}{v}}{n}
     }{
       \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
       \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
     } \\
-    \mcI' = \{ i \in \mcI | c_i \in \FC{v} \} \\
-    d \in \FC{v} \\
-    \mcP_k' = \Node{c_k}{
-      \letin{x}{ \return{c_k} }{m} 
+    \mcI' = \{ i \in \mcI_k | c_i \in \FC{v} \} \\
+    \mcP_k' = \Node{d_k}{
+      \letin{y}{\return{d_k}}{n}
     }{
-      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus (\{ k \} \cup \mcI')},
-      \{ \mcQ_j \}_{j \in \mcJ}
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k \setminus \mcI'},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
     }
   }
-  { \Node{d}{\letin{x}{
-        \appR{\sendR{c_k}}{v}
-      }{m}
-    }{
+  {
+    \Node{d}{
+      \letin{x}{\recvR{c_k}}{m}
+    } 
+    {
       \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
       \{ \mcQ_j \}_{j \in \mcJ}
     } \\\\
     \Rrightarrow
     \Node{d}{
-      \letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}
+      \letin{x}{\return{\pairR{v}{c_k}{\Ln}}}{m}
     }{
-      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k \cup \mcI'} \cup \{ (d_k, \mcP_k') \},
-      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+      \{ (c_i, \mcP_i) \}_{i \in (\mcI \setminus \{ k \}) \cup \mcI'} \cup \{ (c_k, \mcP_k') \},
+      \{ \mcQ_j \}_{j \in \mcJ}
     }
   }
 
-  \inferrule[Node-\underline{Comm}]
+  \inferrule[Node-\underline{Recv}]
+  { k \in \mcI \\
+    \mcP_k = \Node{d_k}{
+      \letin{y}{\appI{\sendI{d_k}}{o}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcP_k' = \Node{d_k}{
+      \letin{y}{\return{d_k}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  {
+    \Node{d}{
+      \letin{x}{\recvI{c_k}}{m}
+    } 
+    {
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \Rrightarrow
+    \Node{d}{
+      \letin{x}{\return{\pairI{o}{c_k}{\Ln}}}{m}
+    }{
+      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus \{ k \}} \cup \{ (c_k, \mcP_k') \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+
+  \inferrule[Node-\underline{Send}]
   { k \in \mcI \\ 
     \mcP_k = \Node{d_k}{
       \letin{y}{\recvI{d_k}}{n}
@@ -427,6 +525,42 @@ We now define the spawning tree semantics through the following reduction rules:
     }
   }
 
+  \inferrule[Node-Forward]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{
+      \letin{y}{\recvR{d_k}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcI' = \{ i \in \mcI | c_i \in \FC{v} \} \\
+    d \in \FC{v} \\
+    \mcP_k' = \Node{c_k}{
+      \letin{x}{ \return{c_k} }{m} 
+    }{
+      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus (\{ k \} \cup \mcI')},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+  { \Node{d}{\letin{x}{
+        \appR{\sendR{c_k}}{v}
+      }{m}
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \Rrightarrow
+    \Node{d}{
+      \letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k \cup \mcI'} \cup \{ (d_k, \mcP_k') \},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+\end{mathpar}
+\clearpage
+
+\begin{mathpar}\footnotesize
   \inferrule[Root-Child]
   { k \in \mcI \\
     \mcP_k \Rrightarrow \mcP_k' }
