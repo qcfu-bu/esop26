@@ -348,6 +348,44 @@ We now define the spawning tree semantics through the following reduction rules:
     }
   }
 
+  \text{\TODO}
+  \inferrule[Node-Comm$_2$]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{
+      \letin{y}{\recvR{d_k}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcI' = \{ i \in \mcI | c_i \in \FC{v} \} \\
+    d \in \FC{v} \\
+    \mcP_k' = \Node{d_k}{
+      \letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k \cup \mcI'},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  { \Node{d}{\letin{x}{
+        \appR{\sendR{c_k}}{v}
+      }{m}
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \Rrightarrow
+    \Node{d}{
+      \letin{x}{
+        \return{c_k}
+      }{m} 
+    }{
+      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus (\{ k \} \cup \mcI')} \cup \{ (c_k, \mcP_k') \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+\end{mathpar}
+
+\begin{mathpar}\footnotesize
   \inferrule[Node-\underline{Comm}]
   { k \in \mcI \\ 
     \mcP_k = \Node{d_k}{
@@ -380,9 +418,7 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ \mcQ_j \}_{j \in \mcJ}
     }
   }
-\end{mathpar}
 
-\begin{mathpar}\footnotesize
   \inferrule[Root-Child]
   { k \in \mcI \\
     \mcP_k \Rrightarrow \mcP_k' }
