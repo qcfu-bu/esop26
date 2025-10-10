@@ -11,17 +11,17 @@ The syntax of spawning trees is given below.
 \begin{center}
   \vspace{0.5em}
   \begin{tabular}{r L C L}
-    spawning tree & \mcP, \mcQ & ::= & \Root{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} } \\
-                  &            & \;| & \Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} } \\
+    spawning tree & \mcP, \mcQ & ::= & \Root{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, \{ \mcQ_j \}_{j \in \mcJ} } \\
+                  &            & \;| & \Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, \{ \mcQ_j \}_{j \in \mcJ} } \\
+                  &            & \;| & \mcP \mid \mcQ
   \end{tabular}
   \vspace{0.5em}
 \end{center}
-A spawning tree is either 
-a root node $\Root{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} }$ or 
-an internal node $\Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} }$. 
-Each node is associated with a term $m$ that performs computation and a set of children processes
+Each tree is associated with a term $m$ that performs computation and a set of children processes
 $\{ ( c_i, \mcP_i ) \}_{i \in \mcI}$ where $m$ communicates with each child process $\mcP_i$ through
-channel $c_i$. In the case of internal nodes, $d$ is the channel which $m$ uses to 
+channel $c_i$. It also contains a set of subtrees $\{ \mcQ_j \}_{j \in \mcJ}$ that are no longer in
+communication with $m$ (i.e. they have been detached through \Close{}/\Wait{}-operations).
+In the case of internal nodes, $d$ is the channel which $m$ uses to 
 communicate with its parent process. 
 
 The crucial ideal behind the spawning tree structure is that we are going to
@@ -35,14 +35,16 @@ spawning trees as follows:
 \begin{mathpar}\small
   \inferrule
   { \overline{c_i \tL \HC{A_i}} ; \epsilon ; \epsilon \vdash m :\CM{\unit} \\
-    \forall i \in \mcI,\ A_i \Vdash \mcP_i }
-  { \Vdash \Root{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} } }
+    \forall i \in \mcI,\ A_i \Vdash \mcP_i  \\
+    \forall j \in \mcJ,\ \Vdash \mcQ_j }
+  { \Vdash \Root{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, \{ \mcQ_j \}_{j \in \mcJ} } }
   \textsc{(Valid-Root)}
   \\
   \inferrule
   {  \overline{c_i \tL \HC{A_i}}, d \tL \CH{A} ; \epsilon ; \epsilon \vdash m :\CM{\unit} \\
-    \forall i \in \mcI,\ A_i \Vdash \mcP_i }
-  { A \Vdash \Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} } }
+    \forall i \in \mcI,\ A_i \Vdash \mcP_i \\ 
+    \forall j \in \mcJ,\ \Vdash \mcQ_j }
+  { A \Vdash \Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, \{ \mcQ_j \}_{j \in \mcJ} } }
   \textsc{(Valid-Node)}
 \end{mathpar}
 For the root node, we require that the term $m$ is well-typed in
@@ -57,53 +59,40 @@ We define the \emph{flattening} operation $| \mcP |$ that converts a spawning tr
 a standard process configuration. The operation is defined as follows:
 \begin{mathpar}\small
   \inferrule[Flatten-Root]
-  { \forall i \in \mcI,\ | \mcP_i | = (d_i, P_i) }
-  { | \Root{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} } | = \scope{\overline{c_i d_i}}{(m \mid \overline{P_i})}  }
+  { \forall i \in \mcI,\ | \mcP_i | = (d_i, P_i) \\ 
+    \forall j \in \mcJ,\ | \mcQ_j | = Q_j }
+  { | \Root{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, \{ \mcQ_j \}_{j \in \mcJ} } | = 
+    \scope{\overline{c_i d_i}}{(\proc{m} \mid \overline{P_i})}  
+    \mid \overline{Q_j} }
 
   \inferrule[Flatten-Node]
-  { \forall i \in \mcI,\ | \mcP_i | = (d_i, P_i) }
-  { | \Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} } | = (d, \scope{\overline{c_i d_i}}{(m \mid \overline{P_i})}) }
+  { \forall i \in \mcI,\ | \mcP_i | = (d_i, P_i) \\ 
+    \forall j \in \mcJ,\ | \mcQ_j | = Q_j }
+  { | \Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, \{ \mcQ_j \}_{j \in \mcJ} } | = 
+    (d, \scope{\overline{c_i d_i}}{(\proc{m} \mid \overline{P_i})} \mid \overline{Q_j}) }
 \end{mathpar}
 The flattening operation recursively flattens each child process $\mcP_i$ into
-a channel-process pair $(d_i, P_i)$ and then composes $m$ with all the child processes
-in parallel. The channel pairs ${c_i, d_i}$ are restricted together to ensure proper channel scoping.
+a channel-process pair $(d_i, P_i)$ and each subtree $\mcQ_j$ into a process configuration $Q_j$.
+It then composes $m$ with all the sub-processes in parallel. 
+The channel pairs ${c_i, d_i}$ are restricted to ensure proper channel scoping.
 
 We now connect the validity of spawning trees to the well-typedness of flattened process configurations
-through \Cref{lemma:flatten-node} and \Cref{theorem:flatten-valid}.
-\begin{lemma}[Flatten Node]\label[lemma]{lemma:flatten-node}
-  If ${A \Vdash \mcP}$ and $| \mcP | = (d, P)$, then $d \tL \CH{A} \Vdash P$.
-\end{lemma}
-\begin{proof}
-  By induction on the derivation of $A \Vdash \mcP$. The only case to consider is \textsc{Valid-Node}.
-  From \textsc{Flatten-Node}, we have for each child process $\mcP_i$, $| \mcP_i | = (d_i, P_i)$.
-  By the induction hypothesis, we have $d_i \tL \CH{A_i} \Vdash P_i$ for each $i \in \mcI$.
-  Applying \textsc{Par} repeatedly, we have $\overline{d_i \tL \CH{A_i}} \Vdash \overline{P_i}$.
-
-  \noindent
-  From the premise of \textsc{Valid-Node}, we have
-  $\overline{c_i \tL \HC{A_i}}, d \tL \CH{A} ; \epsilon ; \epsilon \vdash m :\CM{\unit}$.
-
-  \noindent
-  By \textsc{Expr}, we have
-  $\overline{c_i \tL \HC{A_i}}, d \tL \CH{A} \Vdash \proc{m}$.
-
-  \noindent
-  By \textsc{Par}, we have
-  $\overline{c_i \tL \HC{A_i}}, \overline{d_i \tL \CH{A_i}}, d \tL \CH{A} \Vdash (m \mid \overline{P_i})$.
-
-  \noindent
-  Finally, by applying \textsc{Scope} repeatedly, we have
-  $d \tL \CH{A} \Vdash \scope{\overline{c_i d_i}}{(m \mid \overline{P_i})}$ as required.
-\end{proof}
-
+through \Cref{theorem:flatten-valid}.
 \begin{theorem}[Flatten Valid]\label[theorem]{theorem:flatten-valid}
-  If $\Vdash \mcP$ and $| \mcP | = P$, then $\epsilon \Vdash P$.
+  If $\Vdash \mcP$ and $| \mcP | = P$, then $\Vdash P$
+  and
+  if ${A \Vdash \mcP}$ and $| \mcP | = (d, P)$, then $d \tL \CH{A} \Vdash P$.
 \end{theorem}
 \begin{proof}
-  By case analysis on the derivation of $\Vdash \mcP$. The only case to consider is \textsc{Valid-Root}. 
-  From \textsc{Flatten-Root}, we have for each child process $\mcP_i$, $| \mcP_i | = (d_i, P_i)$.
-  By \Cref{lemma:flatten-node}, we have $d_i \tL \CH{A_i} \Vdash P_i$ for each $i \in \mcI$.
-  Applying \textsc{Par} repeatedly, we have $\overline{d_i \tL \CH{A_i}} \Vdash \overline{P_i}$
+  By mutual induction on the derivation of $\Vdash \mcP$ and $A \Vdash \mcP$.
+
+\noindent
+\textbf{Case} (\textsc{Valid-Root}):
+  From \textsc{Flatten-Root}, we have
+  $| \mcP_i | = (d_i, P_i)$ for each child process $\mcP_i$ and
+  $| \mcQ_j | = Q_j$ for each subtree $\mcQ_j$.
+  By the induction hypothesis, we have $d_i \tL \CH{A_i} \Vdash P_i$ for each $i \in \mcI$
+  and $\Vdash Q_j$ for each $j \in \mcJ$.
 
   \noindent
   From the premise of \textsc{Valid-Root}, we have
@@ -114,15 +103,343 @@ through \Cref{lemma:flatten-node} and \Cref{theorem:flatten-valid}.
   $\overline{c_i \tL \HC{A_i}} \Vdash \proc{m}$.
 
   \noindent
-  By \textsc{Par}, we have
-  $\overline{c_i \tL \HC{A_i}}, \overline{d_i \tL \CH{A_i}} \Vdash (m \mid \overline{P_i})$.
+  By applying \textsc{Par} repeated, we have
+  $\overline{c_i \tL \HC{A_i}}, \overline{d_i \tL \CH{A_i}} \Vdash (\proc{m} \mid \overline{P_i})$.
 
   \noindent
-  Finally, by applying \textsc{Scope} repeatedly, we have
-  $\epsilon \Vdash \scope{\overline{c_i d_i}}{(m \mid \overline{P_i})}$ as required.
+  By applying \textsc{Scope} repeatedly, we have
+  $\Vdash \scope{\overline{c_i d_i}}{(\proc{m} \mid \overline{P_i})}$.
+
+  \noindent
+  By applying \textsc{Par} repeatedly, we have
+  $\Vdash \scope{\overline{c_i d_i}}{(\proc{m} \mid \overline{P_i})} \mid \overline{Q_j}$
+  which concludes this case.
+
+\textbf{Case} (\textsc{Valid-Node}):
+  From \textsc{Flatten-Node}, we have for each child process $\mcP_i$, $| \mcP_i | = (d_i, P_i)$ and
+  for each subtree $\mcQ_j$, $| \mcQ_j | = Q_j$.
+  By the induction hypothesis, we have $d_i \tL \CH{A_i} \Vdash P_i$ for each $i \in \mcI$
+  and $\Vdash Q_j$ for each $j \in \mcJ$.
+
+  \noindent
+  From the premise of \textsc{Valid-Node}, we have
+  $\overline{c_i \tL \HC{A_i}}, d \tL \CH{A} ; \epsilon ; \epsilon \vdash m :\CM{\unit}$.
+
+  \noindent
+  By \textsc{Expr}, we have
+  $\overline{c_i \tL \HC{A_i}}, d \tL \CH{A} \Vdash \proc{m}$.
+
+  \noindent
+  By applying \textsc{Par} repeated, we have
+  $\overline{c_i \tL \HC{A_i}}, \overline{d_i \tL \CH{A_i}}, d \tL \CH{A} \Vdash (\proc{m} \mid \overline{P_i})$.
+
+  \noindent
+  By applying \textsc{Scope} repeatedly, we have
+  $d \tL \CH{A} \Vdash \scope{\overline{c_i d_i}}{(\proc{m} \mid \overline{P_i})}$.
+
+  \noindent
+  By applying \textsc{Par} repeatedly, we have
+  ${d \tL \CH{A} \Vdash \scope{\overline{c_i d_i}}{(\proc{m} \mid \overline{P_i})} \mid \overline{Q_j}}$
+  which concludes this case.
 \end{proof}
 
-\begin{definition}
-  We say that a process configuration $P$ is a \emph{reachable} if there exists a spawning tree $\mcP$
-  such that $\Vdash \mcP$ and $| \mcP | = P$.
-\end{definition}
+We now define the spawning tree semantics through the following reduction rules:
+
+\begin{mathpar}\footnotesize
+  \inferrule[Root-Fork]
+  { }
+  { 
+    \Root{ 
+      \letin{x}{\fork{y : A}{m}}{n} 
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, 
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\
+    \quad\Rrightarrow
+    \Root{
+      n[c/x]   
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI} 
+      \cup
+      \{ (c, \Node{d}{m[d/x]}{\emptyset} ) \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+
+  \inferrule[Node-Fork]
+  { }
+  { 
+    \Node{d}{ 
+      \letin{x}{\fork{y : A}{m}}{n} 
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\
+    \quad\Rrightarrow
+    \Node{d}{
+      n[c/x]   
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI} 
+      \cup
+      \{ (c, \Node{d'}{m[d'/x]}{\emptyset} ) \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+
+  \inferrule[Root-End]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{\letin{y}{\close{d_k}}{n}}{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcQ_{j_k} = 
+    \Root{
+      \letin{y}{\return{\ii}}{n}
+    }{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  { 
+    \Root{
+      \letin{x}{\wait{c_k}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \quad\Rrightarrow
+    \Root{
+      \letin{x}{\return{\ii}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \{k\}},
+      \{ \mcQ_j \}_{j \in \mcJ \cup \{k\}}
+    }
+  }
+
+  \inferrule[Node-End]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{\letin{y}{\close{d_k}}{n}}{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcQ_{j_k} = 
+    \Root{
+      \letin{y}{\return{\ii}}{n}
+    }{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  { 
+    \Node{d}{
+      \letin{x}{\wait{c_k}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \quad\Rrightarrow
+    \Node{d}{
+      \letin{x}{\return{\ii}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \{k\}},
+      \{ \mcQ_j \}_{j \in \mcJ \cup \{k\}}
+    }
+  }
+  
+  \inferrule[Root-Comm]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{
+      \letin{y}{\recvR{d_k}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcI' = \{ i \in \mcI | c_i \in \FC{v} \} \\
+    \mcP_k' = \Node{d_k}{
+      \letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k \cup \mcI'},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  { \Root{\letin{x}{
+        \appR{\sendR{c_k}}{v}
+      }{m}
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \Rrightarrow
+    \Root{
+      \letin{x}{
+        \return{c_k}
+      }{m} 
+    }{
+      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus (\{ k \} \cup \mcI')} \cup \{ (c_k, \mcP_k') \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+
+  \inferrule[Root-\underline{Comm}]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{
+      \letin{y}{\recvI{d_k}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcP_k' = \Node{d_k}{
+      \letin{y}{\return{\pairI{o}{d_k}{\Ln}}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  { \Root{\letin{x}{
+        \appI{\sendI{c_k}}{o}
+      }{m}
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \Rrightarrow
+    \Root{
+      \letin{x}{
+        \return{c_k}
+      }{m} 
+    }{
+      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus \{ k \}} \cup \{ (c_k, \mcP_k') \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+
+  \inferrule[Node-Comm$_1$]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{
+      \letin{y}{\recvR{d_k}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcI' = \{ i \in \mcI | c_i \in \FC{v} \} \\
+    d \notin \FC{v} \\
+    \mcP_k' = \Node{d_k}{
+      \letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k \cup \mcI'},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  { \Node{d}{\letin{x}{
+        \appR{\sendR{c_k}}{v}
+      }{m}
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \Rrightarrow
+    \Node{d}{
+      \letin{x}{
+        \return{c_k}
+      }{m} 
+    }{
+      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus (\{ k \} \cup \mcI')} \cup \{ (c_k, \mcP_k') \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+
+  \inferrule[Node-\underline{Comm}]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{
+      \letin{y}{\recvI{d_k}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcP_k' = \Node{d_k}{
+      \letin{y}{\return{\pairI{o}{d_k}{\Ln}}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  { \Node{d}{\letin{x}{
+        \appI{\sendI{c_k}}{o}
+      }{m}
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \Rrightarrow
+    \Node{d}{
+      \letin{x}{
+        \return{c_k}
+      }{m} 
+    }{
+      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus \{ k \}} \cup \{ (c_k, \mcP_k') \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+\end{mathpar}
+
+\begin{mathpar}\footnotesize
+  \inferrule[Root-Child]
+  { k \in \mcI \\
+    \mcP_k \Rrightarrow \mcP_k' }
+  { 
+    \Root{m}{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ} 
+    } 
+    \Rrightarrow
+    \Root{m}{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \{k\}} \cup \{ ( c_k, \mcP_k' ) \}, 
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+
+  \inferrule[Node-Child]
+  { k \in \mcI \\
+    \mcP_k \Rrightarrow \mcP_k' }
+  { 
+    \Node{d}{m}{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ} 
+    } 
+    \Rrightarrow
+    \Node{d}{m}{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \{k\}} \cup \{ ( c_k, \mcP_k' ) \}, 
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+
+  \inferrule[Root-SubTree]
+  { k \in \mcJ \\
+    \mcQ_k \Rrightarrow \mcQ_k' }
+  { 
+    \Root{m}{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ} 
+    } 
+    \Rrightarrow
+    \Root{m}{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ Q_j \}_{j \in \mcJ \setminus \{k\}} \cup \{ \mcQ_k' \}
+    }
+  }
+
+  \inferrule[Node-SubTree]
+  { k \in \mcJ \\
+    \mcQ_k \Rrightarrow \mcQ_k' }
+  { 
+    \Node{d}{m}{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ} 
+    } 
+    \Rrightarrow
+    \Node{d}{m}{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ Q_j \}_{j \in \mcJ \setminus \{k\}} \cup \{ \mcQ_k' \}
+    }
+  }
+\end{mathpar}
