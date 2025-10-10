@@ -52,3 +52,77 @@ Each protocol $A_i$ is propagated to typing the corresponding child process $A_i
 When typing an internal node, we require that $m$ is well-typed in a channel context
 that also includes $d \tL \CH{A}$, i.e. the channel connecting to its parent process.
 The child processes are typed in the same way as in the root node case.
+
+We define the \emph{flattening} operation $| \mcP |$ that converts a spawning tree into
+a standard process configuration. The operation is defined as follows:
+\begin{mathpar}\small
+  \inferrule[Flatten-Root]
+  { \forall i \in \mcI,\ | \mcP_i | = (d_i, P_i) }
+  { | \Root{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} } | = \scope{\overline{c_i d_i}}{(m \mid \overline{P_i})}  }
+
+  \inferrule[Flatten-Node]
+  { \forall i \in \mcI,\ | \mcP_i | = (d_i, P_i) }
+  { | \Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} } | = (d, \scope{\overline{c_i d_i}}{(m \mid \overline{P_i})}) }
+\end{mathpar}
+The flattening operation recursively flattens each child process $\mcP_i$ into
+a channel-process pair $(d_i, P_i)$ and then composes $m$ with all the child processes
+in parallel. The channel pairs ${c_i, d_i}$ are restricted together to ensure proper channel scoping.
+
+We now connect the validity of spawning trees to the well-typedness of flattened process configurations
+through \Cref{lemma:flatten-node} and \Cref{theorem:flatten-valid}.
+\begin{lemma}[Flatten Node]\label[lemma]{lemma:flatten-node}
+  If ${A \Vdash \mcP}$ and $| \mcP | = (d, P)$, then $d \tL \CH{A} \Vdash P$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $A \Vdash \mcP$. The only case to consider is \textsc{Valid-Node}.
+  From \textsc{Flatten-Node}, we have for each child process $\mcP_i$, $| \mcP_i | = (d_i, P_i)$.
+  By the induction hypothesis, we have $d_i \tL \CH{A_i} \Vdash P_i$ for each $i \in \mcI$.
+  Applying \textsc{Par} repeatedly, we have $\overline{d_i \tL \CH{A_i}} \Vdash \overline{P_i}$.
+
+  \noindent
+  From the premise of \textsc{Valid-Node}, we have
+  $\overline{c_i \tL \HC{A_i}}, d \tL \CH{A} ; \epsilon ; \epsilon \vdash m :\CM{\unit}$.
+
+  \noindent
+  By \textsc{Expr}, we have
+  $\overline{c_i \tL \HC{A_i}}, d \tL \CH{A} \Vdash \proc{m}$.
+
+  \noindent
+  By \textsc{Par}, we have
+  $\overline{c_i \tL \HC{A_i}}, \overline{d_i \tL \CH{A_i}}, d \tL \CH{A} \Vdash (m \mid \overline{P_i})$.
+
+  \noindent
+  Finally, by applying \textsc{Scope} repeatedly, we have
+  $d \tL \CH{A} \Vdash \scope{\overline{c_i d_i}}{(m \mid \overline{P_i})}$ as required.
+\end{proof}
+
+\begin{theorem}[Flatten Valid]\label[theorem]{theorem:flatten-valid}
+  If $\Vdash \mcP$ and $| \mcP | = P$, then $\epsilon \Vdash P$.
+\end{theorem}
+\begin{proof}
+  By case analysis on the derivation of $\Vdash \mcP$. The only case to consider is \textsc{Valid-Root}. 
+  From \textsc{Flatten-Root}, we have for each child process $\mcP_i$, $| \mcP_i | = (d_i, P_i)$.
+  By \Cref{lemma:flatten-node}, we have $d_i \tL \CH{A_i} \Vdash P_i$ for each $i \in \mcI$.
+  Applying \textsc{Par} repeatedly, we have $\overline{d_i \tL \CH{A_i}} \Vdash \overline{P_i}$
+
+  \noindent
+  From the premise of \textsc{Valid-Root}, we have
+  $\overline{c_i \tL \HC{A_i}} ; \epsilon ; \epsilon \vdash m :\CM{\unit}$.
+
+  \noindent
+  By \textsc{Expr}, we have
+  $\overline{c_i \tL \HC{A_i}} \Vdash \proc{m}$.
+
+  \noindent
+  By \textsc{Par}, we have
+  $\overline{c_i \tL \HC{A_i}}, \overline{d_i \tL \CH{A_i}} \Vdash (m \mid \overline{P_i})$.
+
+  \noindent
+  Finally, by applying \textsc{Scope} repeatedly, we have
+  $\epsilon \Vdash \scope{\overline{c_i d_i}}{(m \mid \overline{P_i})}$ as required.
+\end{proof}
+
+\begin{definition}
+  We say that a process configuration $P$ is a \emph{reachable} if there exists a spawning tree $\mcP$
+  such that $\Vdash \mcP$ and $| \mcP | = P$.
+\end{definition}
