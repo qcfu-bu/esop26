@@ -348,7 +348,6 @@ We now define the spawning tree semantics through the following reduction rules:
     }
   }
 
-  \text{\TODO}
   \inferrule[Node-Comm$_2$]
   { k \in \mcI \\ 
     \mcP_k = \Node{d_k}{
@@ -359,11 +358,11 @@ We now define the spawning tree semantics through the following reduction rules:
     } \\
     \mcI' = \{ i \in \mcI | c_i \in \FC{v} \} \\
     d \in \FC{v} \\
-    \mcP_k' = \Node{d_k}{
-      \letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}
+    \mcP_k' = \Node{c_k}{
+      \letin{x}{ \return{c_k} }{m} 
     }{
-      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k \cup \mcI'},
-      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus (\{ k \} \cup \mcI')},
+      \{ \mcQ_j \}_{j \in \mcJ}
     }
   }
   { \Node{d}{\letin{x}{
@@ -375,12 +374,10 @@ We now define the spawning tree semantics through the following reduction rules:
     } \\\\
     \Rrightarrow
     \Node{d}{
-      \letin{x}{
-        \return{c_k}
-      }{m} 
+      \letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}
     }{
-      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus (\{ k \} \cup \mcI')} \cup \{ (c_k, \mcP_k') \},
-      \{ \mcQ_j \}_{j \in \mcJ}
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k \cup \mcI'} \cup \{ (d_k, \mcP_k') \},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
     }
   }
 \end{mathpar}
@@ -476,6 +473,68 @@ We now define the spawning tree semantics through the following reduction rules:
     \Node{d}{m}{ 
       \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
       \{ Q_j \}_{j \in \mcJ \setminus \{k\}} \cup \{ \mcQ_k' \}
+    }
+  }
+
+  \inferrule[Root-Expr]
+  { 
+    m \Leadsto m'
+  }
+  { 
+    \Root{m}{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+    \Rrightarrow
+    \Root{m'}{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ} 
+    }
+  }
+
+  \inferrule[Node-Expr]
+  { 
+    m \Leadsto m'
+  }
+  { 
+    \Node{d}{m}{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+    \Rrightarrow
+    \Node{d}{m'}{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ} 
+    }
+  }
+  
+  \inferrule[Root-Unit]
+  { k \in \mcJ \\ 
+    \mcQ_k = \Root{\return{\ii}}{\emptyset, \emptyset} }
+  { 
+    \Root{m}{
+      \{ c_i, \mcP_i \}_{i \in \mcI},
+      \{ c_j, \mcQ_j \}_{j \in \mcJ}
+    }
+    \Rrightarrow
+    \Root{m}{
+      \{ c_i, \mcP_i \}_{i \in \mcI},
+      \{ c_j, \mcQ_j \}_{j \in \mcJ \setminus \{k\}}
+    }
+  }
+
+  \inferrule[Node-Unit]
+  { k \in \mcJ \\ 
+    \mcQ_k = \Root{\return{\ii}}{\emptyset, \emptyset} }
+  { 
+    \Node{d}{m}{
+      \{ c_i, \mcP_i \}_{i \in \mcI},
+      \{ c_j, \mcQ_j \}_{j \in \mcJ}
+    }
+    \Rrightarrow
+    \Node{d}{m}{
+      \{ c_i, \mcP_i \}_{i \in \mcI},
+      \{ c_j, \mcQ_j \}_{j \in \mcJ \setminus \{k\}}
     }
   }
 \end{mathpar}
