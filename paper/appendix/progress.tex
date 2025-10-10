@@ -684,7 +684,6 @@ We now define the spawning tree semantics through the following reduction rules:
     }
   }
 \end{mathpar}
-\vspace{1em}
 
 In the rules above, the \textsc{Root-Fork} and \textsc{Node-Fork} rules
 describe how a \Fork{}-operation spawns a new child process and adds it to the
@@ -697,8 +696,40 @@ detaches a child process from its parent. The detached child process is moved to
 The \textsc{Root-Send} and \textsc{Node-Send} rules describe how a \Send{}-operation
 sends a value to a child process. The child process must be waiting to receive a value
 through a \Recv{}-operation. The sent value may contain channels that are connected to
-other child processes. It is important to note that the sent value \emph{cannot} contain
-the channel connecting the child process to its parent. This restriction is enforced
-by the side condition $d \notin \FC{v}$ in the \textsc{Node-Send} rule.
-When a value is sent, any child processes connected to channels in $\FC{v}$ are moved
-to be children of the receiving process.
+other child processes. It is important to note that \textsc{Node-Send} only applies when
+the sent value \emph{does not} contain the channel $d$ connecting to the parent, 
+i.e. the side condition $d \notin \FC{v}$. When a value is sent, any child processes 
+connected to channels in $\FC{v}$ are moved to be children of the receiving process.
+
+The \textsc{Root-Recv} and \textsc{Node-Recv} rules describe how a \Recv{}-operation
+receives a value from a child process. The child process must be waiting to send a value
+through a \Send{}-operation. The received value may contain channels that are connected to
+other child processes. When a value is received, any child processes connected to channels
+in $\FC{v}$ are moved to be children of the receiving process. Note that, due to linearity,
+the channel $d_k$ connecting the sending child to its parent cannot be in $\FC{v}$.
+Thus, there is no side condition in \textsc{Node-Recv}. Moreover, this means that
+cyclic channel dependencies cannot arise here.
+
+The \textsc{Root-\underline{Send}}, \textsc{Node-\underline{Send}}, \textsc{Root-\underline{Recv}},
+and \textsc{Node-\underline{Recv}} rules describe the sending and receiving of 
+ghost messages through \SendI{} and \RecvI{} operations. Due to the fact that ghost messages
+do not contain channels, there are no side conditions or changes to the spawning tree structure.
+
+The \textsc{Node-Forward} rule describes how a \Send{}-operation can forward a
+parent channel $d$ to a child process. The child process must be waiting to
+receive a value. The sent value must contain the parent channel $d$, i.e. the
+side condition $d \in \FC{v}$. When this happens, the child process takes over
+the parent channel $d$ and tree is restructured so that the child process
+becomes the new parent and the sending process (the original parent) becomes one
+of its child processes. Other child processes that are connected to channels in
+$\FC{v}$ are also moved to be children of the receiving process.
+
+The \textsc{Root-Child}, \textsc{Node-Child}, \textsc{Root-SubTree}, and \textsc{Node-SubTree}
+rules describe how a child process or subtree can take a reduction step.
+
+The \textsc{Root-Expr} and \textsc{Node-Expr} rules describe how the expression
+in a node can reduce.
+
+The \textsc{Root-Unit} and \textsc{Node-Unit} rules describe how a subtree
+that has finished (i.e. its expression is $\return{\ii}$ and it has no children or subtrees)
+can be removed from the spawning tree.
