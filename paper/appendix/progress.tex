@@ -1,0 +1,54 @@
+The process level type system of \TLLC{} is insufficient to ensure that
+arbitrary process configurations enjoy global progress. 
+This is because cyclic channel topologies are also considered to be well-typed.
+However, we can still prove a weaker form of progress for a class of configurations
+we call \emph{reachable configurations}. Intuitively, a reachable configuration is one
+that can be reached from a well-typed singleton process through \Fork{}-operations.
+
+Formally, we define the structure of \emph{spawning trees} to capture the
+spawning relationships between parent-to-children processes. 
+The syntax of spawning trees is given below.
+\begin{center}
+  \vspace{0.5em}
+  \begin{tabular}{r L C L}
+    spawning tree & \mcP, \mcQ & ::= & \Root{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} } \\
+                  &            & \;| & \Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} } \\
+  \end{tabular}
+  \vspace{0.5em}
+\end{center}
+A spawning tree is either 
+a root node $\Root{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} }$ or 
+an internal node $\Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} }$. 
+Each node is associated with a term $m$ that performs computation and a set of children processes
+$\{ ( c_i, \mcP_i ) \}_{i \in \mcI}$ where $m$ communicates with each child process $\mcP_i$ through
+channel $c_i$. In the case of internal nodes, $d$ is the channel which $m$ uses to 
+communicate with its parent process. 
+
+The crucial ideal behind the spawning tree structure is that we are going to
+define an alternative process semantics that operates on spawning trees. 
+We will show that this alternative semantics can be simulated by the original process semantics.
+Moreover, we will show that the spawning tree semantics enjoys global progress.
+By defining reachable configurations as those that can be derived from
+well-typed spawning trees, we can then prove that reachable configurations
+enjoy global progress (induced by simulation). We define the typing rules for 
+spawning trees as follows:
+\begin{mathpar}\small
+  \inferrule
+  { \overline{c_i \tL \HC{A_i}} ; \epsilon ; \epsilon \vdash m :\CM{\unit} \\
+    \forall i \in \mcI,\ A_i \Vdash \mcP_i }
+  { \Vdash \Root{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} } }
+  \textsc{(Valid-Root)}
+  \\
+  \inferrule
+  {  \overline{c_i \tL \HC{A_i}}, d \tL \CH{A} ; \epsilon ; \epsilon \vdash m :\CM{\unit} \\
+    \forall i \in \mcI,\ A_i \Vdash \mcP_i }
+  { A \Vdash \Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI} } }
+  \textsc{(Valid-Node)}
+\end{mathpar}
+For the root node, we require that the term $m$ is well-typed in
+channel context $\overline{c_i \tL \HC{A_i}}$ comprised of $\HC{A_i}$
+channels connecting to its children processes $\mcP_i$.
+Each protocol $A_i$ is propagated to typing the corresponding child process $A_i \Vdash \mcP_i$.
+When typing an internal node, we require that $m$ is well-typed in a channel context
+that also includes $d \tL \CH{A}$, i.e. the channel connecting to its parent process.
+The child processes are typed in the same way as in the root node case.

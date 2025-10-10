@@ -25,6 +25,12 @@
 \usepackage{titletoc}
 \usepackage{cleveref}
 \usepackage{soul}
+\usepackage{titletoc}
+\newcommand\DoToC{%
+  \startcontents
+  \printcontents{}{2}{\textbf{Contents}\vskip3pt\hrule\vskip5pt}
+  \vskip3pt\hrule\vskip5pt
+}
 \newtheorem*{remark}{Remark}
 \newcolumntype{L}{>{$}l<{$}} % math-mode version of "l" column type
 \newcolumntype{C}{>{$}c<{$}} % math-mode version of "c" column type
@@ -63,7 +69,9 @@
 \newcommand{\mcA}{\mathcal{A}}
 \newcommand{\mcF}{\mathcal{F}}
 \newcommand{\mcP}{\mathcal{P}}
+\newcommand{\mcQ}{\mathcal{Q}}
 \newcommand{\mcE}{\mathcal{E}}
+\newcommand{\mcI}{\mathcal{I}}
 \newcommand{\mcM}{\mathcal{M}}
 \newcommand{\mcK}{\mathcal{K}}
 \newcommand{\mcC}{\mathcal{C}}
@@ -175,6 +183,8 @@
 \newcommand{\AgreeResolve}[5]{\textit{agree-resolve}({#1},{#2},{#3},{#4},{#5})}
 \newcommand{\Vars}[1]{\textit{Vars}({#1})}
 \newcommand{\occurs}[2]{\textit{occurs}_{#1}({#2})}
+\newcommand{\Root}[2]{\textsf{root}({#1}, {#2})}
+\newcommand{\Node}[3]{\textsf{node}({#1}, {#2}, {#3})}
 
 \makeatletter
 \newcommand*{\Leadsto}{\leadsto\joinrel\mathrel{\mathpalette\@Leadsto\relax}}

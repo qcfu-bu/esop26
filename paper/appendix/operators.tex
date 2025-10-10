@@ -82,7 +82,7 @@ the judgment $m~\guard{x}$ is derivable. Intuitively, this means that every
 occurrence of $x$ in $m$ appears under a protocol action. This is important 
 for ensuring that recursive protocols do not unfold indefinitely without
 performing any actions. The judgment is defined as follows:
-\begin{mathpar}\footnotesize
+\begin{mathpar}\small
   \inferrule[Guard-Var]
   { x \neq y }
   { y~\guard{x} }
@@ -135,23 +135,21 @@ performing any actions. The judgment is defined as follows:
   { m~\guard{x} \\ 
     n~\guard{x} }
   { \pairI{m}{n}{t}~\guard{x} }
-
+  \and\hspace{-0.5em}
   \inferrule[Guard-Explicit-Pair]
   { m~\guard{x} \\ 
     n~\guard{x} }
   { \pairR{m}{n}~\guard{x} }
-
+  \and\hspace{-0.5em}
   \inferrule[Guard-Explicit-SumElim]
   { A~\guard{x} \\ 
     m~\guard{x} \\
     n~\guard{x} }
   { \SigElim{[z]A}{m}{[x',y']n} }
+\end{mathpar}
+\clearpage
 
-  \inferrule[Guard-RecProto]
-  { A~\guard{x} \\ 
-    m~\guard{x} }
-  { \fix{x' : A}{m}~\guard{x} }
-
+\begin{mathpar}\small
   \inferrule[Guard-Unit]
   { }
   { \unit~\guard{x} }
@@ -199,6 +197,11 @@ performing any actions. The judgment is defined as follows:
   \inferrule[Guard-End]
   { }
   { \End~\guard{x} }
+
+  \inferrule[Guard-RecProto]
+  { A~\guard{x} \\ 
+    m~\guard{x} }
+  { \fix{x' : A}{m}~\guard{x} }
 
   \inferrule[Guard-Implicit-Action]
   { A~\guard{x} }
