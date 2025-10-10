@@ -30,30 +30,39 @@ We will show that this alternative semantics can be simulated by the original pr
 Moreover, we will show that the spawning tree semantics enjoys global progress.
 By defining reachable configurations as those that can be derived from
 well-typed spawning trees, we can then prove that reachable configurations
-enjoy global progress (induced by simulation). We define the typing rules for 
+enjoy global progress (induced by simulation). 
+
+To make the typing rules of spawning trees easier to define, we first introduce 
+the following notations for channel types and $\kappa \in \{ +, - \}$:
+\begin{align*}
+  \ch{+}{A} = \CH{A} && \neg{\ch{+}{A}} = \ch{-}{A} \\
+  \ch{-}{A} = \HC{A} && \neg{\ch{-}{A}} = \ch{+}{A}
+\end{align*}
+
+We define the typing rules for 
 spawning trees as follows:
 \begin{mathpar}\small
   \inferrule
-  { \overline{c_i \tL \HC{A_i}} ; \epsilon ; \epsilon \vdash m :\CM{\unit} \\
-    \forall i \in \mcI,\ A_i \Vdash \mcP_i  \\
+  { \overline{c_i \tL \ch{\kappa_i}{A_i}} ; \epsilon ; \epsilon \vdash m :\CM{\unit} \\
+    \forall i \in \mcI,\ \neg{\ch{\kappa_i}{A_i}} \Vdash \mcP_i  \\
     \forall j \in \mcJ,\ \Vdash \mcQ_j }
   { \Vdash \Root{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, \{ \mcQ_j \}_{j \in \mcJ} } }
   \textsc{(Valid-Root)}
   \\
   \inferrule
-  {  \overline{c_i \tL \HC{A_i}}, d \tL \CH{A} ; \epsilon ; \epsilon \vdash m :\CM{\unit} \\
-    \forall i \in \mcI,\ A_i \Vdash \mcP_i \\ 
+  {  \overline{c_i \tL \ch{\kappa_i}{A_i}}, d \tL \ch{\kappa}{A} ; \epsilon ; \epsilon \vdash m :\CM{\unit} \\
+    \forall i \in \mcI,\ \neg{\ch{\kappa_i}{A_i}} \Vdash \mcP_i \\ 
     \forall j \in \mcJ,\ \Vdash \mcQ_j }
-  { A \Vdash \Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, \{ \mcQ_j \}_{j \in \mcJ} } }
+  { \ch{\kappa}{A} \Vdash \Node{d}{m}{ \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, \{ \mcQ_j \}_{j \in \mcJ} } }
   \textsc{(Valid-Node)}
 \end{mathpar}
 For the root node, we require that the term $m$ is well-typed in
-channel context $\overline{c_i \tL \HC{A_i}}$ comprised of $\HC{A_i}$
+channel context $\overline{c_i \tL \ch{\kappa_i}{A_i}}$ comprised of $\ch{\kappa_i}{A_i}$
 channels connecting to its children processes $\mcP_i$.
-Each protocol $A_i$ is propagated to typing the corresponding child process $A_i \Vdash \mcP_i$.
+The dual of each channel $\neg{\ch{\kappa_i}{A_i}}$ is propagated to typing the corresponding 
+child process $\neg{\ch{\kappa_i}{A_i}} \Vdash \mcP_i$.
 When typing an internal node, we require that $m$ is well-typed in a channel context
-that also includes $d \tL \CH{A}$, i.e. the channel connecting to its parent process.
-The child processes are typed in the same way as in the root node case.
+that also includes $d \tL \ch{\kappa}{A}$, i.e. the channel connecting to its parent process.
 
 We define the \emph{flattening} operation $| \mcP |$ that converts a spawning tree into
 a standard process configuration. The operation is defined as follows:
@@ -81,7 +90,7 @@ through \Cref{theorem:flatten-valid}.
 \begin{theorem}[Flatten Valid]\label[theorem]{theorem:flatten-valid}
   If $\Vdash \mcP$ and $| \mcP | = P$, then $\Vdash P$
   and
-  if ${A \Vdash \mcP}$ and $| \mcP | = (d, P)$, then $d \tL \CH{A} \Vdash P$.
+  if ${\ch{\kappa}{A} \Vdash \mcP}$ and $| \mcP | = (d, P)$, then $d \tL \ch{\kappa}{A} \Vdash P$.
 \end{theorem}
 \begin{proof}
   By mutual induction on the derivation of $\Vdash \mcP$ and $A \Vdash \mcP$.
@@ -91,20 +100,20 @@ through \Cref{theorem:flatten-valid}.
   From \textsc{Flatten-Root}, we have
   $| \mcP_i | = (d_i, P_i)$ for each child process $\mcP_i$ and
   $| \mcQ_j | = Q_j$ for each subtree $\mcQ_j$.
-  By the induction hypothesis, we have $d_i \tL \CH{A_i} \Vdash P_i$ for each $i \in \mcI$
+  By the induction hypothesis, we have $d_i \tL \neg{\ch{\kappa_i}{A_i}} \Vdash P_i$ for each $i \in \mcI$
   and $\Vdash Q_j$ for each $j \in \mcJ$.
 
   \noindent
   From the premise of \textsc{Valid-Root}, we have
-  $\overline{c_i \tL \HC{A_i}} ; \epsilon ; \epsilon \vdash m :\CM{\unit}$.
+  $\overline{c_i \tL \ch{\kappa_i}{A_i}} ; \epsilon ; \epsilon \vdash m :\CM{\unit}$.
 
   \noindent
   By \textsc{Expr}, we have
-  $\overline{c_i \tL \HC{A_i}} \Vdash \proc{m}$.
+  $\overline{c_i \tL \ch{\kappa_i}{A_i}} \Vdash \proc{m}$.
 
   \noindent
   By applying \textsc{Par} repeated, we have
-  $\overline{c_i \tL \HC{A_i}}, \overline{d_i \tL \CH{A_i}} \Vdash (\proc{m} \mid \overline{P_i})$.
+  $\overline{c_i \tL \ch{\kappa_i}{A_i}}, \overline{d_i \tL \neg{\ch{\kappa_i}{A_i}}} \Vdash (\proc{m} \mid \overline{P_i})$.
 
   \noindent
   By applying \textsc{Scope} repeatedly, we have
@@ -118,28 +127,29 @@ through \Cref{theorem:flatten-valid}.
 \textbf{Case} (\textsc{Valid-Node}):
   From \textsc{Flatten-Node}, we have for each child process $\mcP_i$, $| \mcP_i | = (d_i, P_i)$ and
   for each subtree $\mcQ_j$, $| \mcQ_j | = Q_j$.
-  By the induction hypothesis, we have $d_i \tL \CH{A_i} \Vdash P_i$ for each $i \in \mcI$
+  By the induction hypothesis, we have $d_i \tL \neg{\ch{\kappa_i}{A_i}} \Vdash P_i$ for each $i \in \mcI$
   and $\Vdash Q_j$ for each $j \in \mcJ$.
 
   \noindent
   From the premise of \textsc{Valid-Node}, we have
-  $\overline{c_i \tL \HC{A_i}}, d \tL \CH{A} ; \epsilon ; \epsilon \vdash m :\CM{\unit}$.
+  $\overline{c_i \tL \ch{\kappa_i}{A_i}}, d \tL \ch{\kappa}{A} ; \epsilon ; \epsilon \vdash m :\CM{\unit}$.
 
   \noindent
   By \textsc{Expr}, we have
-  $\overline{c_i \tL \HC{A_i}}, d \tL \CH{A} \Vdash \proc{m}$.
+  $\overline{c_i \tL \ch{\kappa_i}{A_i}}, d \tL \ch{\kappa}{A} \Vdash \proc{m}$.
 
   \noindent
   By applying \textsc{Par} repeated, we have
-  $\overline{c_i \tL \HC{A_i}}, \overline{d_i \tL \CH{A_i}}, d \tL \CH{A} \Vdash (\proc{m} \mid \overline{P_i})$.
+  $\overline{c_i \tL \ch{\kappa_i}{A_i}}, \overline{d_i \tL \neg{\ch{\kappa_i}{A_i}}}, d \tL \ch{\kappa}{A} \Vdash 
+    (\proc{m} \mid \overline{P_i})$.
 
   \noindent
   By applying \textsc{Scope} repeatedly, we have
-  $d \tL \CH{A} \Vdash \scope{\overline{c_i d_i}}{(\proc{m} \mid \overline{P_i})}$.
+  $d \tL \ch{\kappa}{A} \Vdash \scope{\overline{c_i d_i}}{(\proc{m} \mid \overline{P_i})}$.
 
   \noindent
   By applying \textsc{Par} repeatedly, we have
-  ${d \tL \CH{A} \Vdash \scope{\overline{c_i d_i}}{(\proc{m} \mid \overline{P_i})} \mid \overline{Q_j}}$
+  ${d \tL \ch{\kappa}{A} \Vdash \scope{\overline{c_i d_i}}{(\proc{m} \mid \overline{P_i})} \mid \overline{Q_j}}$
   which concludes this case.
 \end{proof}
 
@@ -347,7 +357,10 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ \mcQ_j \}_{j \in \mcJ}
     }
   }
+\end{mathpar}
+\clearpage
 
+\begin{mathpar}\footnotesize
   \inferrule[Node-Comm$_2$]
   { k \in \mcI \\ 
     \mcP_k = \Node{d_k}{
@@ -380,9 +393,7 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
     }
   }
-\end{mathpar}
 
-\begin{mathpar}\footnotesize
   \inferrule[Node-\underline{Comm}]
   { k \in \mcI \\ 
     \mcP_k = \Node{d_k}{
