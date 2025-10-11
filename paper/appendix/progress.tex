@@ -1706,4 +1706,109 @@ the spawning trees reachable from it are all well-typed.
   \end{align*}
   and concludes this case.
 
+\noindent
+\textbf{Case} (\textsc{Root-Child}):
+  \begin{mathpar}\small
+  \inferrule[Root-Child]
+  { k \in \mcI \\
+    \mcP_k \Rrightarrow \mcP_k' }
+  { 
+    \Root{m}{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ} 
+    } 
+    \Rrightarrow
+    \Root{m}{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \{k\}} \cup \{ ( c_k, \mcP_k' ) \}, 
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+  \end{mathpar}
+  By inversion on the typing judgment
+  \begin{align*}
+    \Vdash \Root{m}{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ} 
+    }
+  \end{align*}
+  we have
+  \begin{align*}
+    & \overline{c_i \tL \ch{\kappa_i}{A_i}} ; \epsilon ; \epsilon \vdash m : \CM{\unit} \\
+    & \forall i \in \mcI, \neg{\ch{\kappa_i}{A_i}} \Vdash \mcP_i \\
+    & \forall j \in \mcJ, \Vdash \mcQ_j
+  \end{align*}
+
+  \noindent
+  From $k \in \mcI$ and the typing judgment $\neg{\ch{\kappa_k}{A_k}} \Vdash \mcP_k$,
+
+  \noindent
+  By the induction hypothesis, we have the well-typed process 
+  $\neg{\ch{\kappa_k}{A_k}} \Vdash \mcP_k'$.
+
+  \noindent
+  This gives us the well-typed root
+  \begin{align*}
+    \Vdash \Root{m}{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \{k\}} \cup \{ ( c_k, \mcP_k' ) \}, 
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  \end{align*}
+  and concludes this case.
+
+\noindent
+\textbf{Case} (
+  \textsc{Node-Child},
+  \textsc{Root-SubTree},
+  \textsc{Node-SubTree}
+): Similar to the \textsc{Root-Child} case.
+
+\noindent
+\textbf{Case} (\textsc{Root-Expr}):
+  \begin{mathpar}\small
+  \inferrule[Root-Expr]
+  { 
+    m \Leadsto m'
+  }
+  { 
+    \Root{m}{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+    \Rrightarrow
+    \Root{m'}{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ} 
+    }
+  }
+  \end{mathpar}
+  By inversion on the typing judgment
+  \begin{align*}
+    \Vdash \Root{m}{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  \end{align*}
+  we have
+  \begin{align*}
+    & \overline{c_i \tL \ch{\kappa_i}{A_i}} ; \epsilon ; \epsilon \vdash m : \CM{\unit} \\ 
+    & \forall i \in \mcI, \neg{\ch{\kappa_i}{A_i}} \Vdash \mcP_i \\
+    & \forall j \in \mcJ, \Vdash \mcQ_j
+  \end{align*}
+
+  \noindent
+  By \Cref{theorem:program-subject-reduction} we have 
+  $$
+    \overline{c_i \tL \ch{\kappa_i}{A_i}} ; \epsilon ; \epsilon \vdash m' : \CM{\unit}
+  $$
+  which gives us the well-typed root
+  \begin{align*}
+    \Vdash \Root{m'}{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ} 
+    }
+  \end{align*}
+  and concludes this case.
+
+\noindent
+\textbf{Case} (\textsc{Node-Expr}): Similar to the \textsc{Root-Expr} case.
 \end{proof}
