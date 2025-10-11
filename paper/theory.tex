@@ -71,8 +71,8 @@ can be used both logically (in types and ghost values) through $\Gamma$, and
 computationally (in real values) through $\Delta$. On the other hand, in the
 \textsc{Implicit-Lam} rule, $x$ is only added to $\Gamma$ but not $\Delta$.
 This indicates that $x$ is a ghost variable which can only be used logically.
-A ubiquitous example of ghost variables are type parameters in polymorphic functions.
-For example, the polymorphic identity function can be implemented as
+A ubiquitous example of ghost variables is type parameters in polymorphic functions.
+For instance, the polymorphic identity function can be implemented as
 \begin{align*}
   \lamI{\Un}{A : \Un}{\lamR{\Un}{x : A}{x}}
 \end{align*}
@@ -205,7 +205,7 @@ Recursive protocols can be formed using the $\fix{x : A}{m}$ construct:
 \end{mathpar}
 For a $\fix{x : A}{m}$ term, we require that $A$ be an \emph{arity} ending on \Proto{}.
 This prevents $\mu$ from introducing logical inconsistencies as it can only be used to
-construct protocols and not proofs for arbitrary propositions. To ensure that protocols
+construct protocols but not proofs for arbitrary propositions. To ensure that protocols
 defined through $\fix{x : A}{m}$ can be productively unfolded, recursive usages of $x$ must be
 syntactically \emph{guarded} behind a protocol action in $m$. This enforces the 
 \emph{contractiveness} condition for recursive session types~\cite{gay10}. Both the
@@ -280,7 +280,7 @@ channel context $\Theta$ and are typed as follows:
     \Delta \triangleright \Un }
   { c :_\Ln \HC{A} ; \Gamma ; \Delta \vdash c : \HC{A} }
 \end{mathpar}
-The protocol $A$ used in the channels types here must be \emph{closed}. 
+The protocol $A$ used in the channel types here must be \emph{closed}. 
 This is because channels at runtime must follow fully concretized protocols.
 The $\Gamma$ and $\Delta$ contexts are allowed to be non-empty for the
 purely technical reason of facilitating proofs for renaming and substitution lemmas.
@@ -318,9 +318,9 @@ $m$. The dual \textsc{Explicit-Recv-HC} rule, as shown here,
   { \Theta ; \Gamma ; \Delta \vdash m : \HC{\ActR{!}{x : A}{B}}}
   { \Theta ; \Gamma ; \Delta \vdash \Recv\ m : \CM{\SigR{\Ln}{x : A}{\HC{B}}} }
 \end{mathpar}
-receives on a channel of type $\HC{!(x : A).B}$ which produces a (monadic)
+receives on a channel of type $\HC{!(x : A).B}$, which produces a (monadic)
 dependent pair (similarly to \textsc{Explicit-Recv-CH}). The first component of
-the pair is the value of type $A$ that was received, and the second component is
+the pair is the value of type $A$ that is received, and the second component is
 a channel of type $\HC{B[v/x]}$ representing the continuation of the protocol.
 Notice that, due to the linearity of the $\mcC$ monad, all of the intermediate
 monadic values are guaranteed to be bound by the \textsc{Bind} rule and executed.

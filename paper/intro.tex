@@ -39,10 +39,10 @@ ghostnode/.style={minimum size=5mm},
 \draw[<->] (px.east) -- (pn.west);
 \end{tikzpicture}
 \end{center}
-Each of the $p_i$ nodes here represents a queue cell which holds a value and are
-linked together by bidirectional channels of type $\text{queue}_A$.  As
+Each of the $p_i$ nodes here represents a queue cell which holds a value and
+these nodes are linked together by channels of type $\text{queue}_A$. As
 indicated by the type constructor $\&$, the first queue node $q_1$ first
-receives either an $\textsf{ins}$ or $\textsf{del}$ label from the client. In
+receives either an $\textsf{ins}$ or a $\textsf{del}$ label from the client. In
 the case of an $\textsf{ins}$ label, $p_1$ receives a value $v$ of type $A$
 (indicated by $\multimap$) from the client.  The $p_1$ node then sends an
 $\textsf{ins}$ label to $p_2$ and forwards $v$ to it.  This forwarding process
@@ -105,14 +105,14 @@ two constructors:
   \Inductive\ \textsf{opr} := \textsf{ins}: A \rightarrow \textsf{opr} \mid \textsf{del}: \textsf{opr}
 \end{align*}
 When a queue server receives an $\textsf{ins}(v)$ value, the type of the server becomes
-$\textsf{queue}(\textsf{snoc}(xs, v))$ were $\textsf{snoc}$ appends $v$ to the end of $xs$.
+$\textsf{queue}(\textsf{snoc}(xs, v))$ where $\textsf{snoc}$ appends $v$ to the end of $xs$.
 Conversely, when a $\textsf{del}$ label is received, the type-level pattern matching on $xs$
 enforces that if the queue is non-empty (i.e. $x :: xs'$ case), then the server must send
 the front element $x$ of the queue to the client (indicated by the \emph{singleton type}
 $\textsf{sing}\ x$) along with the channel $\HC{\textsf{queue}(xs')}$ connecting to the remainder
 of the queue. If the queue is empty (i.e. $[]$ case), then the server simply terminates.
 
-Given the \textsf{queue} protocol describe above, we can construct queue process nodes and
+Given the \textsf{queue} protocol described above, we can construct queue process nodes and
 interact with them. The following signatures are of helper functions that wrap interactions with
 the queue nodes into a convenient interface:
 \begin{alignat*}{2}
@@ -132,11 +132,10 @@ behaviors of queue interactions in terms of sequential list operations. For inst
 signature of \textsf{insert} states that the queue obtained after inserting $x$ is related to
 the original queue by the list operation $\textsf{snoc}$. Similarly, the signature of
 \textsf{delete} states that deleting from a non-empty queue returns the front element $x$.
-Even though neither of these $xs$ ghost values exist at runtime, they \emph{statically} ensure
+Even though neither of these $xs$ ghost values exists at runtime, they \emph{statically} ensure
 that concurrent processes implementing these interfaces behave like actual queues, i.e.,
 are first-in-first-out data structures. In a later section we will show how a generalized
 map-reduce algorithm can be implemented and verified using similar techniques.
-
 
 % It is important to note that these type-level pattern matches are \emph{static} and do not
 % incur any runtime overhead. But most crucially, they guarantee that any concurrent program
@@ -170,14 +169,14 @@ map-reduce algorithm can be implemented and verified using similar techniques.
 Integrating session typed based concurrency into TLL is non-trivial due to the
 fact that TLL is a dependently typed functional language. While prior
 works~\cite{gay10,wadler12} have successfully combined \emph{classical} session
-types with functional languages, its is well known that classical session types
+types with functional languages, it is well known that classical session types
 do not easily support recursive session types~\cite{gay20} (needed to express
 our \textsf{queue} type).  The main issue is that classical session types are
 defined in terms of a \emph{dual} operator which does not easily commute with
 recursive type definitions. The addition of arbitrary type-level computations
 through dependent types further complicates this matter.  On the other hand,
 \emph{intuitionistic} session types~\cite{caires10} eschew the dual operator and
-define dual \emph{interpretations} of session types based their \emph{left} or
+define dual \emph{interpretations} of session types based on their \emph{left} or
 \emph{right} sequent rules.  Because intuitionistic session types do not rely on
 a dual operator, they are able to support recursive session types without
 commutativity issues. However, intuitionistic session types are often formulated

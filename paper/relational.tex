@@ -253,10 +253,10 @@ up into a more convenient interface as presented below.
 The type alias \textsf{cTree} is defined to aid in the readability of the interface.
 The wrapper functions \textsf{cLeaf} and \textsf{cNode} respectively create leaf
 and internal node workers. This is accomplished by \emph{forking} a new process using
-the \Fork{} construct of the concurrency monad. In particular, when given some a channel type
+the \Fork{} construct of the concurrency monad. In particular, when given a channel type
 $\CH{P}$, the \Fork{} construct will create a new channel and give one end of it to the caller
 at type $\HC{P}$ and spawn a new process that runs the worker with the other end of the channel
-at type $\CH{P}$. The duality of the channels types allows the caller and the worker to communicate.
+at type $\CH{P}$. The duality of the channel types allows the caller and the worker to communicate.
 Using these wrapper functions, one can construct a concurrent tree in virtually the same way
 as one would construct a sequential tree. For example, the following code constructs a
 concurrent tree with four leaf nodes containing integers $0, 1, 2$ and
@@ -304,7 +304,7 @@ value as reducing its sequential tree model.
 
 \subsection{Concurrent Mergesort via Map-Reduce}
 By properly instantiating the map-reduce interface defined previously, we can implement
-more complex concurrent algorithms. Moreover, dependent session types allows us to easily 
+more complex concurrent algorithms. Moreover, dependent session types allow us to easily 
 verify the correctness of these derived concurrent algorithms relationally through their 
 sequential models. As an extended example, we implement a concurrent version of the mergesort 
 algorithm using the map-reduce interface and verify its correctness.

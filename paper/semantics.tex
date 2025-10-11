@@ -22,7 +22,7 @@ context $\Theta$, which tracks the channels used by the processes in $P$ at runt
 The process configuration rules are standard. The \textsc{Expr} rule lifts
 well-typed closed terms of type $\CM{\unit}$ to processes. It is important for
 the term $m$ to be closed as processes in a configuration cannot rely on
-external substitutions to resolve free variables, they can only communicate
+external substitutions to resolve free variables. They can only communicate
 through channels. In the \textsc{Par} rule, well-typed configurations $P$ and
 $Q$ can be composed in parallel as long as their contexts $\Theta_1$ and
 $\Theta_2$ can be combined. The \textsc{Scope} rule allows two dual channels

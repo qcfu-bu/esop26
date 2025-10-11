@@ -20,12 +20,12 @@ provide a \emph{proof} that the size of \textit{msg} is indeed \textit{sz} accor
 an agreed upon \textsf{sizeOf} function. Finally, the protocol terminates with $\End$ and
 communication ends. Notice that the proof here, as indicated by the curly braces, is a
 \emph{ghost message}: it is used for type checking and erased prior to runtime. Even though
-the proof does not participate in actual communication, the necessity for the send of
-\textit{msg} to provide such a proof ensures that the protocol is followed correctly.
+the proof does not participate in actual communication, the necessity for the sender of
+\textit{msg} to provide such a proof ensures that the protocol is followed.
 
 This example showcases the main primitives for constructing dependent protocols in
 \TLLC{}: the $!(x : A).B$ and $?(x : A).B$ \emph{protocol actions}. The syntax of these
-constructs take inspiration from binary session types~\cite{gay10,wadler12} and label
+constructs takes inspiration from binary session types~\cite{gay10,wadler12} and label
 dependent session types~\cite{ldst}, however the meaning of these constructs in \TLLC{} is
 subtly different. In prior works, the $!$ marker indicates that the channel is to send
 and the $?$ marker indicates that the channel is to receive. In \TLLC{}, neither marker
@@ -96,10 +96,10 @@ messages and waits for message from Bob to complete the key exchange. She first
 ``receives'' Bob's secret $b$ as a ghost message which initializes Bob's half of the
 protocol. Later, Bob' public value $B$ is received as a real message along with a proof
 that $B$ is correctly computed from $p, g$ and $b$. Notice that between Alice and Bob,
-the only the real messages $A$ and $B$ will be exchanged at runtime. The secret values
-$a$ and $b$ and the correctness proofs are all ghost message that are erased prior to
+only the real messages $A$ and $B$ will be exchanged at runtime. The secret values
+$a$ and $b$ and the correctness proofs are all ghost messages that are erased prior to
 runtime. Basically, the \textsf{DH} protocol forces communication between Alice and Bob
-to be encrypted and maintain secrecy at runtime.
+to be encrypted and maintain secrecy.
 
 \vspace{-0.4em}
 \begin{center}
@@ -145,16 +145,16 @@ programs \textsf{Alice} and \textsf{Bob} as shown above. The $\mcC$ type constru
 here is the concurrency monad for integrating the \emph{effect} of concurrent
 communication with the \emph{pure} functional core of \TLLC{}. There are two kinds of
 \textsf{send} (and respectively \textsf{recv}) operations at play here.
-The first kind, indicated by $\textsf{send}\ c\ \{v\}$ is for sending a ghost message
+The first kind, indicated by $\Send\ c\ \{v\}$ is for sending a ghost message
 $v$ on channel $c$. After type checking, these ghost sends are compiled to no-ops
-to that they do not participate in runtime communication. The second kind, indicated by
-$\textsf{send}\ c\ (v)$, is for sending a real message $v$ on channel $c$. These
+so that they do not participate in runtime communication. The second kind, indicated by
+$\Send\ c\ (v)$, is for sending a real message $v$ on channel $c$. These
 real sends are compiled to actual messages in the generated code. Finally, the
 \textsf{close} and \textsf{wait} operations synchronize the termination of the protocol.
 Notice that the duality of channel types $\CH{\textsf{DH}(p,g)}$ and $\HC{\textsf{DH}(p,g)}$
-ensure that every send in \textsf{Alice} is matched by a corresponding receive in
+ensures that every send in \textsf{Alice} is matched by a corresponding receive in
 \textsf{Bob} and vice versa. Moreover, \textsf{Alice} and \textsf{Bob} are enforced by the
-type checker to correctly carry out the Diffie-Hellman key exchange.
+type checker to correctly carry out the key exchange.
 
 %%% Local Variables:
 %%% mode: LaTeX
