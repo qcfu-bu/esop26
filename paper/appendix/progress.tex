@@ -156,7 +156,9 @@ We now define the spawning tree semantics through the following reduction rules:
 
 \begin{mathpar}\footnotesize
   \inferrule[Root-Fork]
-  { }
+  { 
+    \mcI' = \{ i \in \mcI | c_i \in \FC{m} \}
+  }
   { 
     \Root{ 
       \letin{x}{\fork{y : A}{m}}{n} 
@@ -168,29 +170,41 @@ We now define the spawning tree semantics through the following reduction rules:
     \Root{
       n[c/x]   
     }{
-      \{ ( c_i, \mcP_i ) \}_{i \in \mcI} 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \mcI'} 
       \cup
-      \{ (c, \Node{d}{m[d/x]}{\emptyset} ) \},
+      \{ (c, 
+          \Node{d}{m[d/x]}{ 
+            \{ ( c_{i}, \mcP_{i} ) \}_{i \in \mcI'},
+            \emptyset
+          }) 
+      \},
       \{ \mcQ_j \}_{j \in \mcJ}
     }
   }
 
   \inferrule[Node-Fork]
-  { }
+  { 
+    \mcI' = \{ i \in \mcI | c_i \in \FC{m} \}
+  }
   { 
     \Node{d}{ 
       \letin{x}{\fork{y : A}{m}}{n} 
     }{ 
-      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, 
       \{ \mcQ_j \}_{j \in \mcJ}
     } \\
     \quad\Rrightarrow
     \Node{d}{
       n[c/x]   
     }{
-      \{ ( c_i, \mcP_i ) \}_{i \in \mcI} 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \mcI'} 
       \cup
-      \{ (c, \Node{d'}{m[d'/x]}{\emptyset} ) \},
+      \{ (c, 
+          \Node{d}{m[d/x]}{ 
+            \{ ( c_{i}, \mcP_{i} ) \}_{i \in \mcI'},
+            \emptyset
+          }) 
+      \},
       \{ \mcQ_j \}_{j \in \mcJ}
     }
   }
@@ -1084,4 +1098,64 @@ to move any channels since the ghost message $o$ does not contain channels.
   By the assumption, we have $m \Leadsto m'$.
   Repeated application of \textsc{Proc-Par}, \textsc{Proc-Scope} 
   and then \textsc{Proc-Expr} gives us the desired result.
+\end{proof}
+
+In order to show that spawning trees are an adequate characterization of reachability,
+we prove the following fidelity theorem. This theorem states that if a spawning tree is well-typed
+and it takes a reduction step, then the resulting spawning tree is also well-typed.
+Thus, starting from a well-typed singleton $\Root{m}{\emptyset, \emptyset}$,
+the spawning trees reachable from it are all well-typed.
+
+\begin{theorem}[Spawning Tree Fidelity]\label[theorem]{theorem:spawning-tree-fidelity}
+  If $\Vdash \mcP$ or $\ch{\kappa}{A} \Vdash \mcP$, then given $\mcP \Rrightarrow \mcQ$ there
+  is $\Vdash \mcQ$ or $\ch{\kappa}{A} \Vdash \mcQ$ respectively.
+\end{theorem}
+\begin{proof}
+  By induction on the derivation of $\mcP \Rrightarrow \mcQ$ and by case analysis
+  on the derivation of the typing judgment $\Vdash \mcP$ or $\ch{\kappa}{A} \Vdash \mcP$.
+
+\noindent
+\textbf{Case} (\textsc{Root-Fork}):
+  \begin{mathpar}\small
+  \inferrule[Root-Fork]
+  { }
+  { 
+    \Root{ 
+      \letin{x}{\fork{y : A}{m}}{n} 
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, 
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\
+    \quad\Rrightarrow
+    \Root{
+      n[c/x]   
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI} 
+      \cup
+      \{ (c, \Node{d}{m[d/x]}{\emptyset} ) \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+  \end{mathpar}
+  By inversion on the typing judgment 
+  $$
+    \Vdash \Root{ 
+      \letin{x}{\fork{y : A}{m}}{n} 
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, 
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  $$
+  we have
+  \begin{align*}
+    & \overline{c_i \tL \ch{\kappa_i}{A_i}} ; \epsilon ; \epsilon \vdash
+      \letin{x}{\fork{y : A}{m}}{n} : 
+      \CM{\unit} \\
+    & \forall i \in \mcI, \neg{\ch{\kappa_i}{A_i}} \Vdash \mcP_i \\
+    & \forall j \in \mcJ, \Vdash \mcQ_j
+  \end{align*}
+  Similarly to the reasoning in \Cref{theorem:session-fidelity} for the \textsc{Proc-Fork} case, 
+  by inversion on the term typing judgment we know that $A = \CH{A'}$ and the following hold:
+
+
 \end{proof}
