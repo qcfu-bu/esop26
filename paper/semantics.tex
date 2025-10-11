@@ -119,7 +119,7 @@ The first four rules define the synchronous communication semantics of \TLLC{}. 
 \textsc{Proc-Fork} rule creates a pair of dual channels $c$ and $d$ to connect
 the continuation $n$ of the parent process with the newly forked child process $m$.
 We can see here that the newly created channels $c$ and $d$ are substituted for 
-the variables $x$ and $y$ in $n$ and $m$ respectively.
+the variables $x$ in $n$ and $y$ in $m$ respectively.
 
 The \textsc{Proc-End} rule synchronizes the termination of communicating on dual 
 channels $c$ and $d$. The resulting process configuration contains two processes
@@ -139,7 +139,7 @@ The exchange of ghost messages here is only for the purpose of establishing a
 reference point for reasoning about the correctness of erasure safety.
 
 The remaining four rules are standard. The \textsc{Proc-Expr} rule allows a
-singleton process to reduce by reducing its underlying term. The \textsc{Proc-Par} and
+singleton process to reduce its underlying term. The \textsc{Proc-Par} and
 \textsc{Proc-Scope} rules allow a process to reduce in parallel composition and
 under channel scope respectively. Finally, the \textsc{Proc-Congr} rule allows
 processes to reduce up to structural congruence.
@@ -161,7 +161,7 @@ ensures that the types appearing in typing judgments are indeed valid (i.e. they
   sort $s$ such that $\Gamma \vdash A : s$.
 \end{theorem}
 
-In TLL and \TLLC{}, the sort of a type determines whether the type is a unrestricted or linear.
+In TLL and \TLLC{}, the sort of a type determines whether the type is unrestricted or linear.
 This means that it is crucial for a type to have a unique sort, otherwise the same type
 could be interpreted as both unrestricted and linear, leading to unsoundness. To address this
 concern, we prove the sort uniqueness theorem below which states that a type can have at most one sort.
@@ -200,7 +200,7 @@ The session fidelity theorem is then stated as follows.
 \noindent
 
 One of the primary challenges in proving session fidelity is to show that typing
-is preserved during communication steps, specifically the \textsc{Proc-Com}, and
+is preserved during communication steps, specifically in the \textsc{Proc-Com}, and
 \textsc{Proc-\underline{Com}} cases. In these cases, the message being
 communicated is transported from the sender to the receiver without the use of a
 substitution. We need to show that the message, after communication, is

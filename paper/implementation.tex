@@ -17,7 +17,7 @@ This function is a sort-polymorphic scheme as it is parameterized over sort vari
 Depending on the universe of $A$, sort $s$ can be instantiated to either $\Ln$ for linear types
 or $\Un$ for unrestricted types. This eliminates the need to define two separate identity functions
 for linear and unrestricted types. The type $A$ here is marked by $\%$ to indicate that it is an
-inferred argument. Suppose $\textsf{id}$ is applied to a natural number $42$, the compiler creates
+inferred argument. Suppose $\textsf{id}$ is applied to a natural number $42$. The compiler creates
 two metavariables $\hat{s}$ and $\hat{\alpha}$ to represent the elided sort and type arguments respectively.
 Type inference produces the following constraints:
 \begin{align*}
