@@ -710,40 +710,6 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ \mcQ_j \}_{j \in \mcJ} 
     }
   }
-  
-  \inferrule[Root-Unit]
-  { k \in \mcJ \\ 
-    \mcQ_k = \Root{\return{\ii}}{\emptyset, \emptyset} \\
-    \Root{m}{
-      \{ c_i, \mcP_i \}_{i \in \mcI},
-      \{ c_j, \mcQ_j \}_{j \in \mcJ \setminus \{k\}}
-    } 
-    \Rrightarrow \mcP'
-  }
-  { 
-    \Root{m}{
-      \{ c_i, \mcP_i \}_{i \in \mcI},
-      \{ c_j, \mcQ_j \}_{j \in \mcJ}
-    }
-    \Rrightarrow \mcP'
-  }
-
-  \inferrule[Node-Unit]
-  { k \in \mcJ \\ 
-    \mcQ_k = \Root{\return{\ii}}{\emptyset, \emptyset} \\ 
-    \Node{d}{m}{
-      \{ c_i, \mcP_i \}_{i \in \mcI},
-      \{ c_j, \mcQ_j \}_{j \in \mcJ \setminus \{k\}}
-    } 
-    \Rrightarrow \mcP'
-  }
-  { 
-    \Node{d}{m}{
-      \{ c_i, \mcP_i \}_{i \in \mcI},
-      \{ c_j, \mcQ_j \}_{j \in \mcJ}
-    }
-    \Rrightarrow \mcP'
-  }
 \end{mathpar}
 
 In the rules above, the \textsc{Root-Fork} and \textsc{Node-Fork} rules
@@ -1118,40 +1084,4 @@ to move any channels since the ghost message $o$ does not contain channels.
   By the assumption, we have $m \Leadsto m'$.
   Repeated application of \textsc{Proc-Par}, \textsc{Proc-Scope} 
   and then \textsc{Proc-Expr} gives us the desired result.
-
-\noindent
-\textbf{Case} (\textsc{Root-Unit}, \textsc{Node-Unit}):
-  \begin{mathpar}\small
-  \inferrule[Root-Unit]
-  { k \in \mcJ \\ 
-    \mcQ_k = \Root{\return{\ii}}{\emptyset, \emptyset} \\
-    \Root{m}{
-      \{ c_i, \mcP_i \}_{i \in \mcI},
-      \{ c_j, \mcQ_j \}_{j \in \mcJ \setminus \{k\}}
-    } 
-    \Rrightarrow \mcP'
-  }
-  { 
-    \Root{m}{
-      \{ c_i, \mcP_i \}_{i \in \mcI},
-      \{ c_j, \mcQ_j \}_{j \in \mcJ}
-    }
-    \Rrightarrow \mcP'
-  }
-  \end{mathpar}
-  Flattening the LHS, we have:
-  $$
-    \scope{\overline{c_i, d_i}}{(
-      \proc{m} \mid \overline{P_i} \mid \proc{\return{\ii}} \mid \overline{Q_j}_{(j \in \mcJ \setminus \{k\})}
-    )}
-  $$
-  From the induction hypothesis, we have
-  $$
-    \scope{\overline{c_i, d_i}}{(
-      \proc{m} \mid \overline{P_i} \mid \overline{Q_j}_{(j \in \mcJ \setminus \{k\})}
-    )} \Rrightarrow | \mcP' |
-  $$
-  Repeated application of \textsc{Proc-Par} and \textsc{Proc-Scope}
-  and then \textsc{Proc-Congr} to the induction hypothesis gives us the desired result.
-
 \end{proof}
