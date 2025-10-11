@@ -196,7 +196,7 @@ We now define the spawning tree semantics through the following reduction rules:
     }
   }
 
-  \inferrule[Root-End]
+  \inferrule[Root-Wait]
   { k \in \mcI \\ 
     \mcP_k = \Node{d_k}{\letin{y}{\close{d_k}}{n}}{ 
       \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
@@ -226,7 +226,7 @@ We now define the spawning tree semantics through the following reduction rules:
     }
   }
 
-  \inferrule[Node-End]
+  \inferrule[Node-Wait]
   { k \in \mcI \\ 
     \mcP_k = \Node{d_k}{\letin{y}{\close{d_k}}{n}}{ 
       \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
@@ -256,6 +256,69 @@ We now define the spawning tree semantics through the following reduction rules:
     }
   }
   
+  \inferrule[Root-Close]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{\letin{y}{\wait{d_k}}{n}}{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcQ_{j_k} = 
+    \Root{
+      \letin{y}{\return{\ii}}{n}
+    }{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  { 
+    \Root{
+      \letin{x}{\close{c_k}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \quad\Rrightarrow
+    \Root{
+      \letin{x}{\return{\ii}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \{k\}},
+      \{ \mcQ_j \}_{j \in \mcJ \cup \{k\}}
+    }
+  }
+
+  \inferrule[Node-Close]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{\letin{y}{\wait{d_k}}{n}}{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcQ_{j_k} = 
+    \Root{
+      \letin{y}{\return{\ii}}{n}
+    }{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  { 
+    \Node{d}{
+      \letin{x}{\close{c_k}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \quad\Rrightarrow
+    \Node{d}{
+      \letin{x}{\return{\ii}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \{k\}},
+      \{ \mcQ_j \}_{j \in \mcJ \cup \{k\}}
+    }
+  }
+\end{mathpar}
+\clearpage
+
+\begin{mathpar}\footnotesize
   \inferrule[Root-Send]
   { k \in \mcI \\ 
     \mcP_k = \Node{d_k}{
@@ -289,7 +352,6 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ \mcQ_j \}_{j \in \mcJ}
     }
   }
-
 
   \inferrule[Node-Send]
   { k \in \mcI \\ 
@@ -326,10 +388,6 @@ We now define the spawning tree semantics through the following reduction rules:
     }
   }
 
-\end{mathpar}
-\clearpage
-
-\begin{mathpar}\footnotesize
   \inferrule[Root-Recv]
   { k \in \mcI \\
     \mcP_k = \Node{d_k}{
@@ -525,7 +583,10 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ \mcQ_j \}_{j \in \mcJ}
     }
   }
+\end{mathpar}
+\clearpage
 
+\begin{mathpar}\footnotesize
   \inferrule[Node-Forward]
   { k \in \mcI \\ 
     \mcP_k = \Node{d_k}{
@@ -558,10 +619,7 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
     }
   }
-\end{mathpar}
-\clearpage
 
-\begin{mathpar}\footnotesize
   \inferrule[Root-Child]
   { k \in \mcI \\
     \mcP_k \Rrightarrow \mcP_k' }
@@ -690,8 +748,9 @@ describe how a \Fork{}-operation spawns a new child process and adds it to the
 set of children processes. The new child process is represented as an internal node.
 The channel connecting the child to its parent is fresh.
 
-The \textsc{Root-End} and \textsc{Node-End} rules describe how a \Close{}/\Wait{}-operation
-detaches a child process from its parent. The detached child process is moved to the set of subtrees.
+The \textsc{Root-Wait}, \textsc{Node-Wait}, \textsc{Root-Close} and 
+\textsc{Node-Close} rules describe how \Close{}/\Wait{}-operations
+detach a child from its parent. The detached process is moved to the set of subtrees.
 
 The \textsc{Root-Send} and \textsc{Node-Send} rules describe how a \Send{}-operation
 sends a value to a child process. The child process must be waiting to receive a value
@@ -733,3 +792,127 @@ in a node can reduce.
 The \textsc{Root-Unit} and \textsc{Node-Unit} rules describe how a subtree
 that has finished (i.e. its expression is $\return{\ii}$ and it has no children or subtrees)
 can be removed from the spawning tree.
+
+We now state the simulation theorem between the spawning tree semantics
+and the standard semantics (\Cref{appendix:process-semantics}).
+With slight abuse of notation, we write $| \mcP |$ to denote just the process $P$
+obtained by flattening the spawning tree $\mcP$.
+
+\begin{theorem}[Spawning Tree Simulation]\label{theorem:spawning-tree-simulation}
+  If $\mcP \Rrightarrow \mcP'$, then $| \mcP | \Rrightarrow | \mcP' |$. 
+\end{theorem}
+\begin{proof}
+  By induction on the derivation of $\mcP \Rrightarrow \mcP'$.
+
+\noindent
+\textbf{Case} (\textsc{Root-Fork}):
+  \begin{mathpar}\small
+    \inferrule[Root-Fork]
+    { }
+    { 
+      \Root{ 
+        \letin{x}{\fork{y : A}{m}}{n} 
+      }{ 
+        \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, 
+        \{ \mcQ_j \}_{j \in \mcJ}
+      } \\
+      \quad\Rrightarrow
+      \Root{
+        n[c/x]   
+      }{
+        \{ ( c_i, \mcP_i ) \}_{i \in \mcI} 
+        \cup
+        \{ (c, \Node{d}{m[d/x]}{\emptyset} ) \},
+        \{ \mcQ_j \}_{j \in \mcJ}
+      }
+    }
+  \end{mathpar}
+  Flattening both sides, we have:
+  \begin{align*}
+    &\scope{\overline{c_i d_i}}{(\proc{\letin{x}{\fork{y : A}{m}}{n}} \mid \overline{P_i})} \mid \overline{Q_j}
+    \\
+    &\scope{\overline{c_i d_i}}{(\scope{cd}{\proc{n[c/x]} \mid \proc{m[d/x]}} \mid \overline{P_i})} \mid \overline{Q_j}
+  \end{align*}
+  Repeated application of \textsc{Proc-Par} and \textsc{Proc-Scope} 
+  and then \textsc{Proc-Fork} on the LHS gives the RHS, thus concluding this case.
+
+\noindent
+\textbf{Case} (\textsc{Node-Fork}): Similar to the \textsc{Root-Fork} case.
+
+\noindent
+\textbf{Case} (\textsc{Root-Wait}):
+  \begin{mathpar}\small
+  \inferrule[Root-Wait]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{\letin{y}{\close{d_k}}{n}}{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcQ_{j_k} = 
+    \Root{
+      \letin{y}{\return{\ii}}{n}
+    }{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  { 
+    \Root{
+      \letin{x}{\wait{c_k}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \quad\Rrightarrow
+    \Root{
+      \letin{x}{\return{\ii}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \{k\}},
+      \{ \mcQ_j \}_{j \in \mcJ \cup \{k\}}
+    }
+  }
+  \end{mathpar}
+  Flattening both sides, we have:
+  \begin{small}
+  \begin{align*}
+    &\scope{\overline{c_i d_i}}{ (
+        \proc{\letin{x}{\wait{c_k}}{m}} 
+        \mid \overline{P_i}_{(i \in \mcI \setminus \{k\})}
+        \mid (
+          \scope{\overline{c_{i_k}d_{i_k}}}{(\proc{\letin{y}{\close{d_k}}{n}} \mid \overline{P_{i_k}})}
+          \mid \overline{Q_{j_k}}
+        )
+      )
+    } \mid \overline{Q_j}
+    \\
+    &\scope{\overline{c_i d_i}_{(i \in \mcI \setminus \{k\})}}{(
+      \proc{\letin{x}{\return{\ii}}{m}} 
+      \mid \overline{P_i}_{(i \in \mcI \setminus \{k\})}
+    )} 
+    \mid \overline{Q_j} 
+    \mid (
+      \scope{\overline{c_{i_k} d_{i_k}}}{(
+        \proc{\letin{y}{\return{\ii}}{n}} \mid \overline{P_{i_k}}
+      )} \mid \overline{Q_{j_k}}
+    )
+  \end{align*}
+  \end{small}
+  Apply \textsc{Proc-Congr} to the LHS to rearrange the processes,
+  then apply \textsc{Proc-Scope} and \textsc{Proc-Par} repeatedly
+  to isolate the sub-configuration 
+  $\scope{c_k d_k}{(\proc{\letin{x}{\wait{c_k}}{m}} \mid \proc{\letin{y}{\close{d_k}}{n}})}$.
+  Finally, apply \textsc{Proc-Wait} to this sub-configuration
+  to obtain the reduced configuration, which is structurally congruent
+  to the RHS.
+
+
+\noindent
+\textbf{Case} (\textsc{Node-Wait}): Similar to the \textsc{Root-Wait} case.
+
+\noindent
+\textbf{Case} (\textsc{Root-Close}): Similar to the \textsc{Root-Wait} case.
+
+\noindent
+\textbf{Case} (\textsc{Node-Close}): Similar to the \textsc{Root-Wait} case.
+
+\end{proof}
