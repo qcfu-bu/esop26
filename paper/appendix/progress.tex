@@ -1589,4 +1589,121 @@ the spawning trees reachable from it are all well-typed.
   \textsc{Node-\underline{Recv}}
 ): Similar to the \textsc{Root-\underline{Send}} case.
 
+\noindent
+\textbf{Case} (\textsc{Node-Forward}):
+  \begin{mathpar}\small
+  \inferrule[Node-Forward]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{
+      \letin{y}{\recvR{d_k}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcI' = \{ i \in \mcI | c_i \in \FC{v} \} \\
+    d \in \FC{v} \\
+    \mcP_k' = \Node{c_k}{
+      \letin{x}{ \return{c_k} }{m} 
+    }{
+      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus (\{ k \} \cup \mcI')},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+  { \Node{d}{\letin{x}{
+        \appR{\sendR{c_k}}{v}
+      }{m}
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \Rrightarrow
+    \Node{d}{
+      \letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k \cup \mcI'} \cup \{ (d_k, \mcP_k') \},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  \end{mathpar}
+  By inversion on the typing judgment
+  \begin{align*}
+    &\ch{\kappa}{A} \Vdash \Node{d}{\letin{x}{
+        \appR{\sendR{c_k}}{v}
+      }{m}
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  \end{align*}
+  we have
+  \begin{align*}
+    & \overline{c_i \tL \ch{\kappa_i}{A_i}}, d \tL \ch{\kappa}{A} ; \epsilon ; \epsilon \vdash
+      \letin{x}{\appR{\sendR{c_k}}{v}}{m} : 
+      \CM{\unit} \\
+    & \forall i \in \mcI, \neg{\ch{\kappa_i}{A_i}} \Vdash \mcP_i \\
+    & \forall j \in \mcJ, \Vdash \mcQ_j
+  \end{align*}
+
+  \noindent
+  From $k \in \mcI$, we know
+  \begin{align*}
+    & \neg{\ch{\kappa_k}{A_k}} \Vdash 
+      \Node{d_k}{
+        \letin{y}{\recvR{d_k}}{n}
+      }{
+        \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+        \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+      }
+  \end{align*}
+  and by inversion on this typing judgment, we have
+  \begin{align*}
+    & \overline{c_{i_k} \tL \ch{\kappa_{i_k}}{A_{i_k}}}, d_k \tL \neg{\ch{\kappa_k}{A_k}} ; 
+      \epsilon ; \epsilon \vdash
+      \letin{y}{\recvR{d_k}}{n} : 
+      \CM{\unit} \\
+    & \forall i_k \in \mcI_k, \neg{\ch{\kappa_{i_k}}{A_{i_k}}} \Vdash \mcP_{i_k} \\
+    & \forall j_k \in \mcJ_k, \Vdash \mcQ_{j_k}
+  \end{align*}
+  Similarly to the reasoning in \Cref{theorem:session-fidelity} for the 
+  \textsc{Proc-Comm} case, there exists $B''$ such that
+  \begin{small}
+  \begin{align*}
+    &\overline{c_i \tL \ch{\kappa_i}{A_i}}_{(i \in \mcI \setminus (\{k\} \cup \mcI'))}, 
+     c_k \tL \ch{\kappa_k}{B''[v/x]} ; \epsilon ; \epsilon \vdash 
+     \letin{x}{\return{c_k}}{m} : \CM{\unit}
+    \\
+    &\overline{c_{i_k} \tL \ch{\kappa_{i_k}}{A_{i_k}}},
+     \overline{c_i \tL \ch{\kappa_i}{A_i}}_{(i \in \mcI')},
+     d_k \tL \neg{\ch{\kappa_k}{B''[v/x]}}, d \tL \ch{\kappa}{A} ; \epsilon ; \epsilon \vdash
+     \letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n} : \CM{\unit}
+  \end{align*}
+  \end{small}
+
+  \noindent
+  We can partition $\{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \{k\}}$ into
+  $\{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus (\{ k \} \cup \mcI')}$ and
+  $\{ ( c_{i}, \mcP_{i} ) \}_{i \in \mcI'}$.
+
+  \noindent
+  This gives us the well-typed node
+  \begin{align*}
+    \ch{\kappa_k}{B''[v/x]} \Vdash
+    \Node{c_k}{
+      \letin{x}{ \return{c_k} }{m} 
+    }{
+      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus (\{ k \} \cup \mcI')},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  \end{align*}
+  which in turn gives us the well-typed node
+  \begin{align*}
+    &\ch{\kappa}{A} \Vdash \Node{d}{
+      \letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k \cup \mcI'} \cup \{ (d_k, \mcP_k') \},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  \end{align*}
+  and concludes this case.
+
 \end{proof}
