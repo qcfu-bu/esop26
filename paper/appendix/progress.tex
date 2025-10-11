@@ -1812,3 +1812,24 @@ the spawning trees reachable from it are all well-typed.
 \noindent
 \textbf{Case} (\textsc{Node-Expr}): Similar to the \textsc{Root-Expr} case.
 \end{proof}
+
+Now we can define the reachability of a configuration through spawning trees.
+\begin{definition}[Reachability]
+  A configuration $P$ is \emph{reachable} if there exists a spawning tree $\mcP$
+  such that $\Vdash \mcP$ and $|\mcP| = P$.
+\end{definition}
+
+Now to prove the main progress theorem, we first need to define a few auxiliary judgments
+that will help us characterize the state of a spawning tree.
+
+\begin{mathpar}
+  \inferrule
+  { \forall j \in \mcJ,\quad  \mcQ_j~\Terminal }
+  { \Root{\return{\ii}}{\emptyset, \{ Q_j \}_{j \in \mcJ}}~\Terminal }
+\end{mathpar}
+
+\begin{mathpar}
+  \inferrule
+  { }
+  { \Node{d}{\letin{y}{\appR{\sendR{d}}{v}}{}}{} }
+\end{mathpar}

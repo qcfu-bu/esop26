@@ -976,6 +976,12 @@ They are proved by induction on the typing derivation of the value.
   $v = \bTrue$ or $v = \bFalse$.
 \end{lemma}
 
+\begin{lemma}\label[lemma]{lemma:program-monad-canonical}
+  If ${\Theta ; \epsilon ; \epsilon \vdash v : \CM{A}}$ then
+  $v = \return{u}$ or there exists thunk $\tau$ such that $v = \tau$
+  or $v = \letin{x}{\tau}{m}$.
+\end{lemma}
+
 \begin{theorem}[Program Progress]\label[theorem]{theorem:program-progress}
   If ${\Theta ; \epsilon ; \epsilon \vdash m : A}$, then $m$ is a value or there exists $m'$ such that $m \Leadsto m'$.
 \end{theorem}

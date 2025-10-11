@@ -20,11 +20,12 @@ The full syntax of \TLLC{} is presented below.
               &             & \;| & $\fork{x : A}{m}$ | $\recvR{m}$ | $\recvI{m}$
                                     | $\sendR{m}$ | $\sendI{m}$ \\
               &             & \;| & $\close{m}$ | $\wait{m}$ \\
+    thunks    & $\tau$         & ::= & $\fork{x : A}{m}$ | $\recvR{v}$ | $\recvI{v}$  \\
+              &             & \;| & $\appR{\sendR{v}}{u}$ | $\appI{\sendI{v}}{m}$ | $\close{v}$ | $\wait{v}$ \\
+              &             & \;| & $\letin{x}{\tau}{m}$ \\ 
     values    & $u, v$      & ::= & $c$ | $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$
                                     | $\pairR{u}{v}{t}$ | $\pairI{m}{v}{t}$ \\
-              &             & \;| & $\ii$ | $\bTrue$ | $\bFalse$ | $\return{v}$ | $\letin{x}{v}{m}$ \\
-              &             & \;| & $\fork{x : A}{m}$ | $\recvR{v}$ | $\recvI{v}$ | $\sendR{v}$ | $\sendI{v}$ \\
-              &             & \;| & $\appR{\sendR{v}}{u}$ | $\appI{\sendI{v}}{m}$ | $\close{v}$ | $\wait{v}$ \\
+              &             & \;| & $\ii$ | $\bTrue$ | $\bFalse$ | $\return{v}$ | $\tau$ | $\sendR{v}$ | $\sendI{v}$ \\
     process   & $O, P, Q$   & \;| & $\langle m \rangle$ | ($P \mid Q$) | $\scope{cd}{P}$
   \end{tabular}
 \end{figure}
