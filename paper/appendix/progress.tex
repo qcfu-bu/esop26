@@ -173,7 +173,7 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \mcI'} 
       \cup
       \{ (c, 
-          \Node{d}{m[d/x]}{ 
+          \Node{d}{m[d/y]}{ 
             \{ ( c_{i'}, \mcP_{i'} ) \}_{i' \in \mcI'},
             \emptyset
           }) 
@@ -200,7 +200,7 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \mcI'} 
       \cup
       \{ (c, 
-          \Node{d}{m[d/x]}{ 
+          \Node{d}{m[d/y]}{ 
             \{ ( c_{i'}, \mcP_{i'} ) \}_{i' \in \mcI'},
             \emptyset
           }) 
@@ -215,7 +215,7 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
       \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
     } \\
-    \mcQ_{j_k} = 
+    \mcQ_{k} = 
     \Root{
       \letin{y}{\return{\ii}}{n}
     }{ 
@@ -245,7 +245,7 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
       \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
     } \\
-    \mcQ_{j_k} = 
+    \mcQ_{k} = 
     \Root{
       \letin{y}{\return{\ii}}{n}
     }{ 
@@ -275,7 +275,7 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
       \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
     } \\
-    \mcQ_{j_k} = 
+    \mcQ_{k} = 
     \Root{
       \letin{y}{\return{\ii}}{n}
     }{ 
@@ -305,7 +305,7 @@ We now define the spawning tree semantics through the following reduction rules:
       \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
       \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
     } \\
-    \mcQ_{j_k} = 
+    \mcQ_{k} = 
     \Root{
       \letin{y}{\return{\ii}}{n}
     }{ 
@@ -811,7 +811,7 @@ obtained by flattening the spawning tree $\mcP$.
       \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \mcI'} 
       \cup
       \{ (c, 
-          \Node{d}{m[d/x]}{ 
+          \Node{d}{m[d/y]}{ 
             \{ ( c_{i'}, \mcP_{i'} ) \}_{i' \in \mcI'},
             \emptyset
           }) 
@@ -830,7 +830,7 @@ obtained by flattening the spawning tree $\mcP$.
     \scope{\overline{c_i d_i}_{(i \in \mcI)}}{(
         \scope{cd}{(
           \proc{n[c/x]} \mid 
-          \proc{m[d/x]}
+          \proc{m[d/y]}
         )} \mid \overline{P_i}
       )} \mid \overline{Q_j}
   \end{align*}
@@ -842,7 +842,7 @@ obtained by flattening the spawning tree $\mcP$.
       \scope{cd}{(
         \proc{n[c/x]} \mid 
         \scope{\overline{c_{i'} d_{i'}}_{(i' \in \mcI')}}{(
-          \proc{m[d/x]} \mid \overline{P_{i'}}_{(i' \in \mcI')}
+          \proc{m[d/y]} \mid \overline{P_{i'}}_{(i' \in \mcI')}
         )}
       )} \mid \overline{P_i}
     )} \mid \overline{Q_j}
@@ -1147,7 +1147,9 @@ the spawning trees reachable from it are all well-typed.
 \textbf{Case} (\textsc{Root-Fork}):
   \begin{mathpar}\small
   \inferrule[Root-Fork]
-  { }
+  { 
+    \mcI' = \{ i \in \mcI | c_i \in \FC{m} \}
+  }
   { 
     \Root{ 
       \letin{x}{\fork{y : A}{m}}{n} 
@@ -1159,9 +1161,14 @@ the spawning trees reachable from it are all well-typed.
     \Root{
       n[c/x]   
     }{
-      \{ ( c_i, \mcP_i ) \}_{i \in \mcI} 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \mcI'} 
       \cup
-      \{ (c, \Node{d}{m[d/x]}{\emptyset} ) \},
+      \{ (c, 
+          \Node{d}{m[d/x]}{ 
+            \{ ( c_{i'}, \mcP_{i'} ) \}_{i' \in \mcI'},
+            \emptyset
+          }) 
+      \},
       \{ \mcQ_j \}_{j \in \mcJ}
     }
   }
@@ -1185,6 +1192,145 @@ the spawning trees reachable from it are all well-typed.
   \end{align*}
   Similarly to the reasoning in \Cref{theorem:session-fidelity} for the \textsc{Proc-Fork} case, 
   by inversion on the term typing judgment we know that $A = \CH{A'}$ and the following hold:
+  \begin{align*}
+    &\overline{c_i \tL \ch{\kappa_i}{A_i}}_{(i \in \mcI')}, d \tL \HC{A'} ; 
+      \epsilon ; \epsilon \vdash m[d/y] : \CM{\unit}  \\
+    &\overline{c_i \tL \ch{\kappa_i}{A_i}}_{(i \in \mcI \setminus \mcI')} ; c \tL \CH{A'} ; 
+      \epsilon ; \epsilon \vdash n[c/x] : \CM{\unit}
+  \end{align*}
+
+  \noindent
+  We can partition $\{ ( c_i, \mcP_i ) \}_{i \in \mcI}$ into
+  $\{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \mcI'}$ and
+  $\{ ( c_{i'}, \mcP_{i'} ) \}_{i' \in \mcI'}$.
+
+  \noindent
+  We now have well-typed node 
+  $$
+    \ch{-}{A'} \Vdash \Node{d}{m[d/y]}{ 
+      \{ ( c_{i'}, \mcP_{i'} ) \}_{i' \in \mcI'},
+      \emptyset
+    }
+  $$
+  which in turn gives us the well-typed root
+  $$
+    \Vdash \Root{
+      n[c/x]   
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \mcI'} 
+      \cup
+      \{ (c, 
+          \Node{d}{m[d/x]}{ 
+            \{ ( c_{i'}, \mcP_{i'} ) \}_{i' \in \mcI'},
+            \emptyset
+          }) 
+      \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  $$
+  and concludes this case.
+
+\noindent
+\textbf{Case} (\textsc{Node-Fork}): Similar to the \textsc{Root-Fork} case.
+
+\noindent
+\textbf{Case} (\textsc{Root-Wait}):
+  \begin{mathpar}\small
+  \inferrule[Root-Wait]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{\letin{y}{\close{d_k}}{n}}{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcQ_{k} = 
+    \Root{
+      \letin{y}{\return{\ii}}{n}
+    }{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  { 
+    \Root{
+      \letin{x}{\wait{c_k}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \quad\Rrightarrow
+    \Root{
+      \letin{x}{\return{\ii}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \{k\}},
+      \{ \mcQ_j \}_{j \in \mcJ \cup \{k\}}
+    }
+  }
+  \end{mathpar}
+  By inversion on the typing judgment 
+  $$
+    \Vdash \Root{
+      \letin{x}{\wait{c_k}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  $$
+  we have
+  \begin{align*}
+    & \overline{c_i \tL \ch{\kappa_i}{A_i}} ; \epsilon ; \epsilon \vdash
+      \letin{x}{\wait{c_k}}{m} : 
+      \CM{\unit} \\
+    & \forall i \in \mcI, \neg{\ch{\kappa_i}{A_i}} \Vdash \mcP_i \\
+    & \forall j \in \mcJ, \Vdash \mcQ_j
+  \end{align*}
+
+  \noindent
+  Since $k \in \mcI$, we know 
+  $$
+    \neg{\ch{\kappa_k}{A_k}} \Vdash 
+    \Node{d_k}{\letin{y}{\close{d_k}}{n}}{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  $$
+  and by inversion on this typing judgment, we have
+  \begin{align*}
+    & \overline{c_{i_k} \tL \ch{\kappa_{i_k}}{A_{i_k}}}, d_k \tL \neg{\ch{\kappa_k}{A_k}} ; 
+      \epsilon ; \epsilon \vdash
+      \letin{y}{\close{d_k}}{n} : 
+      \CM{\unit} \\
+    & \forall i_k \in \mcI_k, \neg{\ch{\kappa_{i_k}}{A_{i_k}}} \Vdash \mcP_{i_k} \\
+    & \forall j_k \in \mcJ_k, \Vdash \mcQ_{j_k}
+  \end{align*}
+  
+  \noindent
+  Similarly to the reasoning in \Cref{theorem:session-fidelity} for the \textsc{Proc-End} case,
+  we know $A_k \simeq \End$ and
+  \begin{align*}
+    & \overline{c_i \tL \ch{\kappa_i}{A_i}}_{(i \in \mcI \setminus \{k\})} ; 
+      \epsilon ; \epsilon \vdash \letin{x}{\return{\ii}}{m} : \CM{\unit} \\
+    & \overline{c_{i_k} \tL \ch{\kappa_{i_k}}{A_{i_k}}} ; 
+      \epsilon ; \epsilon \vdash \letin{y}{\return{\ii}}{n} : \CM{\unit} 
+  \end{align*}
+  This gives us the well-typed root
+  $$
+    \Vdash \Root{
+      \letin{y}{\return{\ii}}{n}
+    }{ 
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  $$
+  which in turn gives us the well-typed root
+  $$
+    \Vdash \Root{
+      \letin{x}{\return{\ii}}{m}
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \{k\}},
+      \{ \mcQ_j \}_{j \in \mcJ \cup \{k\}}
+    }
+  $$
+  and concludes this case.
 
 
 \end{proof}
