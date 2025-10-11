@@ -174,7 +174,7 @@ We now define the spawning tree semantics through the following reduction rules:
       \cup
       \{ (c, 
           \Node{d}{m[d/x]}{ 
-            \{ ( c_{i}, \mcP_{i} ) \}_{i \in \mcI'},
+            \{ ( c_{i'}, \mcP_{i'} ) \}_{i' \in \mcI'},
             \emptyset
           }) 
       \},
@@ -201,7 +201,7 @@ We now define the spawning tree semantics through the following reduction rules:
       \cup
       \{ (c, 
           \Node{d}{m[d/x]}{ 
-            \{ ( c_{i}, \mcP_{i} ) \}_{i \in \mcI'},
+            \{ ( c_{i'}, \mcP_{i'} ) \}_{i' \in \mcI'},
             \emptyset
           }) 
       \},
@@ -729,7 +729,9 @@ We now define the spawning tree semantics through the following reduction rules:
 In the rules above, the \textsc{Root-Fork} and \textsc{Node-Fork} rules
 describe how a \Fork{}-operation spawns a new child process and adds it to the
 set of children processes. The new child process is represented as an internal node.
-The channel connecting the child to its parent is fresh.
+The channel connecting the child to its parent is fresh. Child processes that are
+connected to channels in $\FC{m}$ (the free channels in the spawning expression)
+are moved to be children of the newly spawned process.
 
 The \textsc{Root-Wait}, \textsc{Node-Wait}, \textsc{Root-Close} and 
 \textsc{Node-Close} rules describe how \Close{}/\Wait{}-operations
@@ -791,34 +793,61 @@ obtained by flattening the spawning tree $\mcP$.
 \noindent
 \textbf{Case} (\textsc{Root-Fork}):
   \begin{mathpar}\small
-    \inferrule[Root-Fork]
-    { }
-    { 
-      \Root{ 
-        \letin{x}{\fork{y : A}{m}}{n} 
-      }{ 
-        \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, 
-        \{ \mcQ_j \}_{j \in \mcJ}
-      } \\
-      \quad\Rrightarrow
-      \Root{
-        n[c/x]   
-      }{
-        \{ ( c_i, \mcP_i ) \}_{i \in \mcI} 
-        \cup
-        \{ (c, \Node{d}{m[d/x]}{\emptyset} ) \},
-        \{ \mcQ_j \}_{j \in \mcJ}
-      }
+  \inferrule[Root-Fork]
+  { 
+    \mcI' = \{ i \in \mcI | c_i \in \FC{m} \}
+  }
+  { 
+    \Root{ 
+      \letin{x}{\fork{y : A}{m}}{n} 
+    }{ 
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI}, 
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\
+    \quad\Rrightarrow
+    \Root{
+      n[c/x]   
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI \setminus \mcI'} 
+      \cup
+      \{ (c, 
+          \Node{d}{m[d/x]}{ 
+            \{ ( c_{i'}, \mcP_{i'} ) \}_{i' \in \mcI'},
+            \emptyset
+          }) 
+      \},
+      \{ \mcQ_j \}_{j \in \mcJ}
     }
+  }
   \end{mathpar}
-  Flattening both sides, we have:
+  Flattening the LHS, we have:
   \begin{align*}
-    &\scope{\overline{c_i d_i}}{(\proc{\letin{x}{\fork{y : A}{m}}{n}} \mid \overline{P_i})} \mid \overline{Q_j}
-    \\
-    &\scope{\overline{c_i d_i}}{(\scope{cd}{\proc{n[c/x]} \mid \proc{m[d/x]}} \mid \overline{P_i})} \mid \overline{Q_j}
+    \scope{\overline{c_i d_i}}{(\proc{\letin{x}{\fork{y : A}{m}}{n}} \mid \overline{P_i})} \mid \overline{Q_j}
   \end{align*}
   Repeated application of \textsc{Proc-Par} and \textsc{Proc-Scope} 
-  and then \textsc{Proc-Fork} on the LHS gives the RHS, thus concluding this case.
+  and then \textsc{Proc-Fork} on the LHS gives us the reduced configuration
+  \begin{align*}
+    \scope{\overline{c_i d_i}_{(i \in \mcI)}}{(
+        \scope{cd}{(
+          \proc{n[c/x]} \mid 
+          \proc{m[d/x]}
+        )} \mid \overline{P_i}
+      )} \mid \overline{Q_j}
+  \end{align*}
+  By linearity of channels, we know that $\{ c_{i'}, d_{i'} \}_{(i' \in \mcI')}$
+  do not appear in $n[c/x]$. Thus, we can apply structural congruence to rearrange the
+  scoping to obtain 
+  \begin{align*}
+    \scope{\overline{c_i d_i}_{(i \in \mcI \setminus \mcI')}}{(
+      \scope{cd}{(
+        \proc{n[c/x]} \mid 
+        \scope{\overline{c_{i'} d_{i'}}_{(i' \in \mcI')}}{(
+          \proc{m[d/x]} \mid \overline{P_{i'}}_{(i' \in \mcI')}
+        )}
+      )} \mid \overline{P_i}
+    )} \mid \overline{Q_j}
+  \end{align*}
+  which is the flattened RHS.
 
 \noindent
 \textbf{Case} (\textsc{Node-Fork}): Similar to the \textsc{Root-Fork} case.
