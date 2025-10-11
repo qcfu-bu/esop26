@@ -799,7 +799,8 @@ With slight abuse of notation, we write $| \mcP |$ to denote just the process $P
 obtained by flattening the spawning tree $\mcP$.
 
 \begin{theorem}[Spawning Tree Simulation]\label{theorem:spawning-tree-simulation}
-  If $\mcP \Rrightarrow \mcP'$, then $| \mcP | \Rrightarrow | \mcP' |$. 
+  If $\Vdash \mcP$ or $A \Vdash \mcP$, then given $\mcP \Rrightarrow \mcP'$ 
+  there is $| \mcP | \Rrightarrow | \mcP' |$. 
 \end{theorem}
 \begin{proof}
   By induction on the derivation of $\mcP \Rrightarrow \mcP'$.
@@ -914,5 +915,103 @@ obtained by flattening the spawning tree $\mcP$.
 
 \noindent
 \textbf{Case} (\textsc{Node-Close}): Similar to the \textsc{Root-Wait} case.
+
+\noindent
+\textbf{Case} (\textsc{Root-Send}):
+  \begin{mathpar}\small
+  \inferrule[Root-Send]
+  { k \in \mcI \\ 
+    \mcP_k = \Node{d_k}{
+      \letin{y}{\recvR{d_k}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    } \\
+    \mcI' = \{ i \in \mcI | c_i \in \FC{v} \} \\
+    \mcP_k' = \Node{d_k}{
+      \letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}
+    }{
+      \{ ( c_{i_k}, \mcP_{i_k} ) \}_{i_k \in \mcI_k \cup \mcI'},
+      \{ \mcQ_{j_k} \}_{j_k \in \mcJ_k}
+    }
+  }
+  { \Root{\letin{x}{
+        \appR{\sendR{c_k}}{v}
+      }{m}
+    }{
+      \{ ( c_i, \mcP_i ) \}_{i \in \mcI},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    } \\\\
+    \Rrightarrow
+    \Root{
+      \letin{x}{
+        \return{c_k}
+      }{m} 
+    }{
+      \{ (c_i, \mcP_i) \}_{i \in \mcI \setminus (\{ k \} \cup \mcI')} \cup \{ (c_k, \mcP_k') \},
+      \{ \mcQ_j \}_{j \in \mcJ}
+    }
+  }
+  \end{mathpar}
+  Flattening both sides, we have:
+  \begin{small}
+  \begin{align*}
+    &\scope{\overline{c_i d_i}}{ (
+        \proc{\letin{x}{\appR{\sendR{c_k}}{v}}{m}} 
+        \mid \overline{P_i}_{(i \in \mcI \setminus \{k\})}
+        \mid (
+          \scope{\overline{c_{i_k}d_{i_k}}}{(\proc{\letin{y}{\recvR{d_k}}{n}} \mid \overline{P_{i_k}})}
+          \mid \overline{Q_{j_k}}
+        )
+      )
+    } \mid \overline{Q_j}
+    \\
+    &\nu{\overline{c_i d_i}_{(i \in (\mcI \setminus (\{k\} \cup \mcI')) \cup \{ k \})}}.(
+      \proc{\letin{x}{\return{c_k}}{m}} 
+      \mid \overline{P_i}_{(i \in \mcI \setminus (\{k\} \cup \mcI'))} \\
+      &\qquad\mid
+      \scope{\overline{c_{i_k} d_{i_k}}}{
+      \scope{\overline{c_i d_i}_{(i \in \mcI')}}{(
+        \proc{\letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}} \mid \overline{P_{i_k}} \mid \overline{P_i}_{(i \in \mcI')}
+      )}
+      } \mid \overline{Q_{j_k}}
+    )
+    \mid \overline{Q_j}
+  \end{align*}
+  \end{small}
+  Apply \textsc{Proc-Congr} to the LHS to rearrange the processes,
+  then apply \textsc{Proc-Scope} and \textsc{Proc-Par} repeatedly
+  to isolate the sub-configuration 
+  $\scope{c_k d_k}{(\proc{\letin{x}{\appR{\sendR{c_k}}{v}}{m}} \mid \proc{\letin{y}{\recvR{d_k}}{n}})}$.
+  Now, apply \textsc{Proc-Send} to this sub-configuration to obtain the reduced configuration
+  $$
+    \scope{c_k d_k}{(
+      \proc{\letin{x}{\return{c_k}}{m}} 
+      \mid \proc{\letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}}
+    )}
+  $$
+  Note that, by linearity, the channels $\{ c_i, d_i \}_{(i \in \mcI')}$ do not occur in $m$.
+  Thus, the scope restriction rule for structural congruence can be applied to move
+  the scope of these channels to
+  $$\scope{\overline{c_i d_i}_{(i \in \mcI')}}{
+    (\proc{\letin{y}{\return{\pairR{v}{d_k}{\Ln}}}{n}} \mid \overline{P_i}_{(i \in \mcI')})}$$
+  which gives us the desired result.
+
+\noindent
+\textbf{Case} (
+  \textsc{Node-Send}, 
+  \textsc{Root-Recv}
+  \textsc{Node-Recv}
+): Similar to the \textsc{Root-Send} case.
+
+\noindent
+\textbf{Case} (
+  \textsc{Root-\underline{Send}}
+  \textsc{Node-\underline{Send}}
+  \textsc{Root-\underline{Recv}}
+  \textsc{Node-\underline{Recv}}
+): Similar to the \textsc{Root-Send} case.
+The only difference is that scope restriction does not need to be applied
+to move any channels since the ghost message $o$ does not contain channels.
 
 \end{proof}
